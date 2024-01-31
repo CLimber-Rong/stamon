@@ -1,0 +1,196 @@
+{
+  "ast_class": [
+    {
+      "name": "Program",
+      "structure": [
+        {
+          "args": "ArrayList<AstNode*>* defClass",
+          "code": "children = defClass;"
+        }
+      ]
+    },
+    {
+      "name": "DefClass",
+      "structure": [
+        {
+          "args": "AstIdentifier* iden, AstAnonClass* object_class",
+          "code": "children->add((AstNode*)iden);children->add((AstNode*)object_class);"
+        }
+      ]
+    },
+    {
+      "name": "DefFunc",
+      "structure": [
+        {
+          "args": "AstIdentifier* iden, AstAnonFunc* func",
+          "code": "children->add((AstNode*)iden);children->add((AstNode*)func);"
+        }
+      ]
+    },
+    {
+      "name": "AnonClass",
+      "structure": [
+        {
+          "args": "AstIdentifier* father, ArrayList<AstNode*>* expr",
+          "code": "children = expr; children->add((AstNode*)father);"
+        }
+      ]
+    },
+    
+    {
+      "name": "AnonFunc",
+      "structure": [
+        {
+          "args": "ArrayList<AstNode*>* args, AstBlock* block",
+          "code": "children = args;children->add((AstNode*)block);"
+        }
+      ]
+    },
+    {
+      "name": "Block",
+      "structure": [
+        {
+          "args": "ArrayList<AstNode*>* statements",
+          "code": "children = statements;"
+        }
+      ]
+    },
+    {
+      "name": "IfStatement",
+      "structure": [
+        {
+          "args": "AstExpression* expr, AstBlock* block_if",
+          "code": "children->add((AstNode*)expr);children->add((AstNode*)block_if);"
+        },
+        {
+          "args": "AstExpression* expr, AstBlock* block_if, AstBlock* block_else",
+          "code": "children->add((AstNode*)expr);children->add((AstNode*)block_if);children->add((AstNode*)block_else);"
+        }
+      ]
+    },
+    {
+      "name": "WhileStatement",
+      "structure": [
+        {
+          "args": "AstExpression* expr, AstBlock* block_while",
+          "code": "children->add((AstNode*)expr);children->add((AstNode*)block_while);"
+        }
+      ]
+    },
+    {
+      "name": "ForStatement",
+      "structure": [
+        {
+          "args": "AstIdentifier* iden, AstExpression* expr, AstBlock* block_for",
+          "code": "children->add((AstNode*)iden);children->add((AstNode*)expr);children->add((AstNode*)block_for);"
+        }
+      ]
+    },
+    {
+      "name": "ReturnStatement",
+      "structure": [
+        {
+          "args": "AstExpression* expr",
+          "code": "children->add((AstNode*)expr);"
+        }
+      ]
+    },
+    {
+      "name": "Expression",
+      "structure": [
+        {
+          "args": "AstLeftValue* LeftValue, AstExpression* expr",
+          "code": "children->add((AstNode*)LeftValue);children->add((AstNode*)expr);"
+        },
+        {
+          "args": "AstBinary* value",
+          "code": "children->add((AstNode*)value);"
+        }
+      ]
+    },
+    {
+      "name": "LeftValue",
+      "structure": [
+        {
+          "args": "AstIdentifier* iden, ArrayList<AstNode*>* postfix",
+          "code": "children = postfix;children->insert(0,(AstNode*)iden);"
+        }
+      ]
+    },
+    {
+      "name": "LeftPostfix",
+      "private_members": "int postfix_type;",
+      "public_members": "virtual int getPostfixType() { return postfix_type; }",
+      "structure": [
+        {
+          "args": "int PostfixType, AstNode* value",
+          "code": "children->add((AstNode*)value);"
+        }
+      ]
+    },
+    {
+      "name": "Binary",
+      "private_members": "int operator_type;",
+      "public_members": "virtual int getOperatorType() { return operator_type; }",
+      "structure": [
+        {
+          "args": "int OperatorType, AstNode* left, AstNode* right",
+          "code": "operator_type = OperatorType;children->add((AstNode*)left);children->add((AstNode*)right);"
+        }
+      ]
+    },
+    {
+      "name": "Unary",
+      "private_members": "int operator_type;",
+      "public_members": "virtual int getOperatorType() { return operator_type; }",
+      "structure": [
+        {
+          "args": "int OperatorType, AstNode* value",
+          "code": "operator_type = OperatorType;children->add((AstNode*)value);"
+        },
+        {
+          "args": "AstNode* value, ArrayList<AstNode*>* postfix",
+          "code": "children = postfix;children->insert(0, (AstNode*)value);"
+        }
+      ]
+    },
+    {
+      "name": "Postfix",
+      "private_members": "int postfix_type;",
+      "public_members": "virtual int getPostfixType() { return postfix_type; }",
+      "structure": [
+        {
+          "args": "int PostfixType, AstNode* value",
+          "code": "postfix_type = PostfixType;children->add((AstNode*)value);"
+        }
+      ]
+    },
+    {
+      "name": "Arguments",
+      "structure": [
+        {
+          "args": "ArrayList<AstNode*>* exprs",
+          "code": "children = exprs;"
+        }
+      ]
+    },
+    {
+      "name": "ArrayLiteral",
+      "structure": [
+        {
+          "args": "AstExpression* expr",
+          "code": "children->add((AstNode*)expr);"
+        }
+      ]
+    },
+    {
+      "name": "ListLiteral",
+      "structure": [
+        {
+          "args": "ArrayList<AstNode*>* exprs",
+          "code": "children = exprs;"
+        }
+      ]
+    }
+  ]
+}
