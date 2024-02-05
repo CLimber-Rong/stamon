@@ -88,6 +88,7 @@ namespace stamon {
 		    TokenExtends,
 		    TokenFunc,
 		    TokenBreak,
+		    TokenContinue,
 		    TokenIf,
 		    TokenElse,
 		    TokenWhile,
@@ -106,10 +107,8 @@ namespace stamon {
 		    TokenRBR,   //右括号
 		    TokenLSB,   //左方括号
 		    TokenRSB,   //右方括号
-		    TokenLAB,	//左尖括号
-		    TokenRAB,	//右尖括号
 		    TokenCmm,   //逗号
-			TokenColon,	//冒号
+		    TokenColon,	//冒号
 		    TokenMember,//小数点
 		    TokenAddAss,    //加等于
 		    TokenSubAss,
@@ -129,7 +128,7 @@ namespace stamon {
 		    TokenEqu,
 		    TokenNotEqu,
 		    TokenBig,
-			TokenLess,
+		    TokenLess,
 		    TokenBigEqu,
 		    TokenLessEqu,
 		    TokenLSH,   //左移
@@ -244,6 +243,14 @@ namespace stamon {
 				ArrayList<Token*> tokens;	//缓存token用
 
 			public:
+
+				STMException* ex;
+
+				Lexer(){}
+
+				Lexer(STMException* e) {
+					ex = e;
+				}
 
 				Token* getTok() {
 					//读取一个Token
@@ -362,6 +369,7 @@ namespace stamon {
 							CHECK_KEYWORD("extends", TokenExtends)
 							CHECK_KEYWORD("func", TokenFunc)
 							CHECK_KEYWORD("break", TokenBreak)
+							CHECK_KEYWORD("continue", TokenContinue);
 							CHECK_KEYWORD("if", TokenIf)
 							CHECK_KEYWORD("else", TokenElse)
 							CHECK_KEYWORD("while", TokenWhile)
@@ -372,7 +380,6 @@ namespace stamon {
 							CHECK_KEYWORD("new", TokenNew)
 							CHECK_KEYWORD("true", TokenTrue)
 							CHECK_KEYWORD("false", TokenFalse)
-							CHECK_KEYWORD("null", TokenNull)
 							//都不是关键字的话，那就是正常的标识符
 
 							st = ed;
@@ -475,8 +482,6 @@ namespace stamon {
 							CHECK_OPERATOR(')', TokenRBR)
 							CHECK_OPERATOR('[', TokenLSB)
 							CHECK_OPERATOR(']', TokenRSB)
-							CHECK_OPERATOR('<', TokenLAB)
-							CHECK_OPERATOR('>', TokenRAB)
 							CHECK_OPERATOR(',', TokenCmm)
 							CHECK_OPERATOR(':', TokenColon)
 							CHECK_OPERATOR('.', TokenMember)
@@ -493,7 +498,11 @@ namespace stamon {
 							CHECK_OPERATOR('!', TokenLogNot)
 							CHECK_OPERATOR('~', TokenBitNot)
 							//执行到这里，说明碰到了未知字符
-							THROW("unknown token")
+							THROW_S(
+								String((char*)"unknown token: \'")
+								+ text.substring(ed, ed+1)
+								+ String((char*)"\'")
+								)
 							return st;
 						}
 					}

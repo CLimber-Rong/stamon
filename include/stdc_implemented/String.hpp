@@ -169,7 +169,7 @@ class String {
 			return String(str);
 		}
 
-		String operator+(String right_value) const {
+		String operator+(const String& right_value) const {
 			char* s = (char*)calloc(length()+right_value.length()+1, 1);
 
 			for(int i=0,len=length(); i<len; i++) {

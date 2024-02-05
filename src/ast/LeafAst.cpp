@@ -138,6 +138,14 @@ namespace stamon {
 					return AstBreakType;
 				}
 		};
+
+		class AstContinue : public AstNode {
+			public:
+				AstContinue() : AstNode() {};
+				virtual int getType() {
+					return AstContinueType;
+				}
+		};
 	}
 }
 

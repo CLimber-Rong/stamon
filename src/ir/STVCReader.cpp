@@ -26,8 +26,11 @@ namespace stamon {
 				int VerX, VerY, VerZ;   //这三个变量代表版本为X.Y.Z
 				NumberMap<datatype::DataType> tableConst;   //常量表
 
-				STVCReader(char* vmcode, int code_size)
+				STMException* ex;
+
+				STVCReader(char* vmcode, int code_size, STMException* e)
 					: tableConst(NumberMap<datatype::DataType>()) {
+					ex = e;
 					//传入字节码和字节码大小
 					stvc_size = code_size;
 					stvc = vmcode;

@@ -17,8 +17,8 @@ namespace stamon {
 
 			public:
 
-				AstProgram(ArrayList<AstNode*>* defClass) : AstNode() {
-					children = defClass;
+				AstProgram(ArrayList<AstNode*>* statements) : AstNode() {
+					children = statements;
 				}
 				virtual int getType() {
 					return AstProgramType;
@@ -51,10 +51,13 @@ namespace stamon {
 		class AstAnonClass : public AstNode {
 
 			public:
-
+				bool isHaveFather = false;
 				AstAnonClass(AstIdentifier* father, ArrayList<AstNode*>* expr) : AstNode() {
 					children = expr;
-					children->add((AstNode*)father);
+					if(father!=NULL) {
+						isHaveFather = true;
+						children->insert(0, (AstNode*)father);
+					}
 				}
 				virtual int getType() {
 					return AstAnonClassType;

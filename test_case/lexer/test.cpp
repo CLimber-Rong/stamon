@@ -29,12 +29,14 @@ using namespace std;
 int main() {
 	//在这里编写调试代码，调试方法见文档
 
-	Lexer lexer;
+	STMException* ex = new STMException();
+
+	Lexer lexer(ex);
 	int index;
 
 	index = lexer.getLineTok(1, String((char*)"def a = func { return \"Hello world!\"; }();"));
 	CATCH {
-		cout<<"ERROR: AT: "<<1<<":"<<index<<" "<<ERROR<<endl;
+		cout<<"ERROR: AT: "<<1<<":"<<index<<" "<<ERROR.getstr()<<endl;
 		return 0;
 	}
 

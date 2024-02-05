@@ -14,6 +14,7 @@
 #include"NumberMap.hpp"
 #include"Stack.hpp"
 #include"String.hpp"
+#include"LineReader.hpp"
 #include"StringMap.hpp"
 #include"DataType.hpp"
 #include"ObjectManager.cpp"
@@ -29,4 +30,6 @@ using namespace std;
 
 int main() {
 	//在这里编写调试代码，调试方法见文档
+
+	return 0;
 }

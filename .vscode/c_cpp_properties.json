@@ -4,7 +4,6 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/include/stdc_implemented/",
-                "${workspaceFolder}/libUTF8/",
                 "${workspaceFolder}/src/ast/",
                 "${workspaceFolder}/src/data_type/",
                 "${workspaceFolder}/src/vm/",

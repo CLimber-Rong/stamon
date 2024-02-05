@@ -13,6 +13,30 @@
 #define _pop			(matcher.Pop())
 #define CE			CATCH { return NULL; }	//如果执行代码中出现异常，直接返回
 #define CTH(message)	CATCH { THROW(message) } //如果执行代码中出现异常，抛出异常
+#define GETLN(type) \
+	int lineNo;\
+	if(true) {\
+		Token* tok = match(type);\
+		CE\
+		lineNo = tok->lineNo;\
+	}
+
+/*
+ * GETLN的全写是：Get LineNo
+ * 这个宏会匹配一个类型为type的token，并且把行号存入lineNo
+ * 套一层if(true)的作用是：防止后续的代码也定义了tok导致编译器报错
+ 	* 套一层if(true)之后，tok这个变量会随着if(true)这个作用域的消失而消失
+*/
+
+#define pushscope(wall) \
+	if(true) {\
+		SyntaxScope scope(ex);\
+		scope.isWall = wall;\
+		scopes.add(scope);\
+	}
+//这里if(true)的作用同GETLN
+#define popscope (scopes.erase(scopes.size()-1))
+
 
 #define unary_check(tok_type, unary_type) \
 	if(check(tok_type)) {\
@@ -30,6 +54,7 @@
 #include"Ast.hpp"
 #include"Lexer.cpp"
 #include"Stack.hpp"
+#include"StringMap.hpp"
 
 namespace stamon {
 	namespace c {
@@ -41,12 +66,14 @@ namespace stamon {
 				Lexer lexer;
 
 			public:
-				Matcher() {
-					//NOTHING
-				}
 
-				Matcher(Lexer lex) {
+				STMException* ex;
+
+				Matcher() {}
+
+				Matcher(Lexer lex, STMException* e) {
 					lexer = lex;
+					ex = e;
 				}
 
 				bool Check(int type) {
@@ -82,6 +109,33 @@ namespace stamon {
 			public:
 				//这个类要区分与vm::ObjectScope
 				StringMap<void> scope;
+				int isWall = 0;
+				/*
+				 * 这里需要详细介绍一下isWall的用法
+				 * 在用户编程的过程中，可能会出现如下代码：
+				 func f1 {
+					 def a = 0;
+					 func f2 {
+						 a += 1;
+					 }
+				 }
+				 * 容易看出，由于f1和f2是两个不同的函数，所以两个函数的作用域不能互相使用
+				 * 换句话说：在f2中使用f1中的a是非法行为
+				 * 但是如果采取常规的作用域分析——因为f2在f1内定义，所以f2可以使用变量a
+				 * 这样就导致了分析的出错
+				 * 为此，我设立了一个标志——isWall，所有函数、类的作用域的isWall都为1
+				 * 其余的作用域（例如if,while等）为0
+				 * 在搜寻某个标识符是否存在时，应当从作用域栈的栈顶开始从上到下搜索
+				 * 直到碰到一个isWall=1的作用域为止
+					 * （由于这种标志很想一堵墙，阻止了搜索，所以我取名为“墙”）
+				 * 这样就防止一个函数使用另外一个函数的变量，但是并未报错
+				*/
+
+				STMException* ex;
+
+				SyntaxScope(STMException* e) {
+					ex = e;
+				}
 
 				bool exist(Token* iden) {
 					return scope.containsKey(((IdenToken*)iden)->iden);
@@ -89,9 +143,19 @@ namespace stamon {
 
 				void mark(Token* iden) {	//声明一个变量
 					if(scope.containsKey(((IdenToken*)iden)->iden)) {
-						THROW("variables are declared repeatedly")
+						THROW_S(
+						    String((char*)"variable \"")
+						    +((IdenToken*)iden)->iden
+						    + String((char*)"\" are declared repeatedly")
+						)
 						return;
 					}
+					scope.put(((IdenToken*)iden)->iden, NULL);
+				}
+
+				void force_mark(Token* iden) {
+					//无论该标识符是否被定义过，强制定义一遍
+					//该函数用于弱定义
 					scope.put(((IdenToken*)iden)->iden, NULL);
 				}
 
@@ -138,12 +202,19 @@ namespace stamon {
 
 				ArrayList<SyntaxScope> scopes;
 
+
+
 			public:
 
-				Parser(Matcher matcher) {
+				int ParsingLineNo = 1;	//当前正在分析的行号
+				STMException* ex;
+
+				Parser(Matcher matcher, STMException* e) {
 					this->matcher = matcher;
-					SyntaxScope global_scope;
-					scopes.add(global_scope);	//压入一个空的全局作用域
+					ex = e;
+					SyntaxScope global_scope(ex);
+					//压入一个空的全局作用域
+					scopes.add(global_scope);
 				}
 
 				template<class T, typename...Types>
@@ -151,37 +222,60 @@ namespace stamon {
 					//这个代码比较难懂，涉及到形参模板和右值引用
 					T* rst = new T(args...);
 					rst->lineNo = line;
+					ParsingLineNo = line;
 					return rst;
 				}
 
 				Token* match(int TokType) {
 					Token* rst = matcher.Match(TokType);
-					CE
+
+					CATCH {
+						if(matcher.Peek(0)->type!=TokenEOF) {
+							ParsingLineNo = matcher.Peek(0)->lineNo;
+						}
+						return NULL;
+					}
+
+					ParsingLineNo = rst->lineNo;
 					return rst;
 				}
 
 
-				AstNode* Parse() {	//未完工
+				AstNode* Parse() {
+					return program();
+				}
+
+				AstProgram* program() {
 					ArrayList<AstNode*>* stm = new ArrayList<AstNode*>();
-					statement(stm);
-					CE
-					return Ast<AstBlock>(
-					           0,
+
+					while(matcher.Peek(0)->type!=TokenEOF) {
+						statement(stm);
+						CE
+					}
+
+					return Ast<AstProgram>(
+					           1,	//整个程序的行号默认为1
 					           stm
 					       );
 				}
 
-				AstProgram* program() {	//未完工
-					return NULL;
-				}
-
 				AstSFNName* sfn() {
 					match(TokenSFN);
+					CE
+
 					AstIdentifierName *port, *arg;
+
 					port = IDEN();
+					CE
+
 					match(TokenCmm);
+
 					arg = IDEN();
+					CE
+
 					match(TokenSemi);
+					CE
+
 					return new AstSFNName(port, arg);;
 				}
 
@@ -201,7 +295,7 @@ namespace stamon {
 
 					//如果不是simple_block，那就是常规的代码块
 
-					int lineNo = match(TokenLBC)->lineNo;	//匹配左花括号
+					GETLN(TokenLBC);	//匹配左花括号
 
 					while(check(TokenRBC)==false) {
 						statement(statements);
@@ -218,26 +312,49 @@ namespace stamon {
 					//读取一条语句，并将解析后的ast加入stm当中
 					//这里的返回值类型为void*，纯粹为了方便CE时return NULL;
 					if(check(TokenDef)) {
-						_pop;	//弹出def
-
-						stm->add(def_var());
-						CE
-
-						while(check(TokenCmm)) {
-							//如果变量的声明不止一个
-							_pop;	//弹出逗号
-							stm->add(def_var());
-							CE
-						}
-
-						match(TokenSemi);	//匹配分号
-						CE
+						def_var(stm);
 					} else if(check(TokenFunc)
 					          &&matcher.Peek(1)->type==TokenIden) {
 						//定义函数
 						stm->add(def_func());
+					} else if(check(TokenClass)
+					          ||matcher.Peek(1)->type==TokenClass) {
+						stm->add(def_class());
+					} else if(check(TokenIf)) {
+						stm->add(statement_if());
+					} else if(check(TokenWhile)) {
+						stm->add(statement_while());
 						CE
+					} else if(check(TokenFor)) {
+						stm->add(statement_for());
+					}  else if(check(TokenReturn)) {
+						stm->add(statement_return());
+					} else if(check(TokenContinue)) {
+						stm->add(
+						    Ast<AstContinue>(
+						        _pop->lineNo
+						    )
+						);
+						match(TokenSemi);
+					} else if(check(TokenBreak)) {
+						stm->add(
+						    Ast<AstBreak>(
+						        _pop->lineNo
+						    )
+						);
+						match(TokenSemi);
+					} else if(check(TokenSemi)) {	//空语句
+						_pop;	//弹出分号
+					} else if(check(TokenSFN)) {
+						stm->add(sfn());
+					} else {
+						//如果以上情况都不是，那就只有可能是表达式了
+						stm->add(expression());
+						CE
+						match(TokenSemi);
 					}
+					CE
+
 					return NULL;
 				}
 
@@ -253,6 +370,7 @@ namespace stamon {
 					               ),
 					               new ArrayList<AstNode*>() //变量无后缀，列表为空
 					           ),
+					           TokenAssign,
 					           Ast<AstExpression>(	//右值（即null）
 					               iden->lineNo,
 					               Ast<AstBinary>(
@@ -270,7 +388,7 @@ namespace stamon {
 					       );
 				}
 
-				AstExpression* def_var() {
+				AstExpression* assign_new_var() {
 					//返回的是赋值语句
 
 					Token* iden = matcher.Peek(0);
@@ -282,6 +400,7 @@ namespace stamon {
 					}
 
 					scopes[scopes.size()-1].mark(iden);	//登记该变量
+					CE
 
 					if(matcher.Peek(1)->type==TokenAssign) {
 						//初始化赋值
@@ -298,11 +417,44 @@ namespace stamon {
 
 				}
 
+				void* def_var(ArrayList<AstNode*>* stm) {
+					match(TokenDef);	//弹出def
+					CE
+
+					stm->add(assign_new_var());
+					CE
+
+					while(check(TokenCmm)) {
+						//如果变量的声明不止一个
+						_pop;	//弹出逗号
+						stm->add(assign_new_var());
+						CE
+					}
+
+					match(TokenSemi);	//匹配分号
+					CE
+
+					return NULL;
+				}
+
 				AstDefFunc* def_func() {
 
-					int lineNo = match(TokenFunc)->lineNo;	//行号
+					GETLN(TokenFunc)
 
-					AstIdentifierName* iden = IDEN();
+					Token* iden_tok = match(TokenIden);
+
+					CE
+
+					AstIdentifierName* iden = Ast<AstIdentifierName>(
+					                              iden_tok->lineNo,
+					                              ((IdenToken*)iden_tok)->iden
+					                          );
+
+					scopes[scopes.size()-1].force_mark(iden_tok);	//弱定义
+
+					//新建作用域
+					pushscope(1)
+
 					ArrayList<AstNode*>* args = new ArrayList<AstNode*>();
 
 					if(check(TokenLBR)) {
@@ -317,6 +469,9 @@ namespace stamon {
 							        iden->iden
 							    )
 							);
+							//在新建作用域中登记参数
+							scopes[scopes.size()-1].mark(iden);
+							CE
 						}
 
 						while(check(TokenCmm)) {
@@ -329,27 +484,334 @@ namespace stamon {
 							        iden->iden
 							    )
 							);
+							//在新建作用域中登记参数
+							scopes[scopes.size()-1].mark(iden);
+							CE
+						}
+
+						if(match(TokenRBR)==NULL) {
+							THROW("the parentheses are not closed")
 						}
 					}
 
+					CE
+
+					AstBlock* blk = block();
+					CE
+
+					popscope;
+
+					return Ast<AstDefFunc>(
+					           lineNo,
+					           iden,
+					           Ast<AstAnonFunc>(
+					               lineNo, args, blk
+					           )
+					       );
+
 				}
-				AstDefClass* def_class() {}
-				AstIfStatement* statement_if() {}
-				AstWhileStatement* statement_while() {}
-				AstForStatement* statement_for() {}
+
+				AstAnonFunc* anon_func() {
+
+					GETLN(TokenFunc)
+
+					//新建作用域
+					pushscope(1)
+
+					ArrayList<AstNode*>* args = new ArrayList<AstNode*>();
+
+					if(check(TokenLBR)) {
+						//有参数列表
+						_pop;	//弹出左括号
+
+						if(check(TokenIden)) {
+							IdenToken* iden = (IdenToken*)_pop;
+							args->add(
+							    Ast<AstIdentifierName>(
+							        iden->lineNo,
+							        iden->iden
+							    )
+							);
+							//在新建作用域中登记参数
+							scopes[scopes.size()-1].mark(iden);
+							CE
+						}
+
+						while(check(TokenCmm)) {
+							//只要后面还有参数
+							_pop;	//弹出逗号
+							IdenToken* iden = (IdenToken*)_pop;
+							args->add(
+							    Ast<AstIdentifierName>(
+							        iden->lineNo,
+							        iden->iden
+							    )
+							);
+							//在新建作用域中登记参数
+							scopes[scopes.size()-1].mark(iden);
+							CE
+						}
+
+						if(match(TokenRBR)==NULL) {
+							THROW("the parentheses are not closed")
+						}
+					}
+
+					CE
+
+					AstBlock* blk = block();
+					CE
+
+					popscope;
+
+					return Ast<AstAnonFunc>(
+					           lineNo, args, blk
+					       );
+
+				}
+
+				AstDefClass* def_class() {
+
+					AstIdentifierName* iden;	//类的标识符
+					AstIdentifierName* father = NULL;
+					//父类标识符，默认没有父类
+
+					if(matcher.Peek(0)->type==TokenIden) {
+						//检查是否有父类
+						father = IDEN();
+						CE
+					}
+
+					GETLN(TokenClass)	//匹配class
+
+					Token* iden_tok = match(TokenIden);
+					CE
+					iden = Ast<AstIdentifierName>(
+					           iden_tok->lineNo,
+					           ((IdenToken*)iden_tok)->iden
+					       );
+
+					scopes[scopes.size()-1].force_mark(iden_tok);	//弱定义
+
+					match(TokenLBC);	//匹配左花括号
+					CE
+
+					//新建作用域
+					pushscope(1)
+
+					ArrayList<AstNode*>* stm = new ArrayList<AstNode*>();
+					//类里的语句
+
+					while(check(TokenRBC)==false) {
+						if(check(TokenFunc)) {
+							stm->add(def_func());
+						} else if(check(TokenDef)) {
+							def_var(stm);
+						} else if(check(TokenClass)
+						          ||matcher.Peek(1)->type==TokenClass) {
+							stm->add(def_class());
+						} else {
+							THROW("only functions, classes, and variables "
+							      "can be defined in a class")
+							return NULL;
+						}
+
+						CE
+					}
+
+					_pop;	//弹出右花括号
+
+					popscope;
+
+					return Ast<AstDefClass>(
+					           lineNo,
+					           iden,
+					           Ast<AstAnonClass>(
+					               lineNo,
+					               father,
+					               stm
+					           )
+					       );
+
+				}
+
+				AstAnonClass* anon_class() {
+
+					AstIdentifierName* father = NULL;
+					//父类标识符，默认没有父类
+
+					if(matcher.Peek(0)->type==TokenIden) {
+						//检查是否有父类
+						father = IDEN();
+						CE
+					}
+
+					GETLN(TokenClass)	//匹配class
+
+					CE
+
+					match(TokenLBC);	//匹配左花括号
+					CE
+
+					//新建作用域
+					pushscope(1)
+
+					ArrayList<AstNode*>* stm = new ArrayList<AstNode*>();
+					//类里的语句
+
+					while(check(TokenRBC)==false) {
+						if(check(TokenFunc)) {
+							stm->add(def_func());
+						} else if(check(TokenDef)) {
+							def_var(stm);
+						} else if(check(TokenClass)
+						          ||matcher.Peek(1)->type==TokenClass) {
+							stm->add(def_class());
+						} else {
+							THROW("only functions, classes, and variables "
+							      "can be defined in a class")
+							return NULL;
+						}
+
+						CE
+					}
+
+					_pop;	//弹出右花括号
+
+					popscope;
+
+					return Ast<AstAnonClass>(
+					           lineNo,
+					           father,
+					           stm
+					       );
+
+				}
+
+				AstIfStatement* statement_if() {
+					GETLN(TokenIf);
+
+					AstExpression* condition = expression();
+					CE
+
+					pushscope(0)
+
+					AstBlock* block_if = block();
+					CE
+
+					if(check(TokenElse)) {
+						_pop;		//弹出else
+						AstBlock* block_else = block();
+						CE
+						popscope;
+						return Ast<AstIfStatement>(
+						           lineNo,
+						           condition,
+						           block_if,
+						           block_else
+						       );
+					}
+
+					popscope;
+
+					return Ast<AstIfStatement>(
+					           lineNo,
+					           condition,
+					           block_if
+					       );
+
+				}
+
+				AstWhileStatement* statement_while() {
+					GETLN(TokenWhile)
+
+					AstExpression* condition = expression();
+					CE
+
+					pushscope(0)
+
+					AstBlock* blk = block();
+					CE
+
+					popscope;
+
+					return Ast<AstWhileStatement>(
+					           lineNo,
+					           condition,
+					           blk
+					       );
+				}
+
+				AstForStatement* statement_for() {
+					GETLN(TokenFor)	//匹配for
+
+					Token* iden_tok = match(TokenIden);
+					CE
+					AstIdentifierName* iden = Ast<AstIdentifierName>(
+					                              iden_tok->lineNo,
+					                              ((IdenToken*)iden_tok)->iden
+					                          );
+					//获取循环用的变量
+
+					match(TokenIn);	//匹配in
+					CE
+
+					AstExpression* expr = expression();		//循环所需的表达式
+					CE
+
+					pushscope(0)	//新建作用域
+					scopes[scopes.size()-1].mark(iden_tok);	//登记变量
+
+					AstBlock* blk = block();	//代码块
+					CE
+
+					popscope;
+
+					return Ast<AstForStatement>(
+					           lineNo,
+					           iden,
+					           expr,
+					           blk
+					       );
+				}
+
+				AstReturnStatement* statement_return() {
+					GETLN(TokenReturn);
+
+					AstExpression* expr = expression();
+					CE
+
+					match(TokenSemi);
+					CE
+
+					return Ast<AstReturnStatement>(
+					           lineNo,
+					           expr
+					       );
+				}
 
 				AstExpression* expression() {
 					AstExpression* rst;
 					AstBinary* val = binary_operator();
 					CE
-					if(check(TokenAssign)) {
-						//看到等号
+					if(
+					    check(TokenAssign)
+					    ||check(TokenAddAss)||check(TokenSubAss)
+					    ||check(TokenMulAss)||check(TokenDivAss)
+					    ||check(TokenModAss)
+					    ||check(TokenAndAss)||check(TokenOrAss)
+					    ||check(TokenXOrAss)
+					    ||check(TokenLSHAss)||check(TokenRSHAss)
+					) {
+						//看到赋值的token
 						AstLeftValue* left = left_value(val);	//解析成左值
 						CE
-						_pop;	//弹出等号
+						int ass_type = _pop->type;	//弹出赋值的token
 						AstExpression* right = expression();
 						CE
-						return Ast<AstExpression>(left->lineNo, left, right);
+						return Ast<AstExpression>(
+						           left->lineNo, left, ass_type, right
+						       );
 					} else {
 						//单纯的右值表达式
 						return Ast<AstExpression>(val->lineNo, val);
@@ -458,7 +920,7 @@ namespace stamon {
 					while (bin_layer[layer-1][0]<=op->type
 					        &&op->type<=bin_layer[layer-1][1]) {
 						//只有还有运算符
-						_pop;
+						_pop;	//弹出运算符
 						AstNode* right = _bin_operator(layer+1);
 						CE
 						rst = Ast<AstBinary>(
@@ -512,6 +974,7 @@ namespace stamon {
 					if(check(TokenLSB)) {
 						//下标后缀
 						int line = _pop->lineNo;
+						ParsingLineNo = line;
 						AstExpression* expr = expression();
 						CE
 						match(TokenRSB);
@@ -522,6 +985,8 @@ namespace stamon {
 					if(check(TokenMember)) {
 
 						int line = _pop->lineNo;
+
+						ParsingLineNo = line;
 
 						//还要特判是不是.new
 						if(check(TokenNew)) {
@@ -611,6 +1076,13 @@ namespace stamon {
 						CTH("the parentheses are not closed")
 						return expr;
 					}
+					if(check(TokenFunc)) {
+						return anon_func();
+					}
+					if(check(TokenClass)
+					        ||matcher.Peek(0)->type==TokenClass) {
+						return anon_class();
+					}
 					CE
 					THROW("invalid syntax")
 					return NULL;
@@ -622,9 +1094,31 @@ namespace stamon {
 					//分析一个标识符
 					IdenToken* tok = (IdenToken*)match(TokenIden);
 
-					if(scopes[scopes.size()-1].exist(tok)==false) {
+					//分析作用域
+					bool isIdenExist = false;	//标识符是否被定义过
+
+					for(int i=scopes.size()-1; i>=0; i--) {
+						if(scopes[i].exist(tok)==true) {
+							isIdenExist = true;
+							break;
+						}
+						if(scopes[i].isWall==1) {
+							break;	//碰到“墙”，终止搜索
+						}
+					}
+
+					if(scopes[0].exist(tok)==true) {
+						isIdenExist = true;	//全局作用域也要检查
+					}
+
+					if(isIdenExist==false) {
 						//未声明的标识符
-						THROW("undefined variable")
+						THROW_S(
+						    String((char*)"undefined variable: \"")
+						    + tok->iden
+						    + String((char*)"\"")
+						)
+
 						return NULL;
 					}
 
@@ -634,13 +1128,17 @@ namespace stamon {
 				AstNumber* NUM() {
 					if(check(TokenInt)) {
 						IntToken* tok = (IntToken*)_pop;
+						ParsingLineNo = tok->lineNo;
 						return Ast<AstIntNumber>(tok->lineNo, tok->val);
 					} else if(check(TokenDouble)) {
 						DoubleToken* tok = (DoubleToken*)_pop;
+						ParsingLineNo = tok->lineNo;
 						return Ast<AstDoubleNumber>(tok->lineNo, tok->val);
 					} else if(check(TokenTrue)) { //布尔值在语法分析时会被转换成1和0
+						ParsingLineNo = matcher.Peek(0)->lineNo;
 						return Ast<AstIntNumber>(_pop->lineNo, 1);
 					} else if(check(TokenFalse)) {
+						ParsingLineNo = matcher.Peek(0)->lineNo;
 						return Ast<AstIntNumber>(_pop->lineNo, 0);
 					} else {
 						THROW("invalid syntax")
@@ -732,10 +1230,11 @@ def main = func {
 	}
 }
 
-设 主 = 函数() {
+设 主 = 函数 {
 	设 类对象 = 输出类——新建；
 	类对象——你好世界（）；
-}
+}（）；
+
 */
 
 #undef check
@@ -743,5 +1242,7 @@ def main = func {
 #undef CE
 
 #undef unary_check
+#undef GETLN
+#undef pushscope
 
 #endif

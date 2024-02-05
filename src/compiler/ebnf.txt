@@ -3,19 +3,23 @@ program: { statement }
 statement: def_var | def_func | def_class
             | (expression ";")
             | statement_if | statement_while | statement_for
-            | "break;" | "continue;"
+            | "break;" | "continue;" | ";"
+            | sfn | statement_return
+
+sfn:    "sfn" IDEN "," IDEN ";"
 
 block: "{" {statement} "}"
-simple_block: ":" statement
+        | ":" statement
 
 def_var: "def" IDEN "=|+=|-=|/=|%=|&=|^=|\|=|<<=|>>=" expression { "," IDEN "=" expression } ";"
 def_func: "func" IDEN [ "("   IDEN { "," IDEN }   ")" ] block
-def_class: "class" IDEN [ "extends" IDEN ] "{" def_var | def_func | def_class "}"
+def_class: IDEN "class" IDEN "{" def_var | def_func | def_class "}"
 
-statement_if: "if" expression ( simple_block | block ) [ statement_else ]
-statement_else: "else" ( simple_block | block )
-statement_while: "while" expression ( simple_block | block )
-statement_for: "for" IDEN "in" expression ( simple_block | block )
+statement_if: "if" expression block [ statement_else ]
+statement_else: "else" block
+statement_while: "while" expression block
+statement_for: "for" IDEN "in" expression block
+statement_return: "return" expression ";"
 
 expression: ( left_value "=" expression )
             | binary_operator

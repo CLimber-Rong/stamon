@@ -27,6 +27,7 @@ namespace stamon {
 		    AstAnonFuncType,
 		    AstBlockType,
 		    AstBreakType,
+			AstContinueType,
 		    AstIfStatementType,
 		    AstWhileStatementType,
 		    AstForStatementType,
@@ -57,6 +58,7 @@ namespace stamon {
 		class AstAnonFunc;
 		class AstBlock;
 		class AstBreak;
+		class AstContinue;
 		class AstIfStatement;
 		class AstWhileStatement;
 		class AstForStatement;

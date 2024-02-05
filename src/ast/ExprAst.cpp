@@ -50,15 +50,17 @@ namespace stamon {
 		};
 
 		class AstExpression : public AstNode {
-
+				
 			public:
-
-				AstExpression(AstLeftValue* LeftValue, AstExpression* expr) : AstNode() {
+				int ass_type;
+				AstExpression(AstLeftValue* LeftValue, int AssTok, AstExpression* expr) : AstNode() {
 					children->add((AstNode*)LeftValue);
 					children->add((AstNode*)expr);
+					ass_type = AssTok;
 				}
 				AstExpression(AstBinary* value) : AstNode() {
 					children->add((AstNode*)value);
+					ass_type = -1;
 				}
 				virtual int getType() {
 					return AstExpressionType;

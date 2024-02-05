@@ -80,13 +80,18 @@ namespace stamon {
 				//此时的null来自于这里
 				//这个null值不参与gc
 
+				
+
 			public:
 
-				ObjectManager(unsigned long long mem_limit) {
+				STMException* ex;
+
+				ObjectManager(unsigned long long mem_limit, STMException* e) {
 					//构造函数，mem_limit表示最大内存限制，按字节计
 					MemConsumeSize = 0;
 					MemLimit = mem_limit;
 					NullConst.gc_flag = true;	//这个值不参与gc
+					ex = e;
 				}
 
 				template<class T>
