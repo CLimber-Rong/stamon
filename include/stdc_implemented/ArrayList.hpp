@@ -81,6 +81,18 @@ class ArrayList {
 			return rst;
 		}
 
+		ArrayList<T> operator+(ArrayList<T> src) {
+			ArrayList<T> rst = clone();
+			for(int i=0,len=src.size();i<len;i++) {
+				rst.add(src[i]);
+			}
+			return rst;
+		}
+
+		ArrayList<T> operator+=(ArrayList<T> src) {
+			return *(this) = *(this) + src;
+		}
+
 		T& operator[](int index) {
 			return list[index];
 		}

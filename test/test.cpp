@@ -20,13 +20,14 @@
 #include"ObjectManager.cpp"
 #include"Ast.hpp"
 #include"STVCReader.cpp"
-#include"Lexer.cpp"
-#include"Parser.cpp"
+#include"Preprocessor.cpp"
 
 using namespace stamon::ir;
 using namespace stamon::datatype;
 using namespace stamon::c;
 using namespace std;
+
+void DebugAST(AstNode* node, int layer);
 
 int main() {
 	//在这里编写调试代码，调试方法见文档

@@ -6,13 +6,13 @@
 	Description: 一些杂糅的库定义
 */
 
-//该库不依赖平台，无需移植
-
 //这个库原本叫做clib.h
 //由于需要引入c++代码，所以后缀改为hpp，顺便把文件名改为stmlib
 
 #ifndef STMLIB_HPP
 #define STMLIB_HPP
+
+#include"String.hpp"
 
 /*由于代码经常涉及到基类转派生类，所以我编写了这个可以直接转换的宏*/
 /*
@@ -35,5 +35,11 @@ T cast_func(F f) {
 	ft.f = f;
 	return ft.t;	//运用同一个地址，变相转换
 }
+
+String toString(int x);
+String toStringX(int x);
+String toString(float x);
+String toString(double x);
+String toString(bool x);
 
 #endif

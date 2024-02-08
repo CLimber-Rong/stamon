@@ -15,7 +15,6 @@
 #include"Exception.hpp"
 
 
-
 #define CHECK_KEYWORD(keyword, TokType) \
 	if(iden==String((char*)keyword)) {\
 		st = ed;\
@@ -98,6 +97,7 @@ namespace stamon {
 		    TokenSFN,
 		    TokenNew,
 		    TokenNull,      //空值
+			TokenImport,	//导入
 		    KEYWORDS_MAX,   //关键词个数
 		    TokenAssign,//赋值
 		    TokenSemi,  //分号
@@ -378,6 +378,8 @@ namespace stamon {
 							CHECK_KEYWORD("return", TokenReturn)
 							CHECK_KEYWORD("sfn", TokenSFN)
 							CHECK_KEYWORD("new", TokenNew)
+							CHECK_KEYWORD("null", TokenNull)
+							CHECK_KEYWORD("import", TokenImport)
 							CHECK_KEYWORD("true", TokenTrue)
 							CHECK_KEYWORD("false", TokenFalse)
 							//都不是关键字的话，那就是正常的标识符

@@ -9,6 +9,12 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
 
+#include"Stack.hpp"
+#include"StringMap.hpp"
+
+#include"Lexer.cpp"
+#include"ParsingQueue.cpp"
+
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
 #define CE			CATCH { return NULL; }	//如果执行代码中出现异常，直接返回
@@ -51,10 +57,7 @@
 //为了方便编写语法分析的代码，我设计了这些宏
 //这些宏只能在这个文件中被使用
 
-#include"Ast.hpp"
-#include"Lexer.cpp"
-#include"Stack.hpp"
-#include"StringMap.hpp"
+
 
 namespace stamon {
 	namespace c {
@@ -133,6 +136,11 @@ namespace stamon {
 
 				STMException* ex;
 
+				SyntaxScope(const SyntaxScope& s) {
+					ex = s.ex;
+					scope = s.scope;
+				}
+
 				SyntaxScope(STMException* e) {
 					ex = e;
 				}
@@ -207,7 +215,10 @@ namespace stamon {
 			public:
 
 				int ParsingLineNo = 1;	//当前正在分析的行号
-				STMException* ex;
+				bool ImportFlag = false;	//表示是否支持引用代码
+				ParsingQueue* parsing_queue;
+				STMException* ex = NULL;
+				String ParsingFileName;
 
 				Parser(Matcher matcher, STMException* e) {
 					this->matcher = matcher;
@@ -215,6 +226,21 @@ namespace stamon {
 					SyntaxScope global_scope(ex);
 					//压入一个空的全局作用域
 					scopes.add(global_scope);
+					ImportFlag = false;
+				}	//这个构造函数用于兼容之前的测试样例
+
+				Parser(
+				    Matcher matcher, STMException* e,
+					SyntaxScope global_scope, String filename,
+					ParsingQueue* parsing_list, bool isSupportImport
+				) {
+					this->matcher = matcher;
+					ex = e;
+					//压入全局作用域
+					scopes.add(global_scope);
+					ImportFlag = isSupportImport;
+					parsing_queue = parsing_list;
+					ParsingFileName = filename;
 				}
 
 				template<class T, typename...Types>
@@ -222,6 +248,7 @@ namespace stamon {
 					//这个代码比较难懂，涉及到形参模板和右值引用
 					T* rst = new T(args...);
 					rst->lineNo = line;
+					rst->filename = ParsingFileName;
 					ParsingLineNo = line;
 					return rst;
 				}
@@ -347,6 +374,8 @@ namespace stamon {
 						_pop;	//弹出分号
 					} else if(check(TokenSFN)) {
 						stm->add(sfn());
+					} else if(check(TokenImport)) {
+						statement_import();
 					} else {
 						//如果以上情况都不是，那就只有可能是表达式了
 						stm->add(expression());
@@ -788,6 +817,37 @@ namespace stamon {
 					           lineNo,
 					           expr
 					       );
+				}
+
+				void* statement_import() {
+					GETLN(TokenImport)
+					ParsingLineNo = lineNo;
+
+					if(ImportFlag==false) {
+						THROW("cannot import")
+						return NULL;
+					}
+
+					String import_path;	//导入路径
+
+					Token* iden = match(TokenIden);
+					CE
+
+					import_path += ((IdenToken*)iden)->iden;
+
+					while(check(TokenMember)) {
+						import_path += String((char*)"/");	//还有一层路径
+						iden = match(TokenIden);
+						CE
+						import_path += ((IdenToken*)iden)->iden;
+					}
+
+					import_path += String((char*)".st");
+
+					parsing_queue->AddSource(import_path);
+
+					return NULL;
+
 				}
 
 				AstExpression* expression() {

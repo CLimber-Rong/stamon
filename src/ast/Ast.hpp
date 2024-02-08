@@ -14,6 +14,7 @@
 #define AST_HPP
 
 #include "ArrayList.hpp"
+#include "String.hpp"
 
 namespace stamon {
 	namespace ast {
@@ -84,6 +85,7 @@ namespace stamon {
 
 			public:
 				int lineNo;			//语法分析时用于显示行号
+				String filename;	//语义分析时用于显示文件名
 
 				AstNode() {
 					//构造函数

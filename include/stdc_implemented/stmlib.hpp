@@ -12,6 +12,8 @@
 #ifndef STMLIB_HPP
 #define STMLIB_HPP
 
+#include"String.hpp"
+
 /*由于代码经常涉及到基类转派生类，所以我编写了这个可以直接转换的宏*/
 /*
  * 这个宏的用法是：
@@ -32,6 +34,38 @@ T cast_func(F f) {
 	FT ft;
 	ft.f = f;
 	return ft.t;	//运用同一个地址，变相转换
+}
+
+String toString(int x) {
+	char s[1024] = {0};
+	sprintf(s, "%d", x);
+	return String(s);
+}
+
+String toStringX(int x) {
+	char s[1024] = {0};
+	sprintf(s, "%x", x);
+	return String(s);
+}
+
+String toString(float x) {
+	char s[1024] = {0};
+	sprintf(s, "%f", x);
+	return String(s);
+}
+
+String toString(double x) {
+	char s[1024] = {0};
+	sprintf(s, "%lf", x);
+	return String(s);
+}
+
+String toString(bool x) {
+	if(x==true) {
+		return String((char*)"true");
+	} else {
+		return String((char*)"false");
+	}
 }
 
 #endif

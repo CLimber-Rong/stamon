@@ -38,6 +38,10 @@ class ArrayList {
 
 		ArrayList<T> clone();	//克隆一个ArrayList
 
+		ArrayList<T> operator+(ArrayList<T> src);	//将两个ArrayList拼接
+
+		ArrayList<T> operator+=(ArrayList<T> src);
+
 		T& operator[](int index);	//取下标
 
 		T operator[](int index) const ;	//取下标

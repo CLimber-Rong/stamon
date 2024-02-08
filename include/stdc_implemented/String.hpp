@@ -180,7 +180,11 @@ class String {
 				s[head+i] = right_value[i];
 			}
 
-			return String(s);
+			String rst(s);
+
+			free(s);
+
+			return rst;
 		}
 
 		String operator+=(const String& right_value) {

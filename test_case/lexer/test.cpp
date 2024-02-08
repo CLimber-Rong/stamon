@@ -1,11 +1,3 @@
-/*
-	Name:
-	Copyright:
-	Author:
-	Date: 09/09/23 13:54
-	Description:
-*/
-
 #define JUST_DEBUG
 
 #include<iostream>
