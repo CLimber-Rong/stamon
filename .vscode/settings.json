@@ -16,6 +16,8 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "*.tcc": "cpp",
-        "compare": "cpp"
+        "compare": "cpp",
+        "typeinfo": "cpp",
+        "memory_resource": "cpp"
     },
 }

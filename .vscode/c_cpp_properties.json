@@ -8,7 +8,9 @@
                 "${workspaceFolder}/src/data_type/",
                 "${workspaceFolder}/src/vm/",
                 "${workspaceFolder}/src/ir/",
-                "${workspaceFolder}/src/compiler/"
+                "${workspaceFolder}/src/compiler/",
+                "${workspaceFolder}/src/sfn/",
+                "${workspaceFolder}/src/"
             ],
             "defines": [],
             "compilerPath": "D:/TDM-GCC10/bin/g++.exe",

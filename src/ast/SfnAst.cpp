@@ -16,19 +16,10 @@ namespace stamon {
 	namespace ast {
 		class AstSFN : public AstNode {
 			public:
+				AstSFN() : AstNode() {}
 				AstSFN(AstIdentifier* port, AstIdentifier* result) : AstNode() {
 					children->add(port);
 					children->add(result);
-				}
-				virtual int getType() {
-					return AstSFNType;
-				}
-		};
-		//AstSFNName和AstSFN的区别同AstIdentifierName和AstIdentifier的区别，详见LeafAst.cpp
-		class AstSFNName : public AstSFN {
-			public:
-				AstSFNName(AstIdentifierName* port,
-				           AstIdentifierName* result) : AstSFN(port, result) {
 				}
 				virtual int getType() {
 					return AstSFNType;

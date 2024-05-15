@@ -1,36 +1,35 @@
 /*
-	Name: NumberMap.hpp
+	Name: ByteMap.hpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
-	Date: 23/08/23 14:20
-	Description: 整数map
+	Date: 10/02/24 13:38
+	Description: 字节串map
 */
 
-#ifndef NUMBERMAP_HPP
-#define NUMBERMAP_HPP
+#ifndef BYTEMAP_HPP
+#define BYTEMAP_HPP
 
-#include"stmlib.hpp"
 #include"strie.h"
 #include"ArrayList.hpp"
 
 template<typename T>
-class NumberMap {
-		STRIE* map = NULL;
+class ByteMap {
+		STRIE* map;
 	public:
-		NumberMap() {
+		ByteMap() {
 			map = InitTrie();
 		}
-		int put(int s, T* data) { 			//设置键值
-			return SetTrieKeyVal(map, (unsigned char*)&s, sizeof(int), (void*)data);
+		int put(char* s, int size, T* data) { 			//设置键值
+			return SetTrieKeyVal(map, (unsigned char*)&s, size, (void*)data);
 		}
-		int del(int s) {			//删除键值
-			return DelTrieKeyVal(map, (unsigned char*)&s, sizeof(int));
+		int del(char* s, int size) {			//删除键值
+			return DelTrieKeyVal(map, (unsigned char*)&s, size);
 		}
-		T* get(int s) {					//获取值
-			return (T*)GetTrieKeyVal(map, (unsigned char*)&s, sizeof(int));
+		T* get(char* s, int size) {					//获取值
+			return (T*)GetTrieKeyVal(map, (unsigned char*)&s, size);
 		}
-		bool containsKey(int s) {				//是否存在该键
-			return TrieExistKeyVal(map, (unsigned char*)&s, sizeof(int));
+		bool containsKey(char* s, int size) {				//是否存在该键
+			return TrieExistKeyVal(map, (unsigned char*)&s, size);
 		}
 		int clear() {							//清空
 			return ClearTrie(map);
@@ -73,7 +72,6 @@ class NumberMap {
 
 			return result;
 		}
-
 };
 
 #endif

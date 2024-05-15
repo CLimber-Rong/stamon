@@ -16,6 +16,7 @@ namespace stamon {
 		class AstProgram : public AstNode {
 
 			public:
+				AstProgram() : AstNode() {}
 
 				AstProgram(ArrayList<AstNode*>* statements) : AstNode() {
 					children = statements;
@@ -27,6 +28,7 @@ namespace stamon {
 		class AstDefClass : public AstNode {
 
 			public:
+				AstDefClass() : AstNode() {}
 
 				AstDefClass(AstIdentifier* iden, AstAnonClass* object_class) : AstNode() {
 					children->add((AstNode*)iden);
@@ -40,6 +42,8 @@ namespace stamon {
 
 			public:
 
+				AstDefFunc() : AstNode() {}
+
 				AstDefFunc(AstIdentifier* iden, AstAnonFunc* func) : AstNode() {
 					children->add((AstNode*)iden);
 					children->add((AstNode*)func);
@@ -48,10 +52,28 @@ namespace stamon {
 					return AstDefFuncType;
 				}
 		};
+		class AstDefVar : public AstNode {
+
+			public:
+
+				AstDefVar() : AstNode() {}
+
+				AstDefVar(AstIdentifier* iden, AstExpression* expr) : AstNode() {
+					children->add((AstNode*)iden);
+					children->add((AstNode*)expr);
+				}
+
+				virtual int getType() {
+					return AstDefVarType;
+				}
+		};
 		class AstAnonClass : public AstNode {
 
 			public:
 				bool isHaveFather = false;
+
+				AstAnonClass() : AstNode() {}
+
 				AstAnonClass(AstIdentifier* father, ArrayList<AstNode*>* expr) : AstNode() {
 					children = expr;
 					if(father!=NULL) {
@@ -67,6 +89,8 @@ namespace stamon {
 
 			public:
 
+				AstAnonFunc() : AstNode() {}
+
 				AstAnonFunc(ArrayList<AstNode*>* args, AstBlock* block) : AstNode() {
 					children = args;
 					children->add((AstNode*)block);
@@ -79,6 +103,8 @@ namespace stamon {
 
 			public:
 
+				AstBlock() : AstNode() {}
+
 				AstBlock(ArrayList<AstNode*>* statements) : AstNode() {
 					children = statements;
 				}
@@ -89,6 +115,8 @@ namespace stamon {
 		class AstIfStatement : public AstNode {
 
 			public:
+
+				AstIfStatement() : AstNode() {}
 
 				AstIfStatement(AstExpression* expr, AstBlock* block_if) : AstNode() {
 					children->add((AstNode*)expr);
@@ -107,6 +135,8 @@ namespace stamon {
 
 			public:
 
+				AstWhileStatement() : AstNode() {}
+
 				AstWhileStatement(AstExpression* expr, AstBlock* block_while) : AstNode() {
 					children->add((AstNode*)expr);
 					children->add((AstNode*)block_while);
@@ -118,6 +148,8 @@ namespace stamon {
 		class AstForStatement : public AstNode {
 
 			public:
+
+				AstForStatement() : AstNode() {}
 
 				AstForStatement(AstIdentifier* iden, AstExpression* expr, AstBlock* block_for) : AstNode() {
 					children->add((AstNode*)iden);
@@ -131,6 +163,8 @@ namespace stamon {
 		class AstReturnStatement : public AstNode {
 
 			public:
+
+				AstReturnStatement() : AstNode() {}
 
 				AstReturnStatement(AstExpression* expr) : AstNode() {
 					children->add((AstNode*)expr);

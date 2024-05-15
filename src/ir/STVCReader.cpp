@@ -13,6 +13,7 @@
 #include"NumberMap.hpp"
 #include"DataType.hpp"
 #include"String.hpp"
+#include"AstIR.cpp"
 
 #include"stdio.h"
 
@@ -24,12 +25,11 @@ namespace stamon {
 				int pos;		//设当前需要读取的字节为stvc[pos]
 			public:
 				int VerX, VerY, VerZ;   //这三个变量代表版本为X.Y.Z
-				NumberMap<datatype::DataType> tableConst;   //常量表
+				ArrayList<datatype::DataType*> tableConst;   //常量表
 
 				STMException* ex;
 
-				STVCReader(char* vmcode, int code_size, STMException* e)
-					: tableConst(NumberMap<datatype::DataType>()) {
+				STVCReader(char* vmcode, int code_size, STMException* e) {
 					ex = e;
 					//传入字节码和字节码大小
 					stvc_size = code_size;
@@ -59,11 +59,10 @@ namespace stamon {
 					VerX = stvc[pos];
 					VerY = stvc[pos+1]>>4;
 					VerZ = stvc[pos+1]&0x0f;
-					
+
 					NextPos(2);
 					//获取常量表
-					int tableConstNumber = (stvc[pos]<<24) + (stvc[pos+1]<<16)
-					                       + (stvc[pos+2]<<8) + (stvc[pos+3]);
+					int tableConstNumber = ReadInt();
 					//常量表项数
 					NextPos(4);
 
@@ -87,16 +86,14 @@ namespace stamon {
 				bool ReadTableConst(int size) {
 					//读取常量表，size为常量表项数，pos为下一个读取的字节的下标
 					while(size!=0) {
-						unsigned int id = (stvc[pos]<<24) + (stvc[pos+1]<<16)
-							            + (stvc[pos+2]<<8) + (stvc[pos+3]);
-								//常量索引
-						int type = (int)stvc[pos+4];
-						NextPos(5);
+						int type = (int)stvc[pos];
+
+						NextPos(1);
+
 						if(type==datatype::IntegerTypeID) {
-							int value = (stvc[pos]<<24) + (stvc[pos+1]<<16)
-							            + (stvc[pos+2]<<8) + (stvc[pos+3]);
+							int value = ReadInt();
 							NextPos(4);
-							tableConst.put(id, new datatype::IntegerType(value));
+							tableConst.add(new datatype::IntegerType(value));
 						} else if(type==datatype::FloatTypeID) {
 							float value;
 							char* tmp = (char*)&value;
@@ -106,7 +103,7 @@ namespace stamon {
 							tmp[3] = stvc[pos+3];
 							//通过写入字节的方式给value赋值
 							NextPos(4);
-							tableConst.put(id, new datatype::FloatType(value));
+							tableConst.add(new datatype::FloatType(value));
 						} else if(type==datatype::DoubleTypeID) {
 							double value;
 							char* tmp = (char*)&value;
@@ -121,15 +118,16 @@ namespace stamon {
 								*/
 							}
 							NextPos(8);
-							tableConst.put(id, new datatype::DoubleType(value));
+							tableConst.add(new datatype::DoubleType(value));
 						} else if(type==datatype::NullTypeID) {
-							tableConst.put(id, new datatype::NullType());
+							tableConst.add(new datatype::NullType());
 						} else if(type==datatype::StringTypeID) {
-							int slen = (stvc[pos]<<24) + (stvc[pos+1]<<16)
-							           + (stvc[pos+2]<<8) + (stvc[pos+3]);
+							int slen = ReadInt();
 							NextPos(4);
-							
-							char* c_arr = new char[slen];
+
+							char* c_arr = new char[slen+1];
+							c_arr[slen] = '\0';
+
 							for(int i=0; i<slen; i++) {
 								c_arr[i] = stvc[pos+i];
 							}
@@ -137,8 +135,25 @@ namespace stamon {
 							String s(c_arr);
 
 							delete[] c_arr;
-							
-							tableConst.put(id, new datatype::StringType(s));
+
+							tableConst.add(new datatype::StringType(s));
+						} else if(type==ir::IdenConstTypeID) {
+							int slen = ReadInt();
+							NextPos(4);
+
+							char* c_arr = new char[slen];
+							for(int i=0; i<slen; i++) {
+								c_arr[i] = stvc[pos+i];
+							}
+
+							NextPos(slen);
+
+							tableConst.add(
+							    new ir::IdenConstType(String(c_arr))
+							);
+
+							delete[] c_arr;
+
 						} else {
 							THROW("Unknown constants")
 						}
@@ -150,6 +165,68 @@ namespace stamon {
 						size--;
 					}
 					return true;
+				}
+
+				ArrayList<AstIR> ReadIR() {
+
+					ArrayList<AstIR> ir;
+
+					int lineNo = -1;
+
+					String filename = String((char*)"");
+
+					while(pos!=stvc_size) {
+						int type = ReadInt();
+
+						NextPos(4);
+
+						if(type==-2) {
+
+							//更新行号
+							lineNo = ReadInt();
+
+							NextPos(4);
+
+						} else if(type==-3) {
+
+							//更新文件名
+							int slen = ReadInt();
+
+							NextPos(4);
+
+							char* c_arr = new char[slen];
+
+							for(int i=0; i<slen; i++) {
+								c_arr[i] = stvc[pos+i];
+							}
+
+							NextPos(slen);
+
+							filename = String(c_arr);
+
+							delete[] c_arr;
+
+						} else {
+							//正常的IR
+							AstIR rst;
+
+							rst.data = ReadInt();
+
+							NextPos(4);
+
+							rst.lineNo = lineNo;
+							rst.filename = filename;
+							rst.type = type;
+
+							ir.add(rst);
+						}
+
+						CATCH {
+							return ir;
+						}
+					}
+
+					return ir;
 				}
 
 				void NextPos(int x) {
@@ -165,6 +242,18 @@ namespace stamon {
 						pos += x;
 					}
 					return;
+				}
+
+				int ReadInt() {
+					//将stvc[pos]到stvc[pos+3]转换成int
+
+					int arr[4] = {
+						stvc[pos+3], stvc[pos+2], stvc[pos+1], stvc[pos]
+					};
+
+					int rst = *((int*)arr);
+
+					return rst;
 				}
 		};
 	}

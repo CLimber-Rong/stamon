@@ -11,6 +11,7 @@
 
 #include"Exception.hpp"
 #include"String.hpp"
+#include"ArrayList.hpp"
 
 #include"stdio.h"
 #include"stdlib.h"
@@ -18,70 +19,88 @@
 #define FILE_ERR { THROW("file opening error") return; }
 //这个宏用于简写，并且该宏只能在本文件中使用
 
+ArrayList<String> ImportPaths;
+
 class LineReader {
-        int size;
-		FILE* stream;
-        char* buffer;
-    public:
-        STMException* ex;
+		int size;
+		FILE* stream = NULL;
+		char* buffer;
+	public:
+		STMException* ex;
 
-        LineReader(){}
+		LineReader() {}
 
-        LineReader(String filename, STMException* e) {
-            ex = e;
-            stream = fopen(filename.getstr(), "r");
+		LineReader(String filename, STMException* e) {
+			ex = e;
 
-            if(stream==NULL) FILE_ERR
+			for(int i=0,len=ImportPaths.size(); i<len; i++) {
 
-            if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR
-            //将文件指针置于底部
+				stream = fopen(
+				             (ImportPaths[i]+filename).getstr(), "r"
+				         );
 
-            size = ftell(stream);
-            //获取文件指针（即文件底部）与文件头部的距离（即文件大小）
+				if(stream!=NULL) {
+					break;  //成功打开文件
+				}
+			}
 
-            if(size == -1) FILE_ERR
+			if(stream==NULL) {
+				//尝试从当前目录打开文件
+				stream = fopen(filename.getstr(), "r");
+			}
 
-            buffer = (char*)calloc(1, size+1);    //根据文件大小开辟内存
+			if(stream==NULL) FILE_ERR;
 
-            if(buffer==NULL)    FILE_ERR
+			if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR
+				//将文件指针置于底部
 
-            if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR
-            //将文件指针重新置于顶部
-        }
-        
-        String getLine() {
-            char* s = fgets(buffer, size, stream);
-            
-            if(s==NULL) {
-                return String((char*)"\0");
-            }
+				size = ftell(stream);
+			//获取文件指针（即文件底部）与文件头部的距离（即文件大小）
 
-            return String(s);
-        }
+			if(size == -1) FILE_ERR
 
-        bool isMore() {
+				buffer = (char*)calloc(1, size+1);    //根据文件大小开辟内存
 
-            int pos = ftell(stream);    //获取当前指针所在位置
-            
-            bool result = true;
+			if(buffer==NULL)    FILE_ERR
 
-            if(getc(stream)==EOF) {
-                result = false;
-            }
+				if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR
+					//将文件指针重新置于顶部
 
-            if(fseek(stream, pos, SEEK_SET)!=0) {
-                THROW("file opening error")
-                return false;
-            }
+				}
 
-            //将文件指针向文件顶部跳动一字符
-            return result;
-        }
+		String getLine() {
+			char* s = fgets(buffer, size, stream);
 
-        ~LineReader() {
-            free(buffer);
-            fclose(stream);
-        }
+			if(s==NULL) {
+				return String((char*)"\0");
+			}
+
+			return String(s);
+		}
+
+		bool isMore() {
+
+			int pos = ftell(stream);    //获取当前指针所在位置
+
+			bool result = true;
+
+			if(getc(stream)==EOF) {
+				result = false;
+			}
+
+			if(fseek(stream, pos, SEEK_SET)!=0) {
+				THROW("file opening error")
+				return false;
+			}
+
+			//将文件指针向文件顶部跳动一字符
+			return result;
+		}
+
+		~LineReader() {
+			free(buffer);
+			fclose(stream);
+		}
 
 };
 

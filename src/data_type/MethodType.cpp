@@ -18,17 +18,20 @@ namespace stamon {
 	namespace datatype {
 		class MethodType : public DataType {
 				ast::AstAnonFunc* val;
-				ObjectType* container; //容器
 			public:
-				MethodType(ast::AstAnonFunc* value, ObjectType* father) : DataType(MethodTypeID) {
+				ObjectType* container; //容器
+				int id;	//函数的名字，如果是匿名函数，则该值为-1
+				MethodType(int iden, ast::AstAnonFunc* value, ObjectType* father) : DataType(MethodTypeID) {
+					id = iden;
 					val = value;
+					container = father;
 				}
 				virtual ast::AstAnonFunc* getVal() const {
 					return val;
 				}
-				 virtual ObjectType* getContainer() const {
-                    return container;
-                }
+				virtual ObjectType* getContainer() const {
+					return container;
+				}
 		};
 	}
 }

@@ -9,35 +9,65 @@
 #ifndef ARRAYLIST
 #define ARRAYLIST
 
+#include"stdio.h"
 #include"stdlib.h"
 
 using namespace std;
 
 template <typename T>
 class ArrayList {
+
+		/*
+		 * 采用双倍扩容法
+		 * 每次新申请内存且list已经存满时，直接双倍扩容list
+		 * 这样申请次数就从n次达到log(2,n)次
+		 */
+
 		T* list;
+		int cache_length;
 		int length;
+
+		void realloc_list(int len) {
+
+			if(cache_length<=len) {
+				cache_length = len*2;
+				T* rst = new T[cache_length];
+
+				for(int i=0;i<length&&i<len;i++) {
+					//把list的内容尽可能的复制到rst当中
+					rst[i] = list[i];
+				}
+				delete[] list;
+				list = rst;
+			}
+			
+		}
+
 	public:
 		/*值得注意的是：正常的ArrayList赋值，实际上是引用传递*/
 	
 		ArrayList() {
 			list = NULL;
 			length = 0;
+			cache_length = 0;
 		}			//创建一个空列表
 
 		ArrayList(int size) {
-			list = (T*)calloc(size, sizeof(T));
+			list = new T[size];	//分配内存
 			length = size;
+			cache_length = size;
 		}	//创建size个元素的列表
 
 		void add(const T& value) {
-			list = (T*)realloc(list, sizeof(T)*(length+1));	//重新分配内存
+			realloc_list(length+1);	//重新分配内存
 			list[length] = value;
 			length++;
 		}		//末尾添加值
 
 		void insert(int index, const T& value) {
-			list = (T*)realloc(list, sizeof(T)*(length+1));
+
+			realloc_list(length+1);	//重新分配内存
+
 			for(int i=length;i>index;i--) {
 				list[i] = list[i-1];
 			}
@@ -49,7 +79,7 @@ class ArrayList {
 			for(int i=index;i<length-1;i++) {
 				list[i] = list[i+1];
 			}
-			list = (T*)realloc(list, sizeof(T)*(length-1));
+			realloc_list(length-1);	//重新分配内存
 			length--;
 		}	//删除[index]
 

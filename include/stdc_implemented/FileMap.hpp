@@ -26,23 +26,19 @@ class FileMap {
 			ex = e;
 		}
 
-		LineReader mark(String filename) {
+		LineReader mark(const String& filename) {
 			/*
 			 * 将该文件标记，并且返回打开该文件后的LineReader
 			 * 如果该文件不存在或出错，抛出异常
 			*/
 			LineReader reader(filename, ex);
 
-			CATCH {
-				return reader;
-			}
-
 			map.put(filename, NULL);
 
 			return reader;
 		}
 
-		bool exist(String filename) {
+		bool exist(const String& filename) {
 			return map.containsKey(filename);
 		}
 };

@@ -24,6 +24,7 @@ namespace stamon {
 		    AstProgramType,
 		    AstDefClassType,
 			AstDefFuncType,
+			AstDefVarType,
 		    AstAnonClassType,
 		    AstAnonFuncType,
 		    AstBlockType,
@@ -47,6 +48,7 @@ namespace stamon {
 		    AstNullType,
 		    AstArrayLiteralType,
 		    AstListLiteralType,
+			AstLeafType,	//见AstIR.cpp
 		    AstTypeNum // Ast总数
 		};
 

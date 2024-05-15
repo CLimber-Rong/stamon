@@ -163,10 +163,10 @@ int ClearTrie(STRIE* trie) {
 		STRIE* tmp = (STRIE*)PopStack(stack);
 		STRIE** tmp2 = tmp->child;
 		if(tmp!=NULL) {
-			if(tmp!=trie)	free(tmp);
 			for(int i=0; i<256; i++) {
 				PushStack(stack, tmp2[i]);
 			}
+			if(tmp!=trie) 	free(tmp);
 		}
 	}
 	DestroyStack(stack);

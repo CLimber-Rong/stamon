@@ -17,6 +17,13 @@ namespace stamon {
         class Variable {
             public:
                 DataType* data;
+                Variable() {}
+                Variable(const Variable& right) {
+                    data = right.data;
+                }
+                Variable(DataType* dt) {
+                    data = dt;
+                }
         };
     }
 }

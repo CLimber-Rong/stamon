@@ -34,6 +34,13 @@ namespace stamon {
 		class ObjectScope {		//单个对象作用域
 				NumberMap<datatype::Variable> scope; //实际上存储的是DataType指针
 			public:
+				bool isDestroy = true;
+				ObjectScope(){}
+				ObjectScope(NumberMap<datatype::Variable> s) {
+					scope = s;
+					isDestroy = false;	//说明scope另有他用，不能销毁
+				}
+
 				bool exist(int key) {	//是否存在该标识符
 					return scope.containsKey(key);
 				}
@@ -63,7 +70,9 @@ namespace stamon {
 					return obj;
 				}
 				void DestroyScope() {
-					scope.destroy();
+					if(isDestroy) {
+						scope.destroy();
+					}
 				}
 		};
 
@@ -80,17 +89,25 @@ namespace stamon {
 				//此时的null来自于这里
 				//这个null值不参与gc
 
-				
+
+
 
 			public:
 
+				ArrayList<datatype::DataType*> OPND; //正在计算中的数据，也是GcRoot
 				STMException* ex;
+				bool is_gc;
 
-				ObjectManager(unsigned long long mem_limit, STMException* e) {
+				ObjectManager() {}
+
+				ObjectManager(
+				    bool isGC, unsigned long long mem_limit, STMException* e
+				) {
 					//构造函数，mem_limit表示最大内存限制，按字节计
 					MemConsumeSize = 0;
 					MemLimit = mem_limit;
 					NullConst.gc_flag = true;	//这个值不参与gc
+					is_gc = isGC;
 					ex = e;
 				}
 
@@ -103,6 +120,9 @@ namespace stamon {
 					* 所以我编写了这个参数，但是我不会用到
 					* 这里默认当对象占用内存以及GC预留内存大于内存限制时触发GC
 					*/
+					if(is_gc==false) {
+						return false;
+					}
 					int TotalConsumeSize =
 					    MemConsumeSize
 					    + sizeof(datatype::DataType*) * Objects.size();
@@ -131,15 +151,16 @@ namespace stamon {
 					T* result;      //要返回的对象
 					result = new T(args...);    //新建对象
 
-					MemConsumeSize += sizeof(result);   //更新内存占用数
+					MemConsumeSize += sizeof(T);   //更新内存占用数
 
-					if(GCConditions<T>(result)) {      //如果满足GC条件
+					if(GCConditions<T>(result)) {      //如果满足GC条件	
 						GC();
 						CATCH {		//如果GC报错就退出函数
 							return NULL;
 						}
 					}
 
+					
 					if(MemConsumeSize>MemLimit) {
 						//如果GC后内存还是不够，就报错
 						THROW("out of memory")
@@ -156,7 +177,21 @@ namespace stamon {
 					return result;  //返回对象
 				}
 
-				datatype::Variable* GetLeftVaiable(int id) {
+				datatype::Variable* NewVariable(int id) {
+					datatype::Variable* result = new datatype::Variable();
+					result->data = &NullConst;
+					Scopes.at(Scopes.size()-1).put(id, result);
+					return result;
+				}
+
+				datatype::Variable* NewVariable(int id, datatype::DataType* val) {
+					datatype::Variable* result = new datatype::Variable();
+					result->data = val;
+					Scopes.at(Scopes.size()-1).put(id, result);
+					return result;
+				}
+
+				datatype::Variable* GetLeftVariable(int id) {
 					//获取变量，如果该变量不存在，就创建它
 					for(int i=Scopes.size()-1; i>=0; i--) {
 						if(Scopes.at(i).exist(id) == true) {
@@ -170,7 +205,7 @@ namespace stamon {
 					return result;
 				}
 
-				datatype::Variable* GetVaiable(int id) {
+				datatype::Variable* GetVariable(int id) {
 					//从最新的作用域到全局作用域逐个查找
 					for(int i=Scopes.size()-1; i>=0; i--) {
 						if(Scopes.at(i).exist(id) == true) {
@@ -186,9 +221,18 @@ namespace stamon {
 					Scopes.add(scope);
 				}
 
+				void PushScope(ObjectScope s) {
+					Scopes.add(s);
+				}
+
 				void PopScope() {
 					Scopes.at(Scopes.size()-1).DestroyScope();
 					Scopes.erase(Scopes.size()-1);
+				}
+
+				ObjectScope getTopScope()
+				{
+					return Scopes[Scopes.size()-1];
 				}
 
 				void GC() {
@@ -206,6 +250,10 @@ namespace stamon {
 						//把作用域里的变量（也就是GCRoots）加载到unscanned里
 						MarkScopeObject(scope, unscanned);
 						//遍历该作用域的变量涉及到的全部对象，并且标记他们
+					}
+
+					for(int i=0,len=OPND.size(); i<len; i++) {
+						OPND[i]->gc_flag = true;
 					}
 
 					//清除垃圾对象
@@ -310,7 +358,6 @@ namespace stamon {
 					while(i<Objects.size()) {
 						if(Objects.at(i)->gc_flag==false) {
 							//垃圾对象
-							printf("GC: %p\n",(void*)Objects.at(i));
 							FreeObject(Objects.at(i));	//释放对象
 							Objects.erase(i);	//从列表中删除
 						} else {
@@ -333,6 +380,13 @@ namespace stamon {
 					FREE_OBJECT(o, datatype::MethodType, datatype::MethodTypeID)
 					FREE_OBJECT(o, datatype::ObjectType, datatype::ObjectTypeID)
 					THROW("unknown data type")
+				}
+
+				~ObjectManager() {
+					//释放所有对象
+					for(int i=0,len=Objects.size(); i<len; i++) {
+						delete Objects[i];
+					}
 				}
 		};
 	}

@@ -97,7 +97,7 @@ namespace stamon {
 		    TokenSFN,
 		    TokenNew,
 		    TokenNull,      //空值
-			TokenImport,	//导入
+		    TokenImport,	//导入
 		    KEYWORDS_MAX,   //关键词个数
 		    TokenAssign,//赋值
 		    TokenSemi,  //分号
@@ -246,7 +246,7 @@ namespace stamon {
 
 				STMException* ex;
 
-				Lexer(){}
+				Lexer() {}
 
 				Lexer(STMException* e) {
 					ex = e;
@@ -291,7 +291,8 @@ namespace stamon {
 						//先过滤空格
 						while(
 						    ed<text_len
-						    &&(text[ed]==' '||text[ed]=='\t'||text[ed]=='\n')
+						    &&(text[ed]==' '||text[ed]=='\t'
+						       ||text[ed]=='\n'||text[ed]=='\r')
 						) {
 							ed++;
 						}
@@ -501,10 +502,10 @@ namespace stamon {
 							CHECK_OPERATOR('~', TokenBitNot)
 							//执行到这里，说明碰到了未知字符
 							THROW_S(
-								String((char*)"unknown token: \'")
-								+ text.substring(ed, ed+1)
-								+ String((char*)"\'")
-								)
+							    String((char*)"unknown token: \'")
+							    + text.substring(ed, ed+1)
+							    + String((char*)"\'")
+							)
 							return st;
 						}
 					}

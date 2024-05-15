@@ -20,15 +20,44 @@
 #include"stdio.h"
 
 class String {
+
+		/*
+		 * 利用了缓存技术
+		 * 对于短字符串（长度小于32字符），采用栈数组存储，减少内存申请次数
+		 */
+
+		bool isUseCache = false;
 		char* str;
+		char cache[32] = {0};
+
+		void* StrCalloc(int size, int count) {
+			if(size*count<=32) {
+				isUseCache = true;
+				int i = 0;
+				while((cache[i]!=0) && (i<32)) {
+					cache[i] = 0;
+					i++;
+				}
+				return cache;
+			} else {
+				isUseCache = false;
+				return calloc(size, count);
+			}
+		}
+
+		void StrFree() {
+			if(!isUseCache) {
+				free(str);
+			}
+		}
 
 	public:
 		String() {
-			str = (char*)calloc(1,1);
+			str = (char*)StrCalloc(1,1);
 		}			   //初始化为空字符串
 
 		String(char *s) {
-			str = (char*)malloc(strlen(s)+1);
+			str = (char*)StrCalloc(strlen(s)+1, 1);
 			strcpy(str, s);
 		}	   //初始化，将s复制到this
 
@@ -53,15 +82,15 @@ class String {
 
 		//以下的一系列toString函数会将不同的数据类型转为String后保存到this当中，返回this
 		String toString(int value) {
-			free(str);
-			str = (char*)calloc(256, 1);
+			StrFree();
+			str = (char*)StrCalloc(256, 1);
 			sprintf(str, "%d", value);
 			str = (char*)realloc(str, strlen(str)+1);
 			return String(str);
 		}
 
 		String toString(bool value) {
-			str = (char*)calloc(10, 1);
+			str = (char*)StrCalloc(10, 1);
 
 			if(value==true) {
 				str = (char*)realloc(str, 5);
@@ -75,16 +104,16 @@ class String {
 		}
 
 		String toString(float value) {
-			free(str);
-			str = (char*)calloc(256, 1);
+			StrFree();
+			str = (char*)StrCalloc(256, 1);
 			sprintf(str, "%f", value);
 			str = (char*)realloc(str, strlen(str)+1);
 			return String(str);
 		}
 
 		String toString(double value) {
-			free(str);
-			str = (char*)calloc(256, 1);
+			StrFree();
+			str = (char*)StrCalloc(256, 1);
 			sprintf(str, "%lf", value);
 			str = (char*)realloc(str, strlen(str)+1);
 			return String(str);
@@ -161,8 +190,9 @@ class String {
 		}
 
 		String operator=(const String& right_value) {
-			free(str);
-			str = (char*)calloc(right_value.length()+1, 1);
+			StrFree();
+
+			str = (char*)StrCalloc(right_value.length()+1, 1);
 
 			strcpy(str, right_value.getstr());
 
@@ -208,7 +238,7 @@ class String {
 		}
 
 		~String() {
-			free(str);
+			StrFree();
 		}
 };
 

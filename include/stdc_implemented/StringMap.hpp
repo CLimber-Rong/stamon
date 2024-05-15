@@ -17,10 +17,10 @@ class StringMap {
 		STRIE* map;
 	public:
 		StringMap();							//构造方法
-		int put(String s, T* data); 			//设置键值
-		int del(String s, T* data);			//删除键值
-		T* get(String s);					//获取值
-		bool containsKey(String s);				//是否存在该键
+		int put(const String& s, T* data); 			//设置键值
+		int del(const String& s, T* data);			//删除键值
+		T* get(const String& s);					//获取值
+		bool containsKey(const String& s);				//是否存在该键
 		int clear();							//清空
 		int destroy();							//销毁
 		bool empty();							//是否为空
@@ -36,22 +36,22 @@ StringMap<T>::StringMap() {
 }
 
 template <typename T>
-int StringMap<T>::put(String s, T* data) {
+int StringMap<T>::put(const String& s, T* data) {
 	return SetTrieKeyVal(map, (unsigned char*)s.getstr(), s.length(), (void*)data);
 }
 
 template <typename T>
-int StringMap<T>::del(String s, T* data) {
+int StringMap<T>::del(const String& s, T* data) {
 	return DelTrieKeyVal(map, (unsigned char*)s.getstr(), s.length());
 }
 
 template <typename T>
-T* StringMap<T>::get(String s) {
+T* StringMap<T>::get(const String& s) {
 	return (T*)GetTrieKeyVal(map, (unsigned char*)s.getstr(), s.length());
 }
 
 template <typename T>
-bool StringMap<T>::containsKey(String s) {
+bool StringMap<T>::containsKey(const String& s) {
 	return TrieExistKeyVal(map, (unsigned char*)s.getstr(), s.length());
 }
 

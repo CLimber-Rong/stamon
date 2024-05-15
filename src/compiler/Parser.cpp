@@ -9,11 +9,12 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
 
+#include"Ast.hpp"
 #include"Stack.hpp"
 #include"StringMap.hpp"
+#include"FileMap.hpp"
 
 #include"Lexer.cpp"
-#include"ParsingQueue.cpp"
 
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
@@ -136,6 +137,8 @@ namespace stamon {
 
 				STMException* ex;
 
+				SyntaxScope() {}
+
 				SyntaxScope(const SyntaxScope& s) {
 					ex = s.ex;
 					scope = s.scope;
@@ -170,6 +173,12 @@ namespace stamon {
 				void destroy() {
 					scope.destroy();
 				}
+		};
+
+		class SourceSyntax {	//用来存储一个文件的文件名和程序
+			public:
+				ast::AstNode* program;
+				String filename;
 		};
 
 		class Parser {
@@ -216,9 +225,12 @@ namespace stamon {
 
 				int ParsingLineNo = 1;	//当前正在分析的行号
 				bool ImportFlag = false;	//表示是否支持引用代码
-				ParsingQueue* parsing_queue;
 				STMException* ex = NULL;
 				String ParsingFileName;
+
+				FileMap filemap;
+				ArrayList<SourceSyntax>* src_project;
+				ArrayList<String>* ErrorMsg;
 
 				Parser(Matcher matcher, STMException* e) {
 					this->matcher = matcher;
@@ -231,16 +243,19 @@ namespace stamon {
 
 				Parser(
 				    Matcher matcher, STMException* e,
-					SyntaxScope global_scope, String filename,
-					ParsingQueue* parsing_list, bool isSupportImport
+				    SyntaxScope global_scope, String filename,
+				    ArrayList<SourceSyntax>* src, FileMap map,
+				    ArrayList<String>* msg, bool isSupportImport
 				) {
 					this->matcher = matcher;
 					ex = e;
 					//压入全局作用域
 					scopes.add(global_scope);
 					ImportFlag = isSupportImport;
-					parsing_queue = parsing_list;
 					ParsingFileName = filename;
+					filemap = map;
+					src_project = src;
+					ErrorMsg = msg;
 				}
 
 				template<class T, typename...Types>
@@ -286,7 +301,7 @@ namespace stamon {
 					       );
 				}
 
-				AstSFNName* sfn() {
+				AstSFN* sfn() {
 					match(TokenSFN);
 					CE
 
@@ -303,7 +318,7 @@ namespace stamon {
 					match(TokenSemi);
 					CE
 
-					return new AstSFNName(port, arg);;
+					return Ast<AstSFN>(port->lineNo ,port, arg);
 				}
 
 				AstBlock* block() {
@@ -387,19 +402,14 @@ namespace stamon {
 					return NULL;
 				}
 
-				AstExpression* MakeNullExpression(Token* iden) {
-					//用于生成一个赋值表达式，将iden赋为空值
-					return Ast<AstExpression>(
+				AstDefVar* MakeNullDef(Token* iden) {
+					//用于生成一个def_var，将iden赋为空值
+					return Ast<AstDefVar>(
 					           iden->lineNo,
-					           Ast<AstLeftValue>(	//左值
+					           Ast<AstIdentifierName>(
 					               iden->lineNo,
-					               Ast<AstIdentifierName>(
-					                   iden->lineNo,
-					                   ((IdenToken*)iden)->iden
-					               ),
-					               new ArrayList<AstNode*>() //变量无后缀，列表为空
+					               ((IdenToken*)iden)->iden
 					           ),
-					           TokenAssign,
 					           Ast<AstExpression>(	//右值（即null）
 					               iden->lineNo,
 					               Ast<AstBinary>(
@@ -417,8 +427,7 @@ namespace stamon {
 					       );
 				}
 
-				AstExpression* assign_new_var() {
-					//返回的是赋值语句
+				AstDefVar* assign_new_var() {
 
 					Token* iden = matcher.Peek(0);
 
@@ -429,20 +438,31 @@ namespace stamon {
 					}
 
 					scopes[scopes.size()-1].mark(iden);	//登记该变量
+					_pop;		//弹出iden
 					CE
 
-					if(matcher.Peek(1)->type==TokenAssign) {
+					if(matcher.Peek(0)->type==TokenAssign) {
 						//初始化赋值
+						_pop;	//弹出等号
+
 						AstExpression* expr = expression();
 						CE
-						return expr;
+
+						AstDefVar* rst = Ast<AstDefVar>(
+						                     iden->lineNo,
+						                     Ast<AstIdentifierName>(
+						                         iden->lineNo,
+						                         ((IdenToken*)iden)->iden
+						                     ),
+						                     expr
+						                 );
+
+						return rst;
 					}
 
 					//没有初始化赋值，则赋空值
 
-					_pop;		//弹出标识符
-
-					return MakeNullExpression(iden);
+					return MakeNullDef(iden);
 
 				}
 
@@ -465,6 +485,7 @@ namespace stamon {
 
 					return NULL;
 				}
+
 
 				AstDefFunc* def_func() {
 
@@ -844,7 +865,77 @@ namespace stamon {
 
 					import_path += String((char*)".st");
 
-					parsing_queue->AddSource(import_path);
+					match(TokenSemi);	//匹配分号
+					CE
+
+					/*开始分析*/
+					if(filemap.exist(import_path)==true) {
+						return NULL;	//已经分析过了
+					}
+
+					LineReader reader = filemap.mark(import_path);
+					CE
+
+					//进行词法分析
+					lineNo = 1;
+					Lexer lexer(ex);
+
+					while(reader.isMore()) {
+						String text = reader.getLine();
+						CE
+
+						int index = lexer.getLineTok(
+						                lineNo, text
+						            );
+
+						CATCH {
+							THROW_S(
+							    String((char*)"Error: at \"")
+							    + import_path
+							    + String((char*)"\": ")
+							    + toString(lineNo)
+							    + String((char*)":")
+							    + toString(index)
+							    + String((char*)" : ")
+							    + ex->getError()
+							)
+							ErrorMsg->add(ex->getError());
+
+							ex->isError = false;
+						}
+
+						lineNo++;
+					}
+					
+					Matcher matcher(lexer, ex);
+					Parser* parser = new Parser(
+					    matcher, ex, scopes[0],
+					    import_path, src_project, filemap,
+					    ErrorMsg, ImportFlag
+					);
+
+					ast::AstNode* node = parser->Parse();	//语法分析
+
+					CATCH {
+						THROW_S(
+						    String((char*)"Syntax Error: at \"")
+						    + import_path
+						    + String((char*)"\": ")
+						    + toString(parser->ParsingLineNo)
+						    + String((char*)": ")
+						    + ex->getError()
+						)
+						ErrorMsg->add(ex->getError());
+
+						ex->isError = false;
+					}
+
+					SourceSyntax syntax;
+					syntax.program = node;
+					syntax.filename = import_path;
+
+					src_project->add(syntax);
+
 
 					return NULL;
 
@@ -985,12 +1076,12 @@ namespace stamon {
 						CE
 						rst = Ast<AstBinary>(
 						          op->lineNo,
-						          op->type-37,
+						          op->type-38,
 						          rst,
 						          right
 						      );
-						//其中，op->type-37其实是将token里的运算符映射到ast中的运算符
-						//例如TokenBitOR-37 = 2 = BinaryBitORType
+						//其中，op->type-38其实是将token里的运算符映射到ast中的运算符
+						//例如TokenBitOR-38 = 2 = BinaryBitORType
 
 						op = matcher.Peek(0);
 					}
@@ -1208,7 +1299,7 @@ namespace stamon {
 
 				AstString* STR() {
 					StringToken* tok = (StringToken*)match(TokenString);
-					return Ast<AstString>(tok->lineNo, tok->content);
+					return Ast<AstString>(tok->lineNo, tok->val);
 				}
 
 				AstNull* _NULL() {

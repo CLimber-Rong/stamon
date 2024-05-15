@@ -12,7 +12,7 @@
 */
 
 #ifndef SEQUENCETYPE_CPP
-#define SEQUeNCETYPE_CPP
+#define SEQUENCETYPE_CPP
 
 #include"DataType.hpp"
 #include"ArrayList.hpp"
@@ -20,8 +20,8 @@
 namespace stamon {
 	namespace datatype {
 		class SequenceType : public DataType {
-				ArrayList<Variable*> sequence;
 			public:
+				ArrayList<Variable*> sequence;
 				SequenceType(int length) : DataType(SequenceTypeID), sequence(ArrayList<Variable*>(length)) {
 				}
 				SequenceType(ArrayList<Variable*> value) : DataType(SequenceTypeID) {
