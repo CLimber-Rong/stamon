@@ -8,7 +8,7 @@ def System = class {
     def version;
 
     func __init__(self) {
-        self.version = "2.2.8";  //当前版本号
+        self.version = "2.2.10";  //当前版本号
     }
 
     func typeof(self, v) {

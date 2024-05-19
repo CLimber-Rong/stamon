@@ -27,6 +27,8 @@ using namespace stamon;
 
 void getHelpInformation();  //输出帮助信息
 
+String getNoEndingSeparatorPath(String path);	//获取末尾没有分隔符的路径
+
 int main(int argc, char* argv[]) {
 
 	//参数表
@@ -37,8 +39,8 @@ int main(int argc, char* argv[]) {
 
 	if(getenv("STAMON")==NULL) {
 		printf(
-			"stamon: fatal error: missing enviroment variable \"STAMON\"\n"
-			"please enter \'stamon help\' to get more information.\n"
+		    "stamon: fatal error: missing enviroment variable \"STAMON\"\n"
+		    "please enter \'stamon help\' to get more information.\n"
 		);
 		return -1;
 	}
@@ -94,7 +96,9 @@ int main(int argc, char* argv[]) {
 
 						//添加引用路径
 						ImportPaths.add(
-						    args[i].substring(2, args[i].length())
+						    getNoEndingSeparatorPath(
+						        args[i].substring(2, args[i].length())
+						    )
 						);
 
 					} else {
@@ -116,7 +120,11 @@ int main(int argc, char* argv[]) {
 		//printf(program_path.c_arr());
 
 		if(isSupportImport) {
-			ImportPaths.insert(0, program_path + String((char*)"/include/"));
+			ImportPaths.insert(
+			    0,
+			    getNoEndingSeparatorPath(program_path)
+			    + String((char*)"/include/")
+			);
 			//加入标准库路径
 		}
 
@@ -205,10 +213,11 @@ int main(int argc, char* argv[]) {
 	    ||args[0].equals(String((char*)"-v"))
 	) {
 		printf(
-		    "stamon 2.2.9\n"
+		    "stamon %d.%d.%d\n"
 		    "Be Released by CLimber-Rong(github.com/CLimber-Rong/)\n"
 		    "Open Source in \'github.com/CLimber-Rong/stamon/\'\n"
-		    "This program has absolutely no warranty.\n"
+		    "This program has absolutely no warranty.\n",
+			STAMON_VER_X, STAMON_VER_Y, STAMON_VER_Z
 		);
 		return 0;
 	} else {
@@ -240,4 +249,12 @@ void getHelpInformation() {
 	    "\t\t--GC=<boolean>\t\tGC Flag\n"
 	    "\t\t--MemLimit=<Integer>\tSet VM Memory Limit\n"
 	);
+}
+
+String getNoEndingSeparatorPath(String path) {
+	//去除末尾分隔符
+	if(path[path.length()-1]=='\\' || path[path.length()-1]=='/') {
+		return path.substring(0, path.length()-1);
+	}
+	return path;
 }

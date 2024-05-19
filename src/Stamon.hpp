@@ -47,6 +47,9 @@
 		}\
 	}
 
+#define STAMON_VER_X 2
+#define STAMON_VER_Y 2
+#define STAMON_VER_Z 10
 
 namespace stamon {
 	using namespace stamon::ir;
@@ -73,9 +76,9 @@ namespace stamon {
 			void Init() {
 				ex = new STMException();
 				ErrorMsg = new ArrayList<String>();
-				VerX = 2;
-				VerY = 2;
-				VerZ = 9;
+				VerX = STAMON_VER_X;
+				VerY = STAMON_VER_Y;
+				VerZ = STAMON_VER_Z;
 			}
 
 			void compile(
