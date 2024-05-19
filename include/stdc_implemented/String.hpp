@@ -178,6 +178,11 @@ class String {
 
 		String substring(int start, int end) {
 			//获取从start到end（不包含end）的子字符串
+
+			if(start==end) {
+				return String((char*)"");
+			}
+
 			char* s = (char*)calloc(end-start+1, 1);
 
 			for(int i=0,len=end-start; i<len; i++) {

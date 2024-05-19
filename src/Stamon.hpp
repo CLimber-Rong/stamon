@@ -3,7 +3,7 @@
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 24/12/23 11:23
-	Description: Stamon头文件，版本2.2.6
+	Description: Stamon头文件
 */
 
 #ifndef STAMON_HPP
@@ -75,7 +75,7 @@ namespace stamon {
 				ErrorMsg = new ArrayList<String>();
 				VerX = 2;
 				VerY = 2;
-				VerZ = 6;
+				VerZ = 9;
 			}
 
 			void compile(

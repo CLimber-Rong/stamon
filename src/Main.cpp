@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 	    ||args[0].equals(String((char*)"-v"))
 	) {
 		printf(
-		    "stamon 2.2.8\n"
+		    "stamon 2.2.9\n"
 		    "Be Released by CLimber-Rong(github.com/CLimber-Rong/)\n"
 		    "Open Source in \'github.com/CLimber-Rong/stamon/\'\n"
 		    "This program has absolutely no warranty.\n"

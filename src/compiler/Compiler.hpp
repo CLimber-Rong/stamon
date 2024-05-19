@@ -110,6 +110,8 @@ namespace stamon {
 					syntax.filename = filename;
 
 					src->add(syntax);
+
+					reader.close();
 				}
 		};
 	}

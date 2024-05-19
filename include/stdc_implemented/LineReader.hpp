@@ -24,15 +24,16 @@ ArrayList<String> ImportPaths;
 class LineReader {
 		int size;
 		FILE* stream = NULL;
-		char* buffer;
+		ArrayList<String> split_texts;
+		//按行分割后的文本
 	public:
 		STMException* ex;
-
+		
 		LineReader() {}
 
 		LineReader(String filename, STMException* e) {
 			ex = e;
-
+			char* buffer = NULL;
 			for(int i=0,len=ImportPaths.size(); i<len; i++) {
 
 				stream = fopen(
@@ -51,57 +52,56 @@ class LineReader {
 
 			if(stream==NULL) FILE_ERR;
 
-			if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR
-				//将文件指针置于底部
+			if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR;
+			//将文件指针置于底部
 
-				size = ftell(stream);
+			size = ftell(stream);
 			//获取文件指针（即文件底部）与文件头部的距离（即文件大小）
 
-			if(size == -1) FILE_ERR
+			if(size == -1) FILE_ERR;
 
-				buffer = (char*)calloc(1, size+1);    //根据文件大小开辟内存
+			buffer = (char*)calloc(1, size+1);    //根据文件大小开辟内存
 
-			if(buffer==NULL)    FILE_ERR
+			if(buffer==NULL)    FILE_ERR;
 
-				if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR
-					//将文件指针重新置于顶部
+			if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR;
 
+			fread(buffer, 1, size+1, stream);
+
+			String text = String(buffer);
+
+			free(buffer);
+
+			//然后开始逐行分割
+
+			int start = 0, end=0;	//设当前分割的文本为text[start...end]
+
+			while(end<text.length()) {
+				if(text[end]=='\n') {
+					//分割一行文本
+					split_texts.add(text.substring(start, end+1));
+					start = end;	//更新start
 				}
-
-		String getLine() {
-			char* s = fgets(buffer, size, stream);
-
-			if(s==NULL) {
-				return String((char*)"\0");
+				end++;
 			}
 
-			return String(s);
+			split_texts.add(text.substring(start, end));	//把最后一行文本写入
+		}
+
+		String getLine() {
+			//读取一行的文本
+			String rst = split_texts[0];
+			split_texts.erase(0);
+			return rst;
 		}
 
 		bool isMore() {
-
-			int pos = ftell(stream);    //获取当前指针所在位置
-
-			bool result = true;
-
-			if(getc(stream)==EOF) {
-				result = false;
-			}
-
-			if(fseek(stream, pos, SEEK_SET)!=0) {
-				THROW("file opening error")
-				return false;
-			}
-
-			//将文件指针向文件顶部跳动一字符
-			return result;
+			return !split_texts.empty();
 		}
 
-		~LineReader() {
-			free(buffer);
+		void close() {
 			fclose(stream);
 		}
-
 };
 
 #undef FILE_ERR

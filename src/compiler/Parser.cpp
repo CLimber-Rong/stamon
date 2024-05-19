@@ -936,6 +936,8 @@ namespace stamon {
 
 					src_project->add(syntax);
 
+					reader.close();
+
 
 					return NULL;
 

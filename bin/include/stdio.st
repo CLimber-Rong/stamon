@@ -1,4 +1,4 @@
-//输入输出类
+//标准输入输出库
 
 import stddef;
 import math;
