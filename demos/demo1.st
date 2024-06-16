@@ -25,7 +25,7 @@ for j in { 1, 2, 3 } {  //for循环的表达式要是列表
     println(j);
 }
 
-def a = [3];   //默认填充null
+a = [3];   //默认填充null
 println(a);
 
 func f1() {  //如果函数无参数，也可以把括号省略掉，写成“func f {...}”格式

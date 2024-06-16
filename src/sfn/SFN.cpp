@@ -10,7 +10,6 @@
 #ifndef SFN_CPP
 #define SFN_CPP
 
-#include"iostream"
 #include"stdio.h"
 #include"stdlib.h"
 
@@ -174,9 +173,9 @@ void sfn_printNum(SFN_PARA_LIST) {
 	if(val->getType()==stamon::datatype::IntegerTypeID) {
 		printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::FloatTypeID) {
-		printf("%d", ((stamon::datatype::FloatType*)val)->getVal());
+		printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::DoubleTypeID) {
-		printf("%d", ((stamon::datatype::DoubleType*)val)->getVal());
+		printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
 	} else {
 		THROW("bad type in printNum")
 	}

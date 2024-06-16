@@ -16,6 +16,7 @@ class LineReader {
 	public:
 		String getLine();
 		bool isMore();
+		void close();
 };
 
 #endif

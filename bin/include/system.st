@@ -3,12 +3,12 @@
 import stddef;
 import math;
 
-def System = class {
+System = class {
 
     def version;
 
     func __init__(self) {
-        self.version = "2.2.10";  //当前版本号
+        self.version = "2.4.4";  //当前版本号
     }
 
     func typeof(self, v) {

@@ -33,7 +33,7 @@ namespace stamon {
 					ImportFlag = right.ImportFlag;
 				}
 
-				Compiler(STMException* e) : filemap(e) {
+				Compiler(STMException* e) : filemap(e), global_scope(e) {
 					src = new ArrayList<SourceSyntax>();
 					ex = e;
 					ErrorMsg = new ArrayList<String>();

@@ -141,7 +141,9 @@ namespace stamon {
 							int slen = ReadInt();
 							NextPos(4);
 
-							char* c_arr = new char[slen];
+							char* c_arr = new char[slen+1];
+							c_arr[slen] = '\0';
+							
 							for(int i=0; i<slen; i++) {
 								c_arr[i] = stvc[pos+i];
 							}
@@ -247,7 +249,7 @@ namespace stamon {
 				int ReadInt() {
 					//将stvc[pos]到stvc[pos+3]转换成int
 
-					int arr[4] = {
+					char arr[4] = {
 						stvc[pos+3], stvc[pos+2], stvc[pos+1], stvc[pos]
 					};
 

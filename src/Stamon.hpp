@@ -48,8 +48,8 @@
 	}
 
 #define STAMON_VER_X 2
-#define STAMON_VER_Y 2
-#define STAMON_VER_Z 10
+#define STAMON_VER_Y 4
+#define STAMON_VER_Z 4
 
 namespace stamon {
 	using namespace stamon::ir;
@@ -82,7 +82,7 @@ namespace stamon {
 			}
 
 			void compile(
-			    String src, String dst, bool isSupportImport
+			    String src, String dst, bool isSupportImport, bool isStrip
 			) {
 				Compiler compiler(ex);
 
@@ -202,29 +202,33 @@ namespace stamon {
 
 				for(int i=0,len=ir_list.size(); i<len; i++) {
 
-					if(lineNo!=ir_list[i].lineNo
-					        &&ir_list[i].type!=-1) {
+					if(isStrip==false) {
+						//要求附加调试信息
 
-						//注意：结束符不用在意行号和文件名
-						//这里要特判结束符（即ir_list[i].type!=-1）
+						if(lineNo!=ir_list[i].lineNo
+						        &&ir_list[i].type!=-1) {
 
-						//如果行号没更新，更新行号并且将当前行号写入
-						lineNo = ir_list[i].lineNo;
+							//注意：结束符不用在意行号和文件名
+							//这里要特判结束符（即ir_list[i].type!=-1）
 
-						WRITE_I(-2)		//-2代表更新行号
-						WRITE_I(lineNo)
-					}
+							//如果行号没更新，更新行号并且将当前行号写入
+							lineNo = ir_list[i].lineNo;
 
-					if(filename.equals(ir_list[i].filename) == false
-					        &&ir_list[i].type!=-1) {
-						//检查文件名，原理同上
-						filename = ir_list[i].filename;
+							WRITE_I(-2)		//-2代表更新行号
+							WRITE_I(lineNo)
+						}
 
-						WRITE_I(-3)		//-2代表更新文件
-						WRITE_I(filename.length())
+						if(filename.equals(ir_list[i].filename) == false
+						        &&ir_list[i].type!=-1) {
+							//检查文件名，原理同上
+							filename = ir_list[i].filename;
 
-						for(int i=0,len=filename.length(); i<len; i++) {
-							WRITE(filename[i])
+							WRITE_I(-3)		//-2代表更新文件
+							WRITE_I(filename.length())
+
+							for(int i=0,len=filename.length(); i<len; i++) {
+								WRITE(filename[i])
+							}
 						}
 					}
 
@@ -291,6 +295,133 @@ namespace stamon {
 					ErrorMsg->add(ex->getError());
 					return;
 				}
+
+				return;
+			}
+
+			void strip(String src) {
+				//剥夺调试信息
+				//这些代码直接改编自run方法和compile方法
+
+				ArrayList<AstIR> ir_list;
+
+				BinaryReader reader(ex, src);	//打开文件
+
+				STVCReader ir_reader(reader.read(), reader.size, ex);
+				//初始化字节码读取器
+
+				CATCH {
+					ErrorMsg->add(ex->getError());
+					return;
+				}
+
+				if(ir_reader.ReadHeader()==false) {
+					//读取文件头
+					ErrorMsg->add(ex->getError());
+					return;
+				}
+
+				ir_list = ir_reader.ReadIR();
+
+				CATCH {
+					ErrorMsg->add(ex->getError());
+					return;
+				}
+
+				reader.close();	//关闭文件
+
+
+
+				BinaryWriter writer(ex, src);
+
+				CATCH {
+					ErrorMsg->add(ex->getError());
+					return;
+				}
+
+				ArrayList<DataType*> ir_tableconst = ir_reader.tableConst;
+
+				//写入魔数
+
+				WRITE(0xAB)
+				WRITE(0xDB)
+
+				//写入版本
+
+				WRITE(ir_reader.VerX)
+				WRITE((ir_reader.VerY<<4) + (ir_reader.VerZ & 0x0f))
+
+				//写入常量表
+
+				WRITE_I(ir_tableconst.size())
+
+				for(int i=0,len=ir_tableconst.size(); i<len; i++) {
+
+					WRITE((char)ir_tableconst[i]->getType())
+
+					if(ir_tableconst[i]->getType()==IntegerTypeID) {
+						int val = ((IntegerType*)ir_tableconst[i])
+						          ->getVal();
+
+						WRITE_I(val)
+					}
+
+					if(ir_tableconst[i]->getType()==FloatTypeID) {
+						float val = ((FloatType*)ir_tableconst[i])
+						            ->getVal();
+						//逐个字节写入
+						WRITE( ((char*)&val)[0] )
+						WRITE( ((char*)&val)[1] )
+						WRITE( ((char*)&val)[2] )
+						WRITE( ((char*)&val)[3] )
+					}
+
+					if(ir_tableconst[i]->getType()==DoubleTypeID) {
+						float val = ((DoubleType*)ir_tableconst[i])
+						            ->getVal();
+						//逐个字节写入
+						WRITE( ((char*)&val)[0] )
+						WRITE( ((char*)&val)[1] )
+						WRITE( ((char*)&val)[2] )
+						WRITE( ((char*)&val)[3] )
+						WRITE( ((char*)&val)[4] )
+						WRITE( ((char*)&val)[5] )
+						WRITE( ((char*)&val)[6] )
+						WRITE( ((char*)&val)[7] )
+					}
+
+					if(ir_tableconst[i]->getType()==StringTypeID) {
+						String s = ((StringType*)ir_tableconst[i])
+						           ->getVal();
+
+						WRITE_I(s.length());
+
+						for(int i=0,len=s.length(); i<len; i++) {
+							WRITE(s[i])
+						}
+					}
+
+					if(ir_tableconst[i]->getType()==IdenConstTypeID) {
+						String s = ((IdenConstType*)ir_tableconst[i])
+						           ->getVal();
+
+						WRITE_I(s.length());
+
+						for(int i=0,len=s.length(); i<len; i++) {
+							WRITE(s[i])
+						}
+					}
+
+				}
+
+				//最后写入IR
+
+				for(int i=0,len=ir_list.size(); i<len; i++) {
+					WRITE_I(ir_list[i].type)
+					WRITE_I(ir_list[i].data)
+				}
+
+				writer.close();
 
 				return;
 			}

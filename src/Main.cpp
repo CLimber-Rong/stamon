@@ -7,7 +7,6 @@
     * 命令行工具
     * 该文件并不属于编译器或虚拟机的范畴，所以使用了平台库
     * 开发者可以自行更改或者建立属于自己的命令行工具
-	* P.S. 该文件能且大概率仅能在Windows平台上正常运作
 	* 在使用stamon之前，你需要配置环境变量
 	* 即：将可执行文件所在目录设为STAMON
 */
@@ -70,6 +69,7 @@ int main(int argc, char* argv[]) {
 		String dst((char*)"a.stvc");
 
 		bool isSupportImport = true;    //默认支持import
+		bool isStrip = false;			//默认附加调试信息
 
 		//解析编译的文件名
 
@@ -89,6 +89,14 @@ int main(int argc, char* argv[]) {
 					} else if(args[i].equals(String((char*)"--import=true"))) {
 
 						isSupportImport = true;
+
+					} else if(args[i].equals(String((char*)"--strip=false"))) {
+
+						isStrip = false;
+
+					} else if(args[i].equals(String((char*)"--strip=true"))) {
+						
+						isStrip = true;
 
 					} else if(
 					    args[i].length()>3
@@ -132,7 +140,7 @@ int main(int argc, char* argv[]) {
 
 		stamon.Init();
 
-		stamon.compile(src, dst, isSupportImport);
+		stamon.compile(src, dst, isSupportImport, isStrip);
 
 		if(stamon.ErrorMsg->empty()==false) {
 			printf("stamon: compile: fatal error:\n");
@@ -203,6 +211,36 @@ int main(int argc, char* argv[]) {
 		return 0;
 
 	} else if(
+		args[0].equals(String((char*)"strip"))
+	    ||args[0].equals(String((char*)"-s"))
+	) {
+
+		String src;
+		if(args.size()<2) {
+			printf("stamon: run: too few arguments\n"
+			       "please enter \'stamon help\' "
+			       "to get more information.\n");
+		} else {
+			src = args[1];
+		}
+
+		Stamon stamon;
+
+		stamon.Init();
+
+		stamon.strip(src);
+
+		if(stamon.ErrorMsg->empty()==false) {
+			printf("stamon: strip: fatal error:\n");
+			for(int i=0,len=stamon.ErrorMsg->size(); i<len; i++) {
+				printf("%s\n", stamon.ErrorMsg->at(i).getstr());
+			}
+			return -1;
+		}
+
+		return 0;
+
+	} else if(
 	    args[0].equals(String((char*)"help"))
 	    ||args[0].equals(String((char*)"-h"))
 	) {
@@ -237,17 +275,22 @@ int main(int argc, char* argv[]) {
 
 void getHelpInformation() {
 	printf(
-	    "Usage: stamon file [options] ...\n"
+	    "Usage: stamon options [arguments..]\n"
 	    "Options\n"
 	    "\tversion | -v\t\t\tDisplay this version.\n"
 	    "\thelp | -h\t\t\tDisplay this information.\n"
 	    "\tbuild | -b\t\t\tBuild this source to program.\n"
-	    "\t\t<filename>\t\tSource filename\n"
+	    "\t\t<filename>\t\tSource filename (Required)\n"
+		"\t\t<filename>\t\tTarget filename\n"
 	    "\t\t--import=<boolean>\t\tSupport Import Flag\n"
+		"\t\t--strip=<boolean>\t\tStrip Debug Information Flag\n"
 	    "\t\t-I<path>\t\tAdd Include Path\n"
 	    "\trun | -r\t\t\tRun STVC.\n"
+		"\t\t<filename>\t\tSource filename (Required)\n"
 	    "\t\t--GC=<boolean>\t\tGC Flag\n"
 	    "\t\t--MemLimit=<Integer>\tSet VM Memory Limit\n"
+		"\tstrip | -s\t\t\tStrip STVC.\n"
+		"\t\t<filename>\t\tSource filename (Required)\n"
 	);
 }
 

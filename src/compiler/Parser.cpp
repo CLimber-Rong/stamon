@@ -906,7 +906,7 @@ namespace stamon {
 
 						lineNo++;
 					}
-					
+
 					Matcher matcher(lexer, ex);
 					Parser* parser = new Parser(
 					    matcher, ex, scopes[0],
@@ -937,7 +937,6 @@ namespace stamon {
 					src_project->add(syntax);
 
 					reader.close();
-
 
 					return NULL;
 
@@ -1149,7 +1148,8 @@ namespace stamon {
 								return Ast<AstPostfix> (
 								           line,
 								           PostfixNewType,
-								           (AstNode*) new AstArguments(
+								           (AstNode*) Ast<AstArguments>(
+								               line,
 								               new ArrayList<AstNode*>()
 								           )
 								           //空的参数列表

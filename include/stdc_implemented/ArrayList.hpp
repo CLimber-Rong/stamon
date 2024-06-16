@@ -9,10 +9,7 @@
 #ifndef ARRAYLIST
 #define ARRAYLIST
 
-#include"stdio.h"
 #include"stdlib.h"
-
-using namespace std;
 
 template <typename T>
 class ArrayList {
@@ -92,7 +89,7 @@ class ArrayList {
 		}	//判断是否为空
 
 		void clear() {
-			free(list);
+			delete[] list;
 			list = NULL;
 			length = 0;
 		}	//清除列表

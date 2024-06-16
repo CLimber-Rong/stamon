@@ -8,7 +8,6 @@ def all;
 def range;
 def range_ab;
 def int;
-def str;
 def len;
 
 //IO库定义
