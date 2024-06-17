@@ -10,6 +10,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 enable_testing()
 
 macro(compressing_binary target)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             set(filename ${EXECUTABLE_OUTPUT_PATH}/${target}.exe)
@@ -29,6 +30,7 @@ macro(compressing_binary target)
             COMMAND upx -9 "${filename}"
         )
     endif()
+endif()
 endmacro(compressing_binary)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
