@@ -32,14 +32,19 @@ include_directories(${PROJECT_SOURCE_DIR}/src/ir)
 include_directories(${PROJECT_SOURCE_DIR}/src/compiler)
 include_directories(${PROJECT_SOURCE_DIR}/src/sfn)
 
-set(CMAKE_C_FLAGS "-std=c17")
-set(CMAKE_CXX_FLAGS "-std=c++11")
-
 set(CMAKE_C_FLAGS_DEBUG "-g -Og -DDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og -DDEBUG")
 
-set(CMAKE_C_FLAGS_RELEASE "-O2 -march=native")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native")
+set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_C_FLAGS "-std=c17")
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+endif()
 
 add_executable(stamon src/Main.cpp)
 compressing_binary(stamon)
