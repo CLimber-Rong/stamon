@@ -63,13 +63,16 @@ add_executable(stamon-test test/test.cpp)
 compressing_binary(stamon-test)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        file(TO_NATIVE_PATH "${PROJECT_SOURCE_DIR}/src/bin-include" src)
         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            file(TO_NATIVE_PATH "${EXECUTABLE_OUTPUT_PATH}/include" tgt)
             add_custom_command(TARGET stamon POST_BUILD
-                COMMAND Xcopy "${PROJECT_SOURCE_DIR}/src/bin-include" "${EXECUTABLE_OUTPUT_PATH}/include" /s /e
+                COMMAND Xcopy "${src}" "${tgt}" /s /e /i
             )
         else()
+            file(TO_NATIVE_PATH "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_BUILD_TYPE}/include" tgt)
             add_custom_command(TARGET stamon POST_BUILD
-                COMMAND Xcopy "${PROJECT_SOURCE_DIR}/src/bin-include" "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_BUILD_TYPE}/include" /s /e
+                COMMAND Xcopy "${src}" "${tgt}" /s /e /i
             )
         endif()
 else()
