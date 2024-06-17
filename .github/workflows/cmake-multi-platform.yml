@@ -80,14 +80,30 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
-    - uses: actions/upload-artifact@v4
-      if: matrix.os == 'windows-latest'
+    - name: Upload executable for Windows
+      uses: actions/upload-artifact@v4
+      if: matrix.os == 'windows-latest' && matrix.c_compiler == 'cl' 
       with:
-        name: stamon.exe
-        path: ${{ github.workspace }}/bin/Release/stamon.exe
+        name: stamon-for-windows
+        path: |
+          ${{ github.workspace }}/bin/${{ matrix.build_type }}/stamon.exe
+          ${{ github.workspace }}/bin/${{ matrix.build_type }}/include
+          ${{ github.workspace }}/demos
+          ${{ github.workspace }}/doc
+          ${{ github.workspace }}/LICENSE
+          ${{ github.workspace }}/README.md
+        compression-level: 9
 
-    - uses: actions/upload-artifact@v4
+    - name: Upload executable for Linux
+      uses: actions/upload-artifact@v4
       if: matrix.os == 'ubuntu-latest' && matrix.c_compiler == 'clang' 
       with:
-        name: stamon
-        path: ${{ github.workspace }}/bin/stamon
+        name: stamon-for-linux
+        path: |
+          ${{ github.workspace }}/bin/stamon
+          ${{ github.workspace }}/bin/include
+          ${{ github.workspace }}/demos
+          ${{ github.workspace }}/doc
+          ${{ github.workspace }}/LICENSE
+          ${{ github.workspace }}/README.md
+        compression-level: 9
