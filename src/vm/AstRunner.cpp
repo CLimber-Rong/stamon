@@ -13,7 +13,7 @@
 #include"String.hpp"
 #include"stmlib.hpp"
 #include"Ast.hpp"
-#include"Datatype.hpp"
+#include"DataType.hpp"
 #include"ObjectManager.cpp"
 #include"AstIR.cpp"
 #include"SFN.cpp"

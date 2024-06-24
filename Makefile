@@ -45,7 +45,7 @@ release:
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
 	-O2 \
-	-std=c++11 \
+	-std=c++17 \
 	-I include/stdc_implemented \
 	-I src/ast \
 	-I src/data_type \
@@ -63,7 +63,7 @@ release_win:
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
 	-O2 \
-	-std=c++11 \
+	-std=c++17 \
 	-I include/stdc_implemented \
 	-I src/ast \
 	-I src/data_type \
@@ -82,7 +82,7 @@ release_linux:
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
 	-O2 \
-	-std=c++11 \
+	-std=c++17 \
 	-I include/stdc_implemented \
 	-I src/ast \
 	-I src/data_type \

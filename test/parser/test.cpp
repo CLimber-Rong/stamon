@@ -23,9 +23,11 @@
 #include"Lexer.cpp"
 #include"Parser.cpp"
 
-using namespace stamon::ir;
-using namespace stamon::datatype;
+using namespace stamon;
+using namespace stamon::ast;
 using namespace stamon::c;
+using namespace stamon::datatype;
+using namespace stamon::ir;
 using namespace std;
 
 void DebugAST(AstNode* node, int layer) {
