@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(Stamon VERSION 2.4.4)
+project(Stamon VERSION 2.4.5)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)

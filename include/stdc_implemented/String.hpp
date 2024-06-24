@@ -5,8 +5,7 @@
 	Date: 29/07/23 12:59
 	Description: 字符串库
 */
-#ifndef STRING
-#define STRING
+#pragma once
 
 /*
  * 一些网络上的大牛，他们告诉我，我必须在一些函数的结尾加上const限定符，才能支持
@@ -246,5 +245,3 @@ class String {
 			StrFree();
 		}
 };
-
-#endif

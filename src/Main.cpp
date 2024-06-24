@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 						isStrip = false;
 
 					} else if(args[i].equals(String((char*)"--strip=true"))) {
-						
+
 						isStrip = true;
 
 					} else if(
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 				} else if(args[i].equals(String((char*)"--GC=false"))) {
 					isGC = false;
 				} else if(
-				    args[i].length()>12
+				    args[i].length()>11
 				    &&args[i].substring(0, 11).equals(
 				        String((char*)"--MemLimit=")
 				    )
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 
 	} else if(
-		args[0].equals(String((char*)"strip"))
+	    args[0].equals(String((char*)"strip"))
 	    ||args[0].equals(String((char*)"-s"))
 	) {
 
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 		    "Be Released by CLimber-Rong(github.com/CLimber-Rong/)\n"
 		    "Open Source in \'github.com/CLimber-Rong/stamon/\'\n"
 		    "This program has absolutely no warranty.\n",
-			STAMON_VER_X, STAMON_VER_Y, STAMON_VER_Z
+		    STAMON_VER_X, STAMON_VER_Y, STAMON_VER_Z
 		);
 		return 0;
 	} else {
@@ -281,16 +281,16 @@ void getHelpInformation() {
 	    "\thelp | -h\t\t\tDisplay this information.\n"
 	    "\tbuild | -b\t\t\tBuild this source to program.\n"
 	    "\t\t<filename>\t\tSource filename (Required)\n"
-		"\t\t<filename>\t\tTarget filename\n"
+	    "\t\t<filename>\t\tTarget filename\n"
 	    "\t\t--import=<boolean>\t\tSupport Import Flag\n"
-		"\t\t--strip=<boolean>\t\tStrip Debug Information Flag\n"
+	    "\t\t--strip=<boolean>\t\tStrip Debug Information Flag\n"
 	    "\t\t-I<path>\t\tAdd Include Path\n"
 	    "\trun | -r\t\t\tRun STVC.\n"
-		"\t\t<filename>\t\tSource filename (Required)\n"
+	    "\t\t<filename>\t\tSource filename (Required)\n"
 	    "\t\t--GC=<boolean>\t\tGC Flag\n"
 	    "\t\t--MemLimit=<Integer>\tSet VM Memory Limit\n"
-		"\tstrip | -s\t\t\tStrip STVC.\n"
-		"\t\t<filename>\t\tSource filename (Required)\n"
+	    "\tstrip | -s\t\t\tStrip STVC.\n"
+	    "\t\t<filename>\t\tSource filename (Required)\n"
 	);
 }
 

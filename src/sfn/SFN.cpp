@@ -6,9 +6,7 @@
 	Description: Stamon For Native，即本地库的实现
 */
 
-
-#ifndef SFN_CPP
-#define SFN_CPP
+#pragma once
 
 #include"stdio.h"
 #include"stdlib.h"
@@ -26,11 +24,10 @@
 
 //用这个宏（SFN Parameter List）可以快速声明SFN函数的参数列表
 
-namespace stamon {
-	namespace sfn {
-		class SFN;
-	}
+namespace stamon::sfn {
+	class SFN;
 }
+
 
 String DataType2String(STMException* ex, stamon::datatype::DataType* dt);
 
@@ -89,7 +86,7 @@ namespace stamon {
 				}
 		};
 	}
-}
+} //namespace stamon::sfn
 
 String DataType2String(STMException* ex, stamon::datatype::DataType* dt) {
 	if(dt->getType()==stamon::datatype::IntegerTypeID) {
@@ -304,8 +301,8 @@ void sfn_system(SFN_PARA_LIST) {
 	STMException* ex = sfn.ex;
 	int status = system(
 	                 ((stamon::datatype::StringType*)arg->data)
-					 ->getVal()
-					 .getstr()
+	                 ->getVal()
+	                 .getstr()
 	             );
 	arg->data = manager->MallocObject<stamon::datatype::IntegerType>(status);
 	return;
@@ -314,5 +311,3 @@ void sfn_system(SFN_PARA_LIST) {
 void sfn_exit(SFN_PARA_LIST) {
 	exit(((stamon::datatype::IntegerType*)arg->data)->getVal());
 }
-
-#endif
