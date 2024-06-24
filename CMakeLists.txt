@@ -56,6 +56,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+    
+    else()
+    
+    set(CMAKE_C_FLAGS "/std:c17")
+    set(CMAKE_CXX_FLAGS "/std:c++17")
 endif()
 
 add_executable(stamon src/Main.cpp)
