@@ -16,6 +16,7 @@
 #include"ObjectManager.cpp"
 #include"DataType.hpp"
 #include"Exception.hpp"
+#include"StringMap.hpp"
 
 #define SFN_PARA_LIST \
 	stamon::sfn::SFN& sfn,\
@@ -48,8 +49,7 @@ void sfn_exit(SFN_PARA_LIST);
 namespace stamon {
 	namespace sfn {
 		class SFN {
-				void (*sfn_functions[STAMON_SFN_FUNCTIONS_MAX])
-				(SFN_PARA_LIST) = { NULL };
+				StringMap<void(SFN_PARA_LIST)> sfn_functions;
 				//定义一个函数指针数组
 			public:
 				STMException* ex;
@@ -64,19 +64,19 @@ namespace stamon {
 					manager = objman;
 
 					//在这里将库函数按接口号填入
-					sfn_functions[0] = sfn_puts;
-					sfn_functions[1] = sfn_printNum;
-					sfn_functions[2] = sfn_int;
-					sfn_functions[3] = sfn_str;
-					sfn_functions[4] = sfn_len;
-					sfn_functions[5] = sfn_input;
-					sfn_functions[6] = sfn_typeof;
-					sfn_functions[7] = sfn_throw;
-					sfn_functions[8] = sfn_system;
-					sfn_functions[9] = sfn_exit;
+					sfn_functions.put(String((char*)"puts"), sfn_puts);
+					sfn_functions.put(String((char*)"printNum"), sfn_printNum);
+					sfn_functions.put(String((char*)"int"), sfn_int);
+					sfn_functions.put(String((char*)"str"), sfn_str);
+					sfn_functions.put(String((char*)"len"), sfn_len);
+					sfn_functions.put(String((char*)"input"), sfn_input);
+					sfn_functions.put(String((char*)"typeof"), sfn_typeof);
+					sfn_functions.put(String((char*)"throw"), sfn_throw);
+					sfn_functions.put(String((char*)"system"), sfn_system);
+					sfn_functions.put(String((char*)"exit"), sfn_exit);
 				}
-				void call(int port, datatype::Variable* arg) {
-					sfn_functions[port](*this, arg, manager);
+				void call(String port, datatype::Variable* arg) {
+					sfn_functions.get(port)(*this, arg, manager);
 					CATCH {
 						THROW_S(
 						    String((char*)"SFN Error: ")

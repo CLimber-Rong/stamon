@@ -42,6 +42,7 @@ debug: bin/stamon.exe
 release:
 # 自定义生成可执行文件名（默认为stamon.exe）
 
+	xcopy src\bin-include bin\include /s /e /y /i
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
 	-O2 \
@@ -60,6 +61,8 @@ release:
 	$(UPX) -9 bin/stamon.exe
 
 release_win:
+
+	xcopy src\bin-include bin\include /s /e /y /i
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
 	-O2 \
@@ -79,6 +82,7 @@ release_win:
 
 release_linux:
 #	编译Linux版本
+	cp -r -T src/bin-include bin/include
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
 	-O2 \

@@ -811,11 +811,11 @@ namespace stamon::vm {
 				Variable* arg_var = manager->GetVariable(arg);
 				CE
 
-				CDT(port_var->data, datatype::IntegerType)
+				CDT(port_var->data, datatype::StringType)
 
 				sfn.call(
 				    (
-				        (datatype::IntegerType*)port_var->data
+				        (datatype::StringType*)port_var->data
 				    )
 				    ->getVal(),
 				    arg_var

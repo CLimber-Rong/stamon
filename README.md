@@ -1,3 +1,10 @@
+<!--
+ * @Name: 
+ * @Copyright: 
+ * @Author: 
+ * @Date: 18/06/24 19:23
+ * @Description: 
+-->
 # Stamon2
 
 ![stamon logo](logo/logo.svg)
@@ -23,10 +30,11 @@
 ## 开发者
 
 * Climber-Rong [Github主页](https://github.com/CLimber-Rong) [Gitee主页](https://gitee.com/QuXiangrong)
+* copi143 [Github主页](https://github.com/copi143)
 
 ## 致谢
 
 * TheFlySong [Github主页](https://github.com/TheFlySong)
 * XIAOYI12 [Github主页](https://github.com/XIAOYI1212)
 * min0911_ [Github主页](https://github.com/min0911Y)
-* copi143 [Github主页](https://github.com/copi143)
+* 冻橘 [Github主页](https://github.com/MikanAffine)

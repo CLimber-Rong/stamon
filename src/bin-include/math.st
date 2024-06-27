@@ -35,14 +35,14 @@ func range_ab(a, b) {
 }
 
 func int(s) {
-    def port = 2;
+    def port = "int";
     def arg = s;
     sfn port, arg;
     return arg;
 }
 
 func len(n) {
-    def port = 4;
+    def port = "len";
     def arg = n;
     sfn port, arg;
     return arg;

@@ -5,7 +5,7 @@ import math;
 import string;
 
 func puts(s) {
-    def port = 0;
+    def port = "puts";
     sfn port, s;
 }
 
@@ -20,7 +20,7 @@ func println(n) {
 
 func input() {
 
-    def port = 5;
+    def port = "input";
     def arg;
 
     sfn port, arg;
