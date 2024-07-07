@@ -5,8 +5,7 @@ import math;
 import string;
 
 func puts(s) {
-    def port = "puts";
-    sfn port, s;
+    native("puts", s);
 }
 
 func print(n) {
@@ -19,11 +18,5 @@ func println(n) {
 }
 
 func input() {
-
-    def port = "input";
-    def arg;
-
-    sfn port, arg;
-
-    return arg;
+    return native("input", null);
 }

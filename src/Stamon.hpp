@@ -8,6 +8,12 @@
 
 #pragma once
 
+namespace stamon {
+	constexpr int STAMON_VER_X = 2;
+	constexpr int STAMON_VER_Y = 4;
+	constexpr int STAMON_VER_Z = 6;
+}
+
 #include"ArrayList.hpp"
 #include"NumberMap.hpp"
 #include"Stack.hpp"
@@ -15,13 +21,12 @@
 #include"LineReader.hpp"
 #include"StringMap.hpp"
 #include"DataType.hpp"
+#include"AstRunner.cpp"
 #include"ObjectManager.cpp"
 #include"Ast.hpp"
 #include"STVCReader.cpp"
 #include"AstIR.cpp"
 #include"Compiler.hpp"
-#include"AstRunner.cpp"
-#include"SFN.cpp"
 #include"Exception.hpp"
 #include"BinaryWriter.hpp"
 #include"BinaryReader.hpp"
@@ -52,10 +57,6 @@ namespace stamon {
 	// using namespace stamon::c;
 	// using namespace stamon::vm;
 	// using namespace stamon::sfn;
-
-	constexpr int STAMON_VER_X = 2;
-	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 6;
 
 	class Stamon {
 			template<typename T>

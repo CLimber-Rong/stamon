@@ -20,4 +20,5 @@
         "typeinfo": "cpp",
         "memory_resource": "cpp"
     },
+    "C_Cpp.errorSquiggles": "disabled",
 }

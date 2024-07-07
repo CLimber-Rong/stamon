@@ -8,35 +8,26 @@ System = class {
     def version;
 
     func __init__(self) {
-        self.version = "2.4.6";  //当前版本号
+        //当前版本号
+        return native("version", null);
     }
 
     func typeof(self, v) {
         //返回类型
-        def port = "typeof";
-        def arg = v;
-        sfn port, arg;
-        return arg;
+        return native("typeof", v);
     }
 
     func throw(self, s) {
         //抛出异常，同时让虚拟机退出
-        def port = "throw";
-        def arg = str(s);
-        sfn port, arg;
+        return native("throw", s);
     }
 
     func system(self, s) {
-        def port = "system";
-        def arg = str(s);
-        sfn port, arg;
-        return arg;
+        return native("system", s);
     }
 
     func exit(self, n) {
-        def port = "exit";
-        def arg = int(n);
-        sfn port, arg;
+        native("exit", int(n));
     }
 
 }.new;

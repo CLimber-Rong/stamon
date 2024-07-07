@@ -44,3 +44,9 @@ String toString(float x);
 String toString(double x);
 
 String toString(bool x);
+
+#define MACRO_START do {
+
+#define MACRO_END \
+	} \
+	while (0)

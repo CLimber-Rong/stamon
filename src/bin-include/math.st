@@ -1,4 +1,5 @@
 import stddef;
+import native;
 
 func abs(n) {
     if n<0: return -n;
@@ -35,15 +36,10 @@ func range_ab(a, b) {
 }
 
 func int(s) {
-    def port = "int";
-    def arg = s;
-    sfn port, arg;
-    return arg;
+    return native("int", s);
 }
 
 func len(n) {
-    def port = "len";
-    def arg = n;
-    sfn port, arg;
-    return arg;
+    return native("len", n);
 }
+

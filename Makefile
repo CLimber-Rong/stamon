@@ -54,6 +54,7 @@ release:
 	-I src/ir \
 	-I src/compiler \
 	-I src/sfn \
+	-I src/tac \
 	-I src \
 	-lm
 
@@ -74,6 +75,7 @@ release_win:
 	-I src/ir \
 	-I src/compiler \
 	-I src/sfn \
+	-I src/tac \
 	-I src \
 	-lm
 
@@ -94,6 +96,7 @@ release_linux:
 	-I src/ir \
 	-I src/compiler \
 	-I src/sfn \
+	-I src/tac \
 	-I src \
 	-lm
 
