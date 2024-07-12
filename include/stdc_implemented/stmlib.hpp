@@ -12,6 +12,7 @@
 #pragma once
 
 #include "String.hpp"
+#include "stdlib.h"
 
 /*由于代码经常涉及到基类转派生类，所以我编写了这个可以直接转换的宏*/
 /*
@@ -71,3 +72,8 @@ String toString(bool x) {
 #define MACRO_END \
 	} \
 	while (0)
+
+#define platform_exit exit
+#define platform_system system
+#define platform_scanf scanf
+#define platform_printf printf

@@ -50,3 +50,10 @@ String toString(bool x);
 #define MACRO_END \
 	} \
 	while (0)
+
+//以下宏需要手动填写
+
+#define platform_exit 
+#define platform_system 
+#define platform_scanf 
+#define platform_printf 

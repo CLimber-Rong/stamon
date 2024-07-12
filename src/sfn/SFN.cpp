@@ -8,9 +8,6 @@
 
 #pragma once
 
-#include"stdio.h"
-#include"stdlib.h"
-
 #include"Stamon.hpp"
 
 #define SFN_PARA_LIST \
@@ -157,7 +154,7 @@ void sfn_puts(SFN_PARA_LIST) {
 	if(val->getType()!=stamon::datatype::StringTypeID) {
 		THROW("bad type in puts")
 	}
-	printf("%s", ((stamon::datatype::StringType*)(arg->data))->getVal().getstr());
+	platform_printf("%s", ((stamon::datatype::StringType*)(arg->data))->getVal().getstr());
 	return;
 }
 
@@ -166,11 +163,11 @@ void sfn_printNum(SFN_PARA_LIST) {
 	stamon::datatype::DataType* val = arg->data;
 
 	if(val->getType()==stamon::datatype::IntegerTypeID) {
-		printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
+		platform_platform_printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::FloatTypeID) {
-		printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
+		platform_platform_printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::DoubleTypeID) {
-		printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
+		platform_platform_printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
 	} else {
 		THROW("bad type in printNum")
 	}
@@ -255,7 +252,7 @@ void sfn_input(SFN_PARA_LIST) {
 
 	char s[1024];
 
-	scanf("%s", s);
+	platform_scanf("%s", s);
 
 	arg->data = manager->MallocObject<stamon::datatype::StringType>(
 	                String(s)
@@ -297,7 +294,7 @@ void sfn_throw(SFN_PARA_LIST) {
 
 void sfn_system(SFN_PARA_LIST) {
 	STMException* ex = sfn.ex;
-	int status = system(
+	int status = platform_system(
 	                 ((stamon::datatype::StringType*)arg->data)
 	                 ->getVal()
 	                 .getstr()
@@ -307,7 +304,7 @@ void sfn_system(SFN_PARA_LIST) {
 }
 
 void sfn_exit(SFN_PARA_LIST) {
-	exit(((stamon::datatype::IntegerType*)arg->data)->getVal());
+	platform_exit(((stamon::datatype::IntegerType*)arg->data)->getVal());
 }
 
 void sfn_version(SFN_PARA_LIST) {
