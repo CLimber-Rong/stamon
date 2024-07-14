@@ -163,11 +163,11 @@ void sfn_printNum(SFN_PARA_LIST) {
 	stamon::datatype::DataType* val = arg->data;
 
 	if(val->getType()==stamon::datatype::IntegerTypeID) {
-		platform_platform_printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
+		platform_printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::FloatTypeID) {
-		platform_platform_printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
+		platform_printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
 	} else if(val->getType()==stamon::datatype::DoubleTypeID) {
-		platform_platform_printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
+		platform_printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
 	} else {
 		THROW("bad type in printNum")
 	}
@@ -252,7 +252,9 @@ void sfn_input(SFN_PARA_LIST) {
 
 	char s[1024];
 
-	platform_scanf("%s", s);
+	if(platform_scanf("%s", s)!=1) {
+		THROW("input error")
+	}
 
 	arg->data = manager->MallocObject<stamon::datatype::StringType>(
 	                String(s)
