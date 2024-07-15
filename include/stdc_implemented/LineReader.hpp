@@ -65,7 +65,7 @@ class LineReader {
 
 			if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR;
 
-			if(fread(buffer, 1, size+1, stream)!=size) FILE_ERR;
+			fread(buffer, 1, size+1, stream);
 
 			String text = String(buffer);
 
