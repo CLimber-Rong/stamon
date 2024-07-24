@@ -209,6 +209,30 @@ public:
 		s.append(str2);
 		return s;
 	}
+
+	int toInt() const {
+		int rst;
+		sscanf(data, "%d", &rst);
+		return rst;
+	}
+
+	int toIntX() const {
+		int rst;
+		sscanf(data, "%x", &rst);
+		return rst;
+	}
+
+	float toFloat() const {
+		float rst;
+		sscanf(data, "%f", &rst);
+		return rst;
+	}
+
+	double toDouble() const {
+		double rst;
+		sscanf(data, "%lf", &rst);
+		return rst;
+	}
 };
 
 template<class T>
