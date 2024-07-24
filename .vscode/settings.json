@@ -18,7 +18,17 @@
         "*.tcc": "cpp",
         "compare": "cpp",
         "typeinfo": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "deque": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "iterator": "cpp",
+        "memory": "cpp",
+        "random": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp",
+        "cstdint": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

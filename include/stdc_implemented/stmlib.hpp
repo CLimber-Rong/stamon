@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "String.hpp"
 #include "stdlib.h"
 
