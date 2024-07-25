@@ -13,8 +13,9 @@
 #include <stdio.h>
 
 #include "../usetool/byte_get.hpp"
+#include "../usetool/exp.hpp"
 
-#include <string>
+// #include <string>
 
 /**
  * @author: Gusem Fowage
@@ -24,7 +25,7 @@
 
 class String {
 	typedef char  	char_type;
-	typedef len_t 	size_type;
+	typedef size_t 	size_type;
 private:
 	char_type* data;
 	size_type size;
@@ -43,6 +44,7 @@ private:
 		if (capacity>=local_capacity) {
 			char_type* addr=(char_type*)calloc(capacity+1, 1);
             strcpy(addr, data);	// 复制原数据
+			free(data);
             allocated_capacity = capacity;	// 更新已分配长度
 			return addr;
 		}
@@ -83,7 +85,7 @@ public:
 	}
 	String& operator=(const String& str) {
 		if (this == &str) return *this;
-		reSalloc(str.size);
+		data = reSalloc(str.size);
 		strcpy(data, str.data);
 		size = str.size;
 		return *this;
@@ -97,7 +99,7 @@ public:
 	bool empty() const {
 		return size == 0;
 	}
-	
+
 	String& append(const char_type* str) {
 		size_type len = size+strlen(str);
         if (data == cache || len > allocated_capacity) {
@@ -134,11 +136,11 @@ public:
 		return strcmp(data, str) == 0;
 	}
 	char_type& at(size_type i) {
-		if (i >= size); // throw out_of_range("String::at");
+		if (0 >= i && i >= size) throw out_of_range("String::at");
 		return data[i];
 	}
 	char_type at(size_type i) const {
-		if (i >= size); // throw out_of_range("String::at");
+		if (0 >= i && i >= size) throw out_of_range("String::at");
 		return data[i];
 	}
 	const char_type* getstr() const noexcept {
@@ -152,7 +154,6 @@ public:
 		return s;
 	}
 public:	// 运算符重载
-#if 1
 	char_type& operator[](size_type i) noexcept {
 		return data[i];
 	}
@@ -181,15 +182,15 @@ public:	// 运算符重载
 	bool operator!=(const char_type* str) const {
 		return !equals(str);
 	}
-	
+
 	bool operator<(const String& str) const {
-		for (size_type i = 0; i < size && i < str.size; i++) { 
+		for (size_type i = 0; i < size && i < str.size; i++) {
 			if (data[i] < str.data[i]) return true;
 		}
 		return false;
 	}
 	bool operator>(const String& str) const {
-		for (size_type i = 0; i < size && i < str.size; i++) { 
+		for (size_type i = 0; i < size && i < str.size; i++) {
 			if (data[i] > str.data[i]) return true;
 		}
 		return false;
@@ -201,43 +202,58 @@ public:	// 运算符重载
 		return !(*this < str);
 	}
 	// int operator<=>(const String& str) const;
-#endif
 public:
 	template<class s_t>
 	friend String operator+(const s_t& str1, const s_t& str2) {
 		String s(str1);
-		s.append(str2);
+		s.append(String(str2));
 		return s;
 	}
-
+	template<class s_t>
+	String& operator+=(const s_t& str) {
+		append(String(str));
+		return *this;
+	}
+	// 下方代码是原作者要求实现 ）
 	int toInt() const {
 		int rst;
 		sscanf(data, "%d", &rst);
 		return rst;
 	}
-
 	int toIntX() const {
 		int rst;
 		sscanf(data, "%x", &rst);
 		return rst;
 	}
-
 	float toFloat() const {
 		float rst;
 		sscanf(data, "%f", &rst);
 		return rst;
 	}
-
 	double toDouble() const {
 		double rst;
 		sscanf(data, "%lf", &rst);
 		return rst;
 	}
+
+	String(int v) {
+		char_type sv[31];
+		sprintf(sv, "%d", v);
+		*this = sv;
+	}
+	String(float v)  {
+		char_type sv[31];
+		sprintf(sv, "%f", v);
+		*this = sv;
+	}
+	String(double v) {
+		char_type sv[31];
+		sprintf(sv, "%lf", v);
+		*this = sv;
+	}
 };
 
 template<class T>
 String toString(T&& t){
-	// 你自己实现，我不帮忙了
-	String s(std::to_string(t).c_str());
-	return s;
+	return String(t);
 }
