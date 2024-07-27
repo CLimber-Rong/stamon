@@ -59,7 +59,6 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-
 	if(
 	    args[0].equals(String((char*)"build"))
 	    ||args[0].equals(String((char*)"-b"))
@@ -131,7 +130,7 @@ int main(int argc, char* argv[]) {
 			ImportPaths.insert(
 			    0,
 			    getNoEndingSeparatorPath(program_path)
-			    + String((char*)"/include/")
+			    + String("/include/")
 			);
 			//加入标准库路径
 		}
