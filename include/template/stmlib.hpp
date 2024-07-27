@@ -1,7 +1,7 @@
 /*
 	Name: clib.h
 	Copyright: Apache 2.0
-	Author: CLimber-Rong
+	Author: CLimber-Rong, Gusem Fowage
 	Date: 12/08/23 23:24
 	Description: 一些杂糅的库定义
 */
@@ -22,6 +22,9 @@
 #ifndef NULL
 #define NULL 0
 #endif
+
+typedef char	;		//跨平台数据类型定义，需自行完成
+typedef size_t	;
 
 template<typename T, typename F>
 T cast_func(F f) {

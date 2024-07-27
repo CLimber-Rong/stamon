@@ -1,7 +1,7 @@
 /*
 	Name: clib.h
 	Copyright: Apache 2.0
-	Author: CLimber-Rong
+	Author: CLimber-Rong, Gusem Fowage
 	Date: 12/08/23 23:24
 	Description: 一些杂糅的库定义
 */
@@ -26,6 +26,9 @@
 #define NULL 0
 #endif
 
+typedef char char_type;		//跨平台数据类型定义
+typedef size_t size_type;
+
 template<typename T, typename F> T cast_func(F f) {
 	// 这个函数用于将类成员函数（也就是T）转为普通的函数（也就是F）
 	union FT {
@@ -37,6 +40,7 @@ template<typename T, typename F> T cast_func(F f) {
 	return ft.t; // 运用同一个地址，变相转换
 }
 
+// 本实现被移动至String.hpp
 // String toString(int x) {
 // 	char s[1024] = { 0 };
 // 	sprintf(s, "%d", x);

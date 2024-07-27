@@ -1,45 +1,32 @@
 /*
 	Name: String.hpp
 	Copyright: Apache2.0
-	Author: CLimber-Rong	// 原作者
+	Author: CLimber-Rong, GusemFowage
 	Date: 29/07/23 12:59
 	Description: 字符串库
-	@brief: 字符串类
 */
 #pragma once
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "../usetool/byte_get.hpp"
-#include "../usetool/exp.hpp"
-
-// #include <string>
-
-/**
- * @author: Gusem Fowage
- * @action: 更新字符串类（待添加...）
- * @notice: 如果未被添加，请联系
- */
+#include"string.h"
+#include"stdlib.h"
+#include"stdio.h"
+#include"stmlib.hpp"
 
 class String {
-	typedef char  	char_type;
-	typedef size_t 	size_type;
 private:
 	char_type* data;
 	size_type size;
-	enum { local_capacity = 15 / sizeof(char_type) };
+
+	enum { local_capacity = 16 / sizeof(char_type) };
+	//默认缓冲区容量16字节（包含'\0''）
 
 	union {
-		// 短字符串优化
-		char_type        cache[local_capacity+1]{0};
-		// 已分配长度
-		size_type        allocated_capacity;
+		char_type cache[local_capacity]{0};	//短字符串优化
+		size_type allocated_capacity;			//已分配长度
 	};
 
-	// 重新分配内存 返回：新的内存地址
 	char_type* reSalloc(size_type capacity) {
+		// 重新分配内存 返回：新的内存地址
 		capacity*= sizeof(char_type);
 		if (capacity>=local_capacity) {
 			char_type* addr=(char_type*)calloc(capacity+1, 1);
@@ -51,23 +38,23 @@ private:
 		else return cache;	// 短字符串优化
 	}
 public:
-	String() noexcept : data(cache), size(0) {}
-	String(const char_type* str) noexcept : String() {
+	String() : data(cache), size(0) {}
+	String(const char_type* str) : String() {
 		size = strlen(str);
 		data = reSalloc(size);
 		strcpy(data, str);
 	}
-    String(const char_type* str, size_type sz) noexcept : String() {
+    String(const char_type* str, size_type sz) : String() {
 		size = sz;
 		data = reSalloc(sz);
 		strncpy(data, str, sz);
 	}
-	String(const String& str) noexcept : String() {
+	String(const String& str) : String() {
 		data = reSalloc(str.size);
 		strcpy(data, str.data);
 		size = str.size;
 	}
-	String(String&& str) noexcept {
+	String(String&& str) {
 		if(str.data == str.cache) {
 			data = cache;
 			strcpy(data, str.data);
@@ -81,10 +68,14 @@ public:
 		}
 	}
 	~String() {
-		if (data != cache) free(data);
+		if (data != cache) {
+			free(data);
+		}
 	}
 	String& operator=(const String& str) {
-		if (this == &str) return *this;
+		if (this == &str) {
+			return *this;
+		}
 		data = reSalloc(str.size);
 		strcpy(data, str.data);
 		size = str.size;
@@ -136,25 +127,35 @@ public:
 		return strcmp(data, str) == 0;
 	}
 	char_type& at(size_type i) {
-		if (0 >= i && i >= size) throw out_of_range("String::at");
+		if (0 >= i && i >= size) {
+			THROW("out of range");
+		}
 		return data[i];
 	}
 	char_type at(size_type i) const {
-		if (0 >= i && i >= size) throw out_of_range("String::at");
+		if (0 >= i && i >= size) {
+			THROW("out of range");
+		}
 		return data[i];
 	}
-	const char_type* getstr() const noexcept {
+	const char_type* getstr() const {
 		return data;
 	}
 
 	String substring(size_type pos, size_type len) const {
-		if (pos >= size) return String();
-		if (pos+len > size) len = size-pos;
+
+		if (pos >= size) {
+			return String();
+		}
+
+		if (pos+len > size) {
+			len = size-pos;
+		}
 		String s(data+pos, len);
 		return s;
 	}
 public:	// 运算符重载
-	char_type& operator[](size_type i) noexcept {
+	char_type& operator[](size_type i) {
 		return data[i];
 	}
 	char_type operator[](size_type i) const noexcept{
@@ -191,7 +192,9 @@ public:	// 运算符重载
 	}
 	bool operator>(const String& str) const {
 		for (size_type i = 0; i < size && i < str.size; i++) {
-			if (data[i] > str.data[i]) return true;
+			if (data[i] > str.data[i]) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -201,7 +204,6 @@ public:	// 运算符重载
 	bool operator>=(const String& str) const {
 		return !(*this < str);
 	}
-	// int operator<=>(const String& str) const;
 public:
 	template<class s_t>
 	friend String operator+(const s_t& str1, const s_t& str2) {
@@ -214,7 +216,7 @@ public:
 		append(String(str));
 		return *this;
 	}
-	// 下方代码是原作者要求实现 ）
+
 	int toInt() const {
 		int rst;
 		sscanf(data, "%d", &rst);
