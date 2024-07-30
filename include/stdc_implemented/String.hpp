@@ -1,7 +1,7 @@
 /*
 	Name: String.hpp
 	Copyright: Apache2.0
-	Author: CLimber-Rong
+	Author: CLimber-Rong, GusemFowage
 	Date: 29/07/23 12:59
 	Description: 字符串库
 */
