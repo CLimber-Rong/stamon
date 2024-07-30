@@ -1,261 +1,294 @@
 /*
 	Name: String.hpp
 	Copyright: Apache2.0
-	Author: CLimber-Rong, GusemFowage
+	Author: CLimber-Rong
 	Date: 29/07/23 12:59
 	Description: 字符串库
 */
 #pragma once
 
-#include"string.h"
+/*
+ * 一些网络上的大牛，他们告诉我，我必须在一些函数的结尾加上const限定符，才能支持
+ const String var_name;
+ * 的用法。
+ * 我采纳了他们的建议，感谢他们！
+*/
+
 #include"stdlib.h"
+#include"string.h"
 #include"stdio.h"
-#include"stmlib.hpp"
+
+typedef char char_type;
+typedef size_t size_type;
 
 class String {
-private:
-	char_type* data;
-	size_type size;
 
-	enum { local_capacity = 16 / sizeof(char_type) };
-	//默认缓冲区容量16字节（包含'\0''）
+		/*
+		 * 利用了缓存技术
+		 * 对于短字符串（长度小于32字符），采用栈数组存储，减少内存申请次数
+		 */
 
-	union {
-		char_type cache[local_capacity]{0};	//短字符串优化
-		size_type allocated_capacity;			//已分配长度
-	};
+		char_type* str;
+		char_type cache[32] = {0};
 
-	char_type* reSalloc(size_type capacity) {
-		// 重新分配内存 返回：新的内存地址
-		capacity*= sizeof(char_type);
-		if (capacity>=local_capacity) {
-			char_type* addr=(char_type*)calloc(capacity+1, 1);
-            strcpy(addr, data);	// 复制原数据
-			free(data);
-            allocated_capacity = capacity;	// 更新已分配长度
-			return addr;
-		}
-		else return cache;	// 短字符串优化
-	}
-public:
-	String() : data(cache), size(0) {}
-	String(const char_type* str) : String() {
-		size = strlen(str);
-		data = reSalloc(size);
-		strcpy(data, str);
-	}
-    String(const char_type* str, size_type sz) : String() {
-		size = sz;
-		data = reSalloc(sz);
-		strncpy(data, str, sz);
-	}
-	String(const String& str) : String() {
-		data = reSalloc(str.size);
-		strcpy(data, str.data);
-		size = str.size;
-	}
-	String(String&& str) {
-		if(str.data == str.cache) {
-			data = cache;
-			strcpy(data, str.data);
-			size = str.size;
-		} else {
-			data = str.data, size = str.size;
-			allocated_capacity = str.allocated_capacity;
-
-			str.data = str.cache;
-			str.size = 0;
-		}
-	}
-	~String() {
-		if (data != cache) {
-			free(data);
-		}
-	}
-	String& operator=(const String& str) {
-		if (this == &str) {
-			return *this;
-		}
-		data = reSalloc(str.size);
-		strcpy(data, str.data);
-		size = str.size;
-		return *this;
-	}
-	explicit operator const char_type*() const {
-		return data;
-	}
-	size_type length() const {
-		return size;
-	}
-	bool empty() const {
-		return size == 0;
-	}
-
-	String& append(const char_type* str) {
-		size_type len = size+strlen(str);
-        if (data == cache || len > allocated_capacity) {
-			data=reSalloc(len);
-			strcpy(data+size, str);
-		} else {
-			strcpy(data+size, str);
-		}
-        size = len;
-		return *this;
-	}
-	String& append(const String& str) {
-		return append(str.data);
-	}
-    void push_back(char_type c) {
-        size_type len = size+1;
-        if (data == cache || len > allocated_capacity) {
-			data=reSalloc(len);
-		}
-        data[size] = c;
-        size = len;
-    }
-    void pop_back() {
-		// 分配长度不变化，直接修改最后一个字符为'\0'
-        data[size-1] = '\0';
-        size--;
-    }
-
-	bool equals(const String& str) const {
-		if (size != str.size) return false;
-		return strcmp(data, str.data) == 0;
-	}
-	bool equals(const char_type* str) const {
-		return strcmp(data, str) == 0;
-	}
-	char_type& at(size_type i) {
-		if (0 >= i && i >= size) {
-			THROW("out of range");
-		}
-		return data[i];
-	}
-	char_type at(size_type i) const {
-		if (0 >= i && i >= size) {
-			THROW("out of range");
-		}
-		return data[i];
-	}
-	const char_type* getstr() const {
-		return data;
-	}
-
-	String substring(size_type pos, size_type len) const {
-
-		if (pos >= size) {
-			return String();
-		}
-
-		if (pos+len > size) {
-			len = size-pos;
-		}
-		String s(data+pos, len);
-		return s;
-	}
-public:	// 运算符重载
-	char_type& operator[](size_type i) {
-		return data[i];
-	}
-	char_type operator[](size_type i) const noexcept{
-		return data[i];
-	}
-	String& operator+=(const String& str) {
-		return append(str);
-	}
-	String& operator+=(const char_type* str) {
-		return append(str);
-	}
-	String& operator+=(char_type c) {
-		push_back(c);
-		return *this;
-	}
-	bool operator==(const String& str) const {
-		return equals(str);
-	}
-	bool operator==(const char_type* str) const {
-		return equals(str);
-	}
-	bool operator!=(const String& str) const {
-		return !equals(str);
-	}
-	bool operator!=(const char_type* str) const {
-		return !equals(str);
-	}
-
-	bool operator<(const String& str) const {
-		for (size_type i = 0; i < size && i < str.size; i++) {
-			if (data[i] < str.data[i]) return true;
-		}
-		return false;
-	}
-	bool operator>(const String& str) const {
-		for (size_type i = 0; i < size && i < str.size; i++) {
-			if (data[i] > str.data[i]) {
-				return true;
+		void* StrCalloc(int size) {
+			if(size*sizeof(char_type)<=32) {
+				int i = 0;
+				while((cache[i]!=0) && (i<32)) {
+					cache[i] = 0;
+					i++;
+				}
+				return cache;
+			} else {
+				return calloc(size, sizeof(char_type));
 			}
 		}
-		return false;
-	}
-	bool operator<=(const String& str) const {
-		return !(*this > str);
-	}
-	bool operator>=(const String& str) const {
-		return !(*this < str);
-	}
-public:
-	template<class s_t>
-	friend String operator+(const s_t& str1, const s_t& str2) {
-		String s(str1);
-		s.append(String(str2));
-		return s;
-	}
-	template<class s_t>
-	String& operator+=(const s_t& str) {
-		append(String(str));
-		return *this;
-	}
 
-	int toInt() const {
-		int rst;
-		sscanf(data, "%d", &rst);
-		return rst;
-	}
-	int toIntX() const {
-		int rst;
-		sscanf(data, "%x", &rst);
-		return rst;
-	}
-	float toFloat() const {
-		float rst;
-		sscanf(data, "%f", &rst);
-		return rst;
-	}
-	double toDouble() const {
-		double rst;
-		sscanf(data, "%lf", &rst);
-		return rst;
-	}
+		void StrFree() {
+			if(str!=cache) {
+				free(str);
+			}
+		}
 
-	String(int v) {
-		char_type sv[31];
-		sprintf(sv, "%d", v);
-		*this = sv;
-	}
-	String(float v)  {
-		char_type sv[31];
-		sprintf(sv, "%f", v);
-		*this = sv;
-	}
-	String(double v) {
-		char_type sv[31];
-		sprintf(sv, "%lf", v);
-		*this = sv;
-	}
+	public:
+		String() {
+			str = (char_type*)StrCalloc(1);
+		}			   //初始化为空字符串
+
+		String(char_type *s) {
+			str = (char_type*)StrCalloc(strlen(s)+1);
+			strcpy(str, s);
+		}	   //初始化，将s复制到this
+
+		String(char_type* s, size_type len) {
+			str = (char_type*)StrCalloc(len+1);
+			strncpy(str, s, len);
+		}
+
+		String(const String& s) {
+			str = (char_type*)StrCalloc(s.length()+1);
+			strcpy(str, s.getstr());
+		}
+
+		String(String&& s) {
+			str = (char_type*)StrCalloc(s.length()+1);
+			strcpy(str, s.getstr());
+		}
+
+		bool equals(const String& s) const {
+
+			if(length()!=s.length()) {
+				return false;
+			}
+
+			return strcmp(str, s.getstr())==0;
+
+		} //判断this的内容是否与s相等，是则返回true，否则返回false
+
+		bool equals(const char_type* s) const {
+			return strcmp(str, str) == 0;
+		}
+
+		explicit operator const char_type*() const {
+			return str;
+		}
+
+		//以下的一系列toString函数会将不同的数据类型转为String后保存到this当中，返回this
+		String toString(int value) {
+			StrFree();
+			str = (char_type*)StrCalloc(256);
+			sprintf(str, "%d", value);
+			str = (char_type*)realloc(str, strlen(str)+1);
+			return String(str);
+		}
+
+		String toString(bool value) {
+			str = (char_type*)StrCalloc(10);
+
+			if(value==true) {
+				str = (char_type*)realloc(str, 5);
+				strcpy(str, "true");
+			} else {
+				str = (char_type*)realloc(str, 6);
+				strcpy(str, "false");
+			}
+
+			return String(str);
+		}
+
+		String toString(float value) {
+			StrFree();
+			str = (char_type*)StrCalloc(256);
+			sprintf(str, "%f", value);
+			str = (char_type*)realloc(str, strlen(str)+1);
+			return String(str);
+		}
+
+		String toString(double value) {
+			StrFree();
+			str = (char_type*)StrCalloc(256);
+			sprintf(str, "%lf", value);
+			str = (char_type*)realloc(str, strlen(str)+1);
+			return String(str);
+		}
+
+		int toInt() const {
+			int rst;
+			sscanf(str, "%d", &rst);
+			return rst;
+		}
+
+		int toIntX() const {
+			int rst;
+			sscanf(str, "%x", &rst);
+			return rst;
+		}
+
+		float toFloat() const {
+			float rst;
+			sscanf(str, "%f", &rst);
+			return rst;
+		}
+
+		double toDouble() const {
+			double rst;
+			sscanf(str, "%lf", &rst);
+			return rst;
+		}
+
+		size_type length() const {
+			return strlen(str);
+		}			   //返回字符串长度
+
+		char_type at(size_type index) const {
+			return str[index];
+		}		   //返回第index个字符
+
+		char_type* getstr() const {
+			return str;
+		}	//如果你只需要一个只读用的char_type*字符串，getstr函数足矣
+
+		String substring(size_type start, size_type end) {
+			//获取从start到end（不包含end）的子字符串
+			return String(str+start, end-start);
+		}
+
+		String operator=(const String& right_value) {
+			StrFree();
+
+			str = (char_type*)StrCalloc(right_value.length()+1);
+
+			strcpy(str, right_value.getstr());
+
+			return String(str);
+		}
+
+		String operator+(const String& right_value) const {
+			return String(str).append(right_value);
+		}
+		
+		template<class s_t>
+		friend String operator+(const s_t& str1, const s_t& str2) {
+			String s(str1);
+			s.append(String(str2));
+			return s;
+		}
+
+		String& operator+=(const String& s) {
+			return append(s);
+		}
+
+		template<class s_t>
+		String& operator+=(const s_t& s) {
+			append(String(s));
+			return *this;
+		}
+
+		String& operator+=(const char_type* s) {
+			return append(s);
+		}
+
+		String& operator+=(char_type c) {
+			push_back(c);
+			return *this;
+		}
+
+		bool operator==(const String& right_value) const {
+			return equals(right_value);
+		}
+
+		bool operator==(const char_type* s) const {
+			return equals(s);
+		}
+
+		bool operator!=(const String& right_value) const {
+			return !equals(right_value);
+		}
+
+		bool operator!=(const char_type* s) const {
+			return !equals(s);
+		}
+
+		bool operator<(const String& s) const {
+			return strcmp(str, s.getstr())>0;
+		}
+
+		bool operator>(const String& s) const {
+			return strcmp(str, s.getstr())<0;
+		}
+
+		bool operator<=(const String& s) const {
+			return !(*this > str);
+		}
+
+		bool operator>=(const String& s) const {
+			return !(*this < str);
+		}
+
+		char_type& operator[](size_type index) {
+			return str[index];
+		}
+
+		char_type operator[](size_type index) const {
+			return str[index];
+		}
+
+		bool empty() const {
+			return length()==0;
+		}
+
+		String& append(const char_type* s) {
+
+			size_type len =  length()+strlen(s);
+
+			if(str==cache && len<=32-1) {
+				strcat(str, s);
+			} else {
+				char_type* temp = (char_type*)calloc(len+1, sizeof(char_type));
+				strcpy(temp, str);
+				strcat(temp, s);
+				StrFree();
+				str = temp;
+			}
+
+			return *this;
+		}
+
+		String& append(const String& s) {
+			return append(s.getstr());
+		}
+		
+		void push_back(char_type c) {
+			append(String(&c));
+			return;
+		}
+
+		void pop_back() {
+			// 分配长度不变化，直接修改最后一个字符为'\0'
+			str[length()-1] = '\0';
+		}
+
+		~String() {
+			StrFree();
+		}
 };
-
-template<class T>
-String toString(T&& t){
-	return String(t);
-}

@@ -33,7 +33,6 @@
 
 * CLimber-Rong [Github主页](https://github.com/CLimber-Rong) [Gitee主页](https://gitee.com/QuXiangrong)
 * copi143 [Github主页](https://github.com/copi143)
-* GusemFowage [Github主页](https://github.com/GusemFowage)
 
 ## 致谢
 

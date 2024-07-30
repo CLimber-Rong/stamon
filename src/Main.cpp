@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 			ImportPaths.insert(
 			    0,
 			    getNoEndingSeparatorPath(program_path)
-			    + String("/include/")
+			    + String((char*)"/include/")
 			);
 			//加入标准库路径
 		}

@@ -1,22 +1,12 @@
 /*
 	Name: String.hpp
 	Copyright: Apache2.0
-	Author: GusemFowage, CLimber-Rong
+	Author: Gusem Fowage, CLimber-Rong
 	Date: 29/07/23 12:59
-	Description: 跨平台类型定义库
+	Description: 跨平台数据类型定义库
 */
-
-#include"stdint.h"
-#include"stddef.h"
-
-#define INT8 int8_t
-#define INT16 int16_t
-#define INT32 int32_t
-#define INT64 int64_t
-#define UINT8 uint8_t
-#define UINT16 uint16_t
-#define UINT32 uint32_t
-#define UINT64 uint64_t
+#include <stdint.h>
+#include <stddef.h>
 
 // 可以用于去除 符号 限定
 // 以及 无符号 限定
@@ -27,22 +17,22 @@ struct bytes_get{
 	typedef void type;
 };
 template<>
-struct bytes_get<1, true>{typedef INT8 type;};
+struct bytes_get<1, true>{typedef int8_t type;};
 template<>
-struct bytes_get<2, true>{typedef INT16 type;};
+struct bytes_get<2, true>{typedef int16_t type;};
 template<>
-struct bytes_get<4, true>{typedef INT32 type;};
+struct bytes_get<4, true>{typedef int32_t type;};
 template<>
-struct bytes_get<8, true>{typedef INT64 type;};
+struct bytes_get<8, true>{typedef int64_t type;};
 // struct bytes_get<16, true>{typedef int8_t type;};
 template<>
-struct bytes_get<1, false>{typedef UINT8 type;};
+struct bytes_get<1, false>{typedef uint8_t type;};
 template<>
-struct bytes_get<2, false>{typedef UINT16 type;};
+struct bytes_get<2, false>{typedef uint16_t type;};
 template<>
-struct bytes_get<4, false>{typedef UINT32 type;};
+struct bytes_get<4, false>{typedef uint32_t type;};
 template<>
-struct bytes_get<8, false>{typedef UINT64 type;};
+struct bytes_get<8, false>{typedef uint64_t type;};
+// struct bytes_get<16, false>{typedef uint128_t type;};
 
 using len_t = bytes_get<sizeof(size_t), false>::type;
-//等价于#define len_t bytes_get<sizeof(size_t), false>::type

@@ -1,82 +1,102 @@
 /*
 	Name: String.hpp
 	Copyright: Apache2.0
-	Author: CLimber-Rong, GusemFowage
+	Author: CLimber-Rong
 	Date: 29/07/23 12:59
 	Description: 字符串库
 */
-
-/*
- * 一些网络上的大牛，他们告诉我，我必须在一些函数的结尾加上const限定符，才能支持
- const String var_name;
- * 的用法。
- * 我采纳了他们的建议，感谢他们！
- * ——CLimber-Rong
-*/
-
 #pragma once
 
-#include"stmlib.hpp"
+typedef char_type;	//需自行定义char_type
+typedef size_type;	//需自行定义size_type
 
 class String {
-public:
-	String();
-	String(const char_type* str);
-    String(const char_type* str, size_type sz);
-	String(const String& str);
-	String(String&& str);
-	~String();
+	public:
+		String();	   //初始化为空字符串
 
-	String& operator=(const String& str);
-	explicit operator const char_type*() const;	//要求显示转换
-	size_type length() const;	//获取长度
-	bool empty() const;	//判断是否为空
+		String(char_type *s);
+		String(char_type* s, size_type len);
+		String(const String& s);
+		String(String&& s);
 
-	String& append(const char_type* str);	//追加
-	String& append(const String& str);
-    void push_back(char_type c);	//追加一个字符
-    void pop_back();	//弹出一个字符
+		bool equals(const String& s) const;//判断this的内容是否与s相等，是则返回true，否则返回false
 
-	bool equals(const String& str) const;		//判等
-	bool equals(const char_type* str) const;
-	char_type& at(size_type i);		//获取下标
-	char_type at(size_type i) const;
-	const char_type* getstr() const;
+		bool equals(const char_type* s) const;
 
-	String substring(size_type pos, size_type len) const;
-public:	// 运算符重载
-	char_type& operator[](size_type i);
-	char_type operator[](size_type i) const;
-	String& operator+=(const String& str);
-	String& operator+=(const char_type* str);
-	String& operator+=(char_type c);
-	bool operator==(const String& str) const;
-	bool operator==(const char_type* str) const;
-	bool operator!=(const String& str) const;
-	bool operator!=(const char_type* str) const;
+		explicit operator const char_type*() const;
 
-	bool operator<(const String& str) const;
-	bool operator>(const String& str) const;
-	bool operator<=(const String& str) const;
-	bool operator>=(const String& str) const;
-public:
-	template<class s_t>
-	friend String operator+(const s_t& str1, const s_t& str2);
+		//以下的一系列toString函数会将不同的数据类型转为String后保存到this当中，返回*this
+		String toString(int value);
 
-	template<class s_t>
-	String& operator+=(const s_t& str);
+		String toString(bool value);
 
-	int toInt() const;
-	int toIntX() const;
-	float toFloat() const;
-	double toDouble() const;
+		String toString(float value);
 
-	String(int v);
-	String(float v);
-	String(double v);
+		String toString(double value);
+
+		int toInt() const;
+
+		int toIntX() const;
+
+		float toFloat() const;
+
+		double toDouble() const;
+
+		size_type length() const;//返回字符串长度
+
+		char_type at(size_type index) const;//返回第index个字符
+
+		char_type* getstr() const;
+		//如果你只需要一个只读用的char_type*字符串，getstr函数足矣
+
+		String substring(size_type start, size_type end);
+
+		String operator=(const String& right_value);
+
+		String operator+(const String& right_value) const;
+		
+		template<class s_t>
+		friend String operator+(const s_t& str1, const s_t& str2);
+
+		String& operator+=(const String& s);
+
+		template<class s_t>
+		String& operator+=(const s_t& s);
+
+		String& operator+=(const char_type* s);
+
+		String& operator+=(char_type c);
+
+		bool operator==(const String& right_value) const;
+
+		bool operator==(const char_type* s) const;
+
+		bool operator!=(const String& right_value) const;
+
+		bool operator!=(const char_type* s) const;
+
+		bool operator<(const String& s) const;
+
+		bool operator>(const String& s) const;
+
+		bool operator<=(const String& s) const;
+
+		bool operator>=(const String& s) const;
+
+		char_type& operator[](size_type index);
+
+		char_type operator[](size_type index) const;
+
+		bool empty() const;
+
+		String& append(const char_type* s);
+
+		String& append(const String& s);
+		
+		void push_back(char_type c);
+
+		void pop_back();
+		// 分配长度不变化，直接修改最后一个字符为'\0'
+
+		~String();
 };
-
-template<class T>
-String toString(T&& t){
-	return String(t);
-}

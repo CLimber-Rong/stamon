@@ -1,7 +1,7 @@
 /*
 	Name: clib.h
 	Copyright: Apache 2.0
-	Author: CLimber-Rong, Gusem Fowage
+	Author: CLimber-Rong
 	Date: 12/08/23 23:24
 	Description: 一些杂糅的库定义
 */
@@ -10,8 +10,6 @@
 // 由于需要引入c++代码，所以后缀改为hpp，顺便把文件名改为stmlib
 
 #pragma once
-
-#include <stdint.h>
 
 #include "String.hpp"
 #include "stdlib.h"
@@ -26,9 +24,6 @@
 #define NULL 0
 #endif
 
-typedef char char_type;		//跨平台数据类型定义
-typedef size_t size_type;
-
 template<typename T, typename F> T cast_func(F f) {
 	// 这个函数用于将类成员函数（也就是T）转为普通的函数（也就是F）
 	union FT {
@@ -40,38 +35,11 @@ template<typename T, typename F> T cast_func(F f) {
 	return ft.t; // 运用同一个地址，变相转换
 }
 
-// 本实现被移动至String.hpp
-// String toString(int x) {
-// 	char s[1024] = { 0 };
-// 	sprintf(s, "%d", x);
-// 	return String(s);
-// }
 
-// String toStringX(int x) {
-// 	char s[1024] = { 0 };
-// 	sprintf(s, "%x", x);
-// 	return String(s);
-// }
-
-// String toString(float x) {
-// 	char s[1024] = { 0 };
-// 	sprintf(s, "%f", x);
-// 	return String(s);
-// }
-
-// String toString(double x) {
-// 	char s[1024] = { 0 };
-// 	sprintf(s, "%lf", x);
-// 	return String(s);
-// }
-
-// String toString(bool x) {
-// 	if (x == true) {
-// 		return String((char *) "true");
-// 	} else {
-// 		return String((char *) "false");
-// 	}
-// }
+template<class T>
+String toString(T&& t){
+	return String().toString(t);
+}
 
 #define MACRO_START do {
 
