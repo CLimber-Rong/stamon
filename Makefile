@@ -47,7 +47,7 @@ release:
 	-o bin/stamon.exe \
 	-O2 \
 	-std=c++17 \
-	-I include/stdc_implemented \
+	-I include/web_implemented \
 	-I src/ast \
 	-I src/data_type \
 	-I src/vm \
@@ -56,6 +56,7 @@ release:
 	-I src/sfn \
 	-I src/tac \
 	-I src \
+	--js-library include/.js \
 	-lm
 
 	$(STRIP) -s bin/stamon.exe
