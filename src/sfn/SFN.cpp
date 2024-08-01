@@ -71,7 +71,11 @@ namespace stamon::sfn {
 				sfn_functions.put(String((char*)"version"), sfn_version);
 			}
 			void call(String port, datatype::Variable* arg) {
-				sfn_functions.get(port)(*this, arg, manager);
+				if(sfn_functions.containsKey(port)==0) {
+					THROW("undefined sfn port")
+				} else {
+					sfn_functions.get(port)(*this, arg, manager);
+				}
 				CATCH {
 					THROW_S(
 						String((char*)"SFN Error: ")
@@ -123,8 +127,6 @@ String DataType2String(STMException* ex, stamon::datatype::DataType* dt) {
 			}
 
 		}
-
-		list.clear();	//清空
 
 		rst = rst + String((char*)" }");
 

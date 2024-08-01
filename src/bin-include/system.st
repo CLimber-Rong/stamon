@@ -5,10 +5,7 @@ import math;
 
 System = class {
 
-    def version;
-
-    func __init__(self) {
-        //当前版本号
+    func version() {
         return native("version", null);
     }
 
