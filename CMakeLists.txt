@@ -23,11 +23,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_STRIP} "${filename}"
-            COMMAND upx -9 "${filename}"
-        )
-    else()
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND upx -9 "${filename}"
         )
     endif()
 endif()
