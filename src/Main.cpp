@@ -73,9 +73,10 @@ int main(int argc, char* argv[]) {
 			src = args[1];
 
 			//目标文件名是可选的，默认a.stvc
-			dst = args[2];
 			
 			if(args.size()>=3) {
+
+				dst = args[2];
 
 				for(int i=3; i<args.size(); i++) {
 

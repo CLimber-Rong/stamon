@@ -59,7 +59,6 @@ release:
 	-lm
 
 	$(STRIP) -s bin/stamon.exe
-	$(UPX) -9 bin/stamon.exe
 
 release_win:
 #	编译Windows版本
@@ -81,7 +80,6 @@ release_win:
 	-lm
 
 	$(STRIP) -s bin/stamon.exe
-	$(UPX) -9 bin/stamon.exe
 
 release_linux:
 #	编译Linux版本
@@ -102,4 +100,3 @@ release_linux:
 	-lm
 
 	$(STRIP) -s bin/stamon
-	$(UPX) -9 bin/stamon
