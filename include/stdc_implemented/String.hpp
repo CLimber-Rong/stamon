@@ -97,10 +97,7 @@ class String {
 		String toString(int value) {
 			StrFree();
 			str = (char_type*)StrCalloc(256);
-			if(sprintf(str, "%d", value) < 0) {
-				//如果出错就为-1
-				*this = String("-1");
-			}
+			snprintf(str, 256, "%d", value);
 			str = (char_type*)realloc(str, strlen(str)+1);
 			return String(str);
 		}
@@ -122,10 +119,7 @@ class String {
 		String toString(float value) {
 			StrFree();
 			str = (char_type*)StrCalloc(256);
-			if(sprintf(str, "%f", value) < 0) {
-				//如果出错就为-1
-				*this = String("-1");
-			}
+			snprintf(str, 256, "%f", value);
 			str = (char_type*)realloc(str, strlen(str)+1);
 			return String(str);
 		}
@@ -133,10 +127,7 @@ class String {
 		String toString(double value) {
 			StrFree();
 			str = (char_type*)StrCalloc(256);
-			if(sprintf(str, "%lf", value) < 0) {
-				//如果出错就为-1
-				*this = String("-1");
-			}
+			snprintf(str, 256, "%lf", value);
 			str = (char_type*)realloc(str, strlen(str)+1);
 			return String(str);
 		}
