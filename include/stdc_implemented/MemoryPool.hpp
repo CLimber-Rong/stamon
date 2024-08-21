@@ -17,9 +17,15 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-void *operator new(unsigned long long int size, void *ptr) noexcept {
+#ifndef _NEW
+
+//如果没有引入标准头文件，那么需要手动重载placement new
+
+void *operator new(size_t size, void *ptr) {
 	return ptr;
 }
+
+#endif
 
 class MemoryPool {
 	// 内存池
