@@ -17,15 +17,10 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#ifndef _NEW
-
-//如果没有引入标准头文件，那么需要手动重载placement new
-
-void *operator new(size_t size, void *ptr) {
+template<typename T> void *operator new(size_t size, T *ptr) {
+	//重载placement_new
 	return ptr;
 }
-
-#endif
 
 class MemoryPool {
 	// 内存池
@@ -69,14 +64,14 @@ public:
 					freelist->erase(freelist->size() - 1);
 					FreeMemConsumeSize -= sizeof(T);
 
-					new (ptr) T(args...);
+					new ((T *) ptr) T(args...);
 					return (T *) ptr;
 				}
 			}
 
 			ptr = (byte *) malloc(sizeof(T));
 
-			new (ptr) T(args...);
+			new ((T *) ptr) T(args...);
 			return (T *) ptr;
 		}
 	}
