@@ -17,7 +17,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-void *operator new(size_t size, void *ptr) {
+void *operator new(unsigned long long int size, void *ptr) noexcept {
 	return ptr;
 }
 
