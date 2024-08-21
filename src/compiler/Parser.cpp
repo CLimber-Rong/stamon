@@ -304,10 +304,19 @@ namespace stamon::c {
 
 				ast::AstIdentifierName *port, *arg;
 
+				if(!check(TokenIden)) {
+					THROW("the port of the SFN statement must be an identifier");
+					CE;
+				}
 				port = IDEN();
 				CE
 
 				match(TokenCmm);
+
+				if(!check(TokenIden)) {
+					THROW("the port of the SFN statement must be an identifier");
+					CE;
+				}
 
 				arg = IDEN();
 				CE
@@ -1170,7 +1179,8 @@ namespace stamon::c {
 
 					//正常的访问成员
 					IdenToken* iden_tok = (IdenToken*)match(TokenIden);
-					CTH("the member name must be an identifier")
+					CTH("the member name must be an identifier");
+					CE;
 					ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
 					                                   iden_tok->lineNo,
 					                                   iden_tok->iden

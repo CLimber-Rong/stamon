@@ -45,7 +45,9 @@
         "numeric": "cpp",
         "iosfwd": "cpp",
         "limits": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "alloc.h": "c",
+        "mman.c": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

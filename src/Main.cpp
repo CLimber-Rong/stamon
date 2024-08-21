@@ -18,15 +18,11 @@ using namespace stamon;
 #include"stdio.h"
 #include"stdlib.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#elif __APPLE__ || __linux__
-#include<unistd.h>
-#endif
-
 void getHelpInformation();  //输出帮助信息
 
 String getNoEndingSeparatorPath(String path);	//获取末尾没有分隔符的路径
+
+void checkEnvironmentVariableWarning();	//检查环境变量是否存在，不存在则输出警告
 
 int main(int argc, char* argv[]) {
 
@@ -35,16 +31,6 @@ int main(int argc, char* argv[]) {
 
 	//获取可执行文件路径
 	String s(argv[0]);
-
-	if(getenv("STAMON")==NULL) {
-		printf(
-		    "stamon: fatal error: missing enviroment variable \"STAMON\"\n"
-		    "please enter \'stamon help\' to get more information.\n"
-		);
-		return -1;
-	}
-
-	String program_path(getenv("STAMON"));
 
 	for(int i=1; i<argc; i++) {
 		args.add(String(argv[i]));
@@ -63,6 +49,17 @@ int main(int argc, char* argv[]) {
 	    args[0].equals(String((char*)"build"))
 	    ||args[0].equals(String((char*)"-b"))
 	) {
+
+		if(getenv("STAMON")==NULL) {
+			printf(
+				"stamon: fatal error: missing enviroment variable \"STAMON\"\n"
+				"please enter \'stamon help\' to get more information.\n"
+			);
+			return -1;
+		}
+
+		String program_path(getenv("STAMON"));
+
 		String src;
 
 		String dst((char*)"a.stvc");
@@ -76,9 +73,10 @@ int main(int argc, char* argv[]) {
 			src = args[1];
 
 			//目标文件名是可选的，默认a.stvc
-			if(args.size()==3) {
-				dst = args[2];
-			} else {
+			dst = args[2];
+			
+			if(args.size()>=3) {
+
 				for(int i=3; i<args.size(); i++) {
 
 					if(args[i].equals(String((char*)"--import=false"))) {
@@ -156,10 +154,14 @@ int main(int argc, char* argv[]) {
 	    ||args[0].equals(String((char*)"-r"))
 	) {
 
+		checkEnvironmentVariableWarning();
+
 		String src;
 		bool isGC = true;
 
 		int MemLimit = 16*1024*1024;    //默认虚拟机运行内存16m
+
+		int PoolCacheSize = MemLimit;	//默认内存池缓存大小与运行内存限制一致
 
 		if(args.size()<2) {
 			printf("stamon: run: too few arguments\n"
@@ -182,6 +184,15 @@ int main(int argc, char* argv[]) {
 					MemLimit = args[i]
 					           .substring(11, args[i].length())
 					           .toInt();
+				}else if(
+				    args[i].length()>15
+				    &&args[i].substring(0, 15).equals(
+				        String((char*)"--MemPoolCache=")
+				    )
+				) {
+					PoolCacheSize = args[i]
+									.substring(15, args[i].length())
+									.toInt();
 				} else {
 					printf(
 					    "stamon: run: bad command\n"
@@ -197,7 +208,7 @@ int main(int argc, char* argv[]) {
 
 		stamon.Init();
 
-		stamon.run(src, isGC, MemLimit);
+		stamon.run(src, isGC, MemLimit, PoolCacheSize);
 
 		if(stamon.ErrorMsg->empty()==false) {
 			printf("stamon: run: fatal error:\n");
@@ -214,9 +225,11 @@ int main(int argc, char* argv[]) {
 	    ||args[0].equals(String((char*)"-s"))
 	) {
 
+		checkEnvironmentVariableWarning();
+
 		String src;
 		if(args.size()<2) {
-			printf("stamon: run: too few arguments\n"
+			printf("stamon: strip: too few arguments\n"
 			       "please enter \'stamon help\' "
 			       "to get more information.\n");
 		} else {
@@ -243,12 +256,14 @@ int main(int argc, char* argv[]) {
 	    args[0].equals(String((char*)"help"))
 	    ||args[0].equals(String((char*)"-h"))
 	) {
+		checkEnvironmentVariableWarning();
 		getHelpInformation();
 		return 0;
 	} else if(
 	    args[0].equals(String((char*)"version"))
 	    ||args[0].equals(String((char*)"-v"))
 	) {
+		checkEnvironmentVariableWarning();
 		printf(
 		    "stamon %d.%d.%d\n"
 		    "Be Released by CLimber-Rong(github.com/CLimber-Rong/)\n"
@@ -258,8 +273,9 @@ int main(int argc, char* argv[]) {
 		);
 		return 0;
 	} else {
+		checkEnvironmentVariableWarning();
 		printf(
-		    "stamon: compile: bad command\n"
+		    "stamon: fatal error: bad command\n"
 		    "please enter \'stamon help\' "
 		    "to get more information.\n"
 		);
@@ -269,8 +285,6 @@ int main(int argc, char* argv[]) {
 	return 0;
 
 }
-
-
 
 void getHelpInformation() {
 	printf(
@@ -299,4 +313,13 @@ String getNoEndingSeparatorPath(String path) {
 		return path.substring(0, path.length()-1);
 	}
 	return path;
+}
+
+void checkEnvironmentVariableWarning() {
+	if(getenv("STAMON")==NULL) {
+		printf(
+		    "stamon: warning: missing enviroment variable \"STAMON\"\n"
+		    "please enter \'stamon help\' to get more information.\n"
+		);
+	}
 }

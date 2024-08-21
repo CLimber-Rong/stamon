@@ -13,13 +13,14 @@
 #define FREE_OBJECT(obj, type, typeID)\
 	if(obj->getType()==typeID) {\
 		type* p = cast_class(type*, obj);\
-		delete p;\
+		Pool.DeleteObject(p);\
 		MemConsumeSize -= sizeof(type);\
 	} else
 //这个宏用来简便FreeScopeTrash方法的开发
 //这个宏只能在ObjectManager.cpp当中使用
 
 #include"DataType.hpp"
+#include"MemoryPool.hpp"
 #include"ArrayList.hpp"
 #include"Stack.hpp"
 #include"stack.h"
@@ -74,21 +75,18 @@ namespace stamon::vm {
 			}
 	};
 
-
 	class ObjectManager {
 			unsigned long long MemConsumeSize;     //占用内存大小，按字节计
 			unsigned long long MemLimit;	//对象占用内存的最大限制，按字节计
 			ArrayList<datatype::DataType*> Objects; //用一个列表维护所有对象
 			ArrayList<ObjectScope> Scopes;		//当前的作用域用一个列表来表示
+			MemoryPool Pool;				//对象内存池
 			//最新的作用域在列表末尾，全局作用域在列表开头
 
 			datatype::NullType NullConst;
 			//在新建左值变量的时候，会给变量赋null
 			//此时的null来自于这里
 			//这个null值不参与gc
-
-
-
 
 		public:
 
@@ -99,14 +97,19 @@ namespace stamon::vm {
 			ObjectManager() {}
 
 			ObjectManager(
-			    bool isGC, unsigned long long mem_limit, STMException* e
-			) {
+			    bool isGC, unsigned long long mem_limit,
+				int pool_cache_size, STMException* e
+			) : Pool(e, mem_limit, pool_cache_size) {
 				//构造函数，mem_limit表示最大内存限制，按字节计
 				MemConsumeSize = 0;
 				MemLimit = mem_limit;
 				NullConst.gc_flag = true;	//这个值不参与gc
 				is_gc = isGC;
 				ex = e;
+			}
+
+			datatype::DataType* getNullConst() {
+				return (datatype::DataType*)(&NullConst);
 			}
 
 			template<class T>
@@ -147,7 +150,12 @@ namespace stamon::vm {
 			T* MallocObject(Types&& ...args) {
 				//这个代码比较难懂，涉及到形参模板和右值引用
 				T* result;      //要返回的对象
-				result = new T(args...);    //新建对象
+
+				result = Pool.NewObject<T>(args...);		//从内存池新建对象
+
+				CATCH {		//如果GC报错就退出函数
+					return NULL;
+				}
 
 				MemConsumeSize += sizeof(T);   //更新内存占用数
 
@@ -158,10 +166,15 @@ namespace stamon::vm {
 					}
 				}
 
-
 				if(MemConsumeSize>MemLimit) {
 					//如果GC后内存还是不够，就报错
 					THROW("out of memory")
+					return NULL;
+				}
+
+				if(result==NULL) {
+					//如果物理内存不足，就报错
+					THROW("out of physical memory")
 					return NULL;
 				}
 
@@ -236,7 +249,17 @@ namespace stamon::vm {
 				//垃圾回收函数，是整个项目最难的部分之一
 				//采用标准的标记清除算法
 
-				//先把非垃圾对象标记
+				//标记非垃圾对象
+
+				//先把操作数标记为非垃圾对象
+				ArrayList<datatype::DataType*> opnd_unscanned = OPND.clone();
+				for(int i=0,len=OPND.size(); i<len; i++) {
+					OPND[i]->gc_flag = true;
+				}
+				MarkScopeObject(opnd_unscanned);
+				opnd_unscanned.clear();
+
+				//再根据GC Root标记非垃圾对象
 				for(int i=0; i<Scopes.size(); i++) {
 					//遍历作用域
 					ObjectScope scope = Scopes.at(i);
@@ -245,12 +268,10 @@ namespace stamon::vm {
 					//未扫描的对象列表
 					InitUnscannedScope(scope, unscanned);
 					//把作用域里的变量（也就是GCRoots）加载到unscanned里
-					MarkScopeObject(scope, unscanned);
+					MarkScopeObject(unscanned);
 					//遍历该作用域的变量涉及到的全部对象，并且标记他们
-				}
-
-				for(int i=0,len=OPND.size(); i<len; i++) {
-					OPND[i]->gc_flag = true;
+					unscanned.clear();
+					//清空未扫描列表
 				}
 
 				//清除垃圾对象
@@ -269,10 +290,7 @@ namespace stamon::vm {
 				return;
 			}
 
-			void MarkScopeObject(
-			    ObjectScope& scope,
-			    ArrayList<datatype::DataType*>& unscanned
-			) {
+			void MarkScopeObject(ArrayList<datatype::DataType*>& unscanned) {
 				//遍历该作用域的变量涉及到的全部对象，并且标记他们
 				while(unscanned.empty()==false) {
 					int len = unscanned.size();
@@ -356,18 +374,24 @@ namespace stamon::vm {
 			}
 
 			void CleanScopeTrash() {
-				int i = 0;
-				while(i<Objects.size()) {
+				ArrayList<datatype::DataType*> NewObjects;
+				//把清理后有用的对象存储在这个列表里
+
+				for(int i=0,len=Objects.size();i<len;i++) {
 					if(Objects.at(i)->gc_flag==false) {
 						//垃圾对象
 						FreeObject(Objects.at(i));	//释放对象
-						Objects.erase(i);	//从列表中删除
 					} else {
 						//非垃圾对象
 						Objects.at(i)->gc_flag = false;	//把gc_flag设为false
-						i++;
+						NewObjects.add(Objects.at(i));
 					}
 				}
+
+				Objects.clear();
+
+				Objects = NewObjects;
+				//更新对象列表
 			}
 
 			void FreeObject(datatype::DataType* o) {
@@ -387,7 +411,7 @@ namespace stamon::vm {
 			~ObjectManager() {
 				//释放所有对象
 				for(int i=0,len=Objects.size(); i<len; i++) {
-					delete Objects[i];
+					FreeObject(Objects[i]);
 				}
 			}
 	};

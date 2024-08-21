@@ -11,7 +11,7 @@
 namespace stamon {
 	constexpr int STAMON_VER_X = 2;
 	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 8;
+	constexpr int STAMON_VER_Z = 19;
 }
 
 #include"ArrayList.hpp"
@@ -238,6 +238,7 @@ namespace stamon {
 
 					WRITE_I(ir_list[i].type)
 					WRITE_I(ir_list[i].data)
+
 				}
 
 				writer.close();
@@ -245,13 +246,18 @@ namespace stamon {
 				return;
 			}
 
-			void run(String src, bool isGC, int MemLimit) {
+			void run(String src, bool isGC, int MemLimit, int PoolCacheSize) {
 
 				//实现流程：文件读取器->字节码读取器->IR读取器->虚拟机
 
 				ArrayList<ir::AstIR> ir_list;
 
 				BinaryReader reader(ex, src);	//打开文件
+
+				CATCH {
+					ErrorMsg->add(ex->getError());
+					return;
+				}
 
 				ir::STVCReader ir_reader(reader.read(), reader.size, ex);
 				//初始化字节码读取器
@@ -292,7 +298,7 @@ namespace stamon {
 
 				runner.excute(
 				    running_node, isGC, MemLimit, generator.tableConst,
-				    ArrayList<String>(), ex
+				    ArrayList<String>(), PoolCacheSize ,ex
 				);
 
 				CATCH {
@@ -310,6 +316,11 @@ namespace stamon {
 				ArrayList<ir::AstIR> ir_list;
 
 				BinaryReader reader(ex, src);	//打开文件
+
+				CATCH {
+					ErrorMsg->add(ex->getError());
+					return;
+				}
 
 				ir::STVCReader ir_reader(reader.read(), reader.size, ex);
 				//初始化字节码读取器

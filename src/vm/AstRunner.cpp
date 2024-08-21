@@ -21,7 +21,7 @@
 
 #define CDT(dt, type) \
 	if(dt->getType()!=type##ID) {\
-		ThrowTypeError(type##ID);\
+		ThrowTypeError(dt->getType());\
 	}\
 	CE
 
@@ -142,8 +142,8 @@
 		datatype::DataType* t1;\
 		datatype::DataType* t2;\
 		BinaryOperatorConvert(left_value->data, t1, right_value->data, t2);\
-		OPND_PUSH(t1);\
-		OPND_PUSH(t2);\
+		OPND_PUSH(t1); \
+		OPND_PUSH(t2); \
 		if(t1->getType()==datatype::IntegerTypeID) {\
 			auto l = (datatype::IntegerType*)t1;\
 			auto r = (datatype::IntegerType*)t2;\
@@ -297,7 +297,7 @@ namespace stamon::vm {
 			RetStatus excute(
 			    ast::AstNode* main_node, bool isGC, int vm_mem_limit,
 			    ArrayList<datatype::DataType*> tableConst,
-			    ArrayList<String> args,STMException* e
+			    ArrayList<String> args, int pool_cache_size, STMException* e
 			) {
 
 				//初始化参数
@@ -309,8 +309,8 @@ namespace stamon::vm {
 
 				ex = e;
 				//初始化对象管理器
-				manager = new ObjectManager(is_gc,
-				                            vm_mem_limit, ex);
+				manager = new ObjectManager(is_gc, vm_mem_limit,
+											pool_cache_size, ex);
 
 				sfn = sfn::SFN(e, manager);
 
@@ -331,7 +331,7 @@ namespace stamon::vm {
 					//叶子节点
 					return runLeaf(node);
 				} else {
-					return (this->*(RunAstFunc[node->getType()]))(node);
+					return (this->*(RunAstFunc[node->getType()]))(node);				
 				}
 			}
 
@@ -720,9 +720,11 @@ namespace stamon::vm {
 					RetStatus st = RUN(node->Children()->at(1));
 
 					if(st.status==RetStatusBrk) {
+						OPND_POP;	//弹出cond
 						return RetStatus(RetStatusNor, NULL);
 					}
 					if(st.status==RetStatusRet) {
+						OPND_POP;	//弹出cond
 						return st;
 					}
 
@@ -879,6 +881,7 @@ namespace stamon::vm {
 				                       )
 				                       ->getID()
 				                   );
+				CE;
 				for(int i=1,len=node->Children()->size(); i<len; i++) {
 					//分析后缀
 					lvalue = runPostfix(
@@ -1017,13 +1020,17 @@ namespace stamon::vm {
 					//先分析quark
 					datatype::DataType* quark;
 					GETDT(quark, runAst(node->Children()->at(0)))
+					OPND_PUSH(quark);
 					//接着逐个分析后缀
 					for(int i=1,len=node->Children()->size(); i<len; i++) {
 						GETDT(
 						    quark,
 						    runPostfix(node->Children()->at(i), quark)
 						)
+						OPND_POP;
+						OPND_PUSH(quark);
 					}
+					OPND_POP;
 					return RetStatus(RetStatusErr, new Variable(quark));
 				}
 
@@ -1328,9 +1335,13 @@ namespace stamon::vm {
 				    i<len;
 				    i++
 				) {
+					// ((datatype::SequenceType*)rst_var->data)->sequence[i]
+					//     = new Variable(
+					//     manager->MallocObject<datatype::NullType>()
+					// );
 					((datatype::SequenceType*)rst_var->data)->sequence[i]
 					    = new Variable(
-					    manager->MallocObject<datatype::NullType>()
+					    manager->getNullConst()
 					);
 				}
 
@@ -1420,8 +1431,7 @@ namespace stamon::vm {
 				return RetStatus(
 				           RetStatusNor,
 				           new Variable(
-				               manager
-				               ->MallocObject<datatype::NullType>()
+				               manager->getNullConst()
 				           )
 				       );
 			}
@@ -1534,6 +1544,10 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
     datatype::DataType*& left, datatype::DataType*& t1,
     datatype::DataType*&right, datatype::DataType*& t2
 ) {
+
+	OPND_PUSH(left);
+	OPND_PUSH(right);
+
 	//先确定两者之间的最大优先级
 	int priority_max = left->getType()>right->getType() ?
 	                   left->getType() : right->getType();
@@ -1566,17 +1580,20 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
 		t1 = manager->MallocObject<datatype::IntegerType>(
 		         ((datatype::IntegerType*)left)->getVal()
 		     );
+		OPND_PUSH(t1);
 		t2 = manager->MallocObject<datatype::IntegerType>(
 		         ((datatype::IntegerType*)right)->getVal()
 		     );
+		OPND_POP;
 	}
+
 	if(priority_max==datatype::FloatTypeID) {
 		if(left->getType()==datatype::FloatTypeID) {
 			if(right->getType()==datatype::IntegerTypeID) {
 				t1 = manager->MallocObject<datatype::FloatType>(
 				         ((datatype::FloatType*)left)->getVal()
 				     );
-
+				OPND_PUSH(t1);
 				t2 = manager->MallocObject<datatype::FloatType>(
 				         (float)
 				         (
@@ -1584,15 +1601,16 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
 				             ->getVal()
 				         )
 				     );
+				OPND_POP;
 			}
 			//如果不是int，那就只能是float，即left和right皆为float
 		}
 		if(right->getType()==datatype::FloatTypeID) {
 			if(left->getType()==datatype::IntegerTypeID) {
-				t2 = manager->MallocObject<datatype::FloatType>(
+				t1 = manager->MallocObject<datatype::FloatType>(
 				         ((datatype::FloatType*)left)->getVal()
 				     );
-
+				OPND_PUSH(t1);
 				t1 = manager->MallocObject<datatype::FloatType>(
 				         (float)
 				         (
@@ -1600,6 +1618,7 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
 				             ->getVal()
 				         )
 				     );
+				OPND_POP;
 			}
 			//如果不是int，那就只能是float，即left和right皆为float
 		}
@@ -1627,6 +1646,9 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
 			         ((datatype::DoubleType*)left)->getVal()
 			     );
 		}
+
+		OPND_PUSH(t1);
+
 		if(right->getType()==datatype::IntegerTypeID) {
 			t2 = manager->MallocObject<datatype::DoubleType>(
 			         (double)
@@ -1648,7 +1670,11 @@ inline void stamon::vm::AstRunner::BinaryOperatorConvert(
 			         ((datatype::DoubleType*)right)->getVal()
 			     );
 		}
+		OPND_POP;
 	}
+
+	OPND_POP; 	//弹出right
+	OPND_POP;	//弹出left
 
 	return;
 }

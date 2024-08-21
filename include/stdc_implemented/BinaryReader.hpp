@@ -36,7 +36,7 @@ class BinaryReader {
 
 			if(size == -1) FILE_ERR;
 
-			buffer = (char*)calloc(1, size+1);    //根据文件大小开辟内存
+			buffer = (char*)calloc(size+1, 1);    //根据文件大小开辟内存
 
 			if(buffer==NULL)    FILE_ERR;
 

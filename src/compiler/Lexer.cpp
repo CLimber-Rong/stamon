@@ -324,10 +324,19 @@ namespace stamon::c {   //编译器命名空间
 						if(text[ed]=='.') {
 							isInt = false;  //小数token
 							ed++;
+							bool is_has_decimal_part = false;
 							while(ed<text_len
 							        &&'0'<=text[ed]
 							        &&text[ed]<='9') {
 								ed++;
+								is_has_decimal_part = true;
+							}
+							
+							if(is_has_decimal_part==false) {
+								THROW(
+									"the floating point was entered incorrectly"
+								)
+								return st;
 							}
 						} //分析小数
 						if(isInt==true) {
@@ -403,7 +412,7 @@ namespace stamon::c {   //编译器命名空间
 								StringToken* rst = new StringToken(line, s);
 								tokens.add((Token*)rst);
 								st = ed;
-								continue;
+
 							} else if(text[ed]=='\\') {
 								//碰到转义字符
 								STR_EX(2)	//文本至少还得剩两个字符
@@ -454,6 +463,12 @@ namespace stamon::c {   //编译器命名空间
 								ed++;
 							}
 						}
+
+						if(is_str_closed==false) {
+							//如果字符串未关闭
+							STR_EX(text_len);
+						}
+
 					} else {
 						CHECK_LONG_LONG_OPERATOR("<<=", TokenLSHAss)
 						CHECK_LONG_LONG_OPERATOR(">>=", TokenRSHAss)

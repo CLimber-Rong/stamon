@@ -86,7 +86,7 @@ class String {
 		} //判断this的内容是否与s相等，是则返回true，否则返回false
 
 		bool equals(const char_type* s) const {
-			return strcmp(str, str) == 0;
+			return strcmp(str, s) == 0;
 		}
 
 		explicit operator const char_type*() const {
@@ -238,11 +238,11 @@ class String {
 		}
 
 		bool operator<=(const String& s) const {
-			return !(*this > str);
+			return !(*this > s);
 		}
 
 		bool operator>=(const String& s) const {
-			return !(*this < str);
+			return !(*this < s);
 		}
 
 		char_type& operator[](size_type index) {

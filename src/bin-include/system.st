@@ -5,7 +5,7 @@ import math;
 
 System = class {
 
-    func version() {
+    func version(self) {
         return native("version", null);
     }
 

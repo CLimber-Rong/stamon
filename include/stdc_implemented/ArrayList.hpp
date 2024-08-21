@@ -40,7 +40,7 @@ class ArrayList {
 		/*值得注意的是：正常的ArrayList赋值，实际上是引用传递*/
 
 		ArrayList() {
-			list = NULL;
+			list = new T[0];
 			length = 0;
 			cache_length = 0;
 		} // 创建一个空列表
@@ -60,8 +60,8 @@ class ArrayList {
 		void insert(int index, const T &value) {
 			realloc_list(length + 1); // 重新分配内存
 
-			for (int i = length; i > index; i--) {
-				list[i] = list[i - 1];
+			for (int i = length-1; i >= index; i--) {
+				list[i+1] = list[i];
 			}
 			list[index] = value;
 			length++;
@@ -85,7 +85,7 @@ class ArrayList {
 
 		void clear() {
 			delete[] list;
-			list = NULL;
+			list = new T[0];
 			length = 0;
 		} // 清除列表
 

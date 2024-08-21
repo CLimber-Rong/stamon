@@ -12,8 +12,8 @@ clean:
 build: clean
 	$(COMPILER) test/test.cpp \
 	-o test.exe \
-	-O0 \
-	-std=c++11 \
+	-O0 -g \
+	-std=c++17 \
 	-I include/stdc_implemented \
 	-I src/ast \
 	-I src/data_type \
@@ -62,6 +62,7 @@ release:
 	$(UPX) -9 bin/stamon.exe
 
 release_win:
+#	编译Windows版本
 
 	xcopy src\bin-include bin\include /s /e /y /i
 	$(COMPILER) src/Main.cpp \
