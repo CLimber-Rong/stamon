@@ -18,8 +18,8 @@
 #include "stdlib.h"
 
 template<typename T> void *operator new(size_t size, T *ptr) {
-	//重载placement_new
-	return ptr;
+	// 重载placement_new
+	return (void *) ptr;
 }
 
 class MemoryPool {

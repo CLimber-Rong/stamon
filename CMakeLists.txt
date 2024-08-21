@@ -80,10 +80,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 COMMAND Xcopy "${src}" "${tgt}" /s /e /i
             )
         endif()
-else()
-    add_custom_command(TARGET stamon POST_BUILD
-        COMMAND cp -r -T "${PROJECT_SOURCE_DIR}/src/bin-include" "${EXECUTABLE_OUTPUT_PATH}/include"
-    )
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_custom_command(TARGET stamon POST_BUILD
+            COMMAND cp -r -T "${PROJECT_SOURCE_DIR}/src/bin-include" "${EXECUTABLE_OUTPUT_PATH}/include"
+        )
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Apple")
+        add_custom_command(TARGET stamon POST_BUILD
+            mkdir "${EXECUTABLE_OUTPUT_PATH}/include"
+            COMMAND cp -r "${PROJECT_SOURCE_DIR}/src/bin-include/" "${EXECUTABLE_OUTPUT_PATH}/include"
+        )
 endif()
 
 # if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
