@@ -90,7 +90,7 @@ endif()
 
 if(CMAKE_HOST_APPLE)
         add_custom_command(TARGET stamon POST_BUILD
-            mkdir "${EXECUTABLE_OUTPUT_PATH}/include"
+            COMMAND mkdir "${EXECUTABLE_OUTPUT_PATH}/include"
             COMMAND cp -r "${PROJECT_SOURCE_DIR}/src/bin-include/" "${EXECUTABLE_OUTPUT_PATH}/include"
         )
 endif()
