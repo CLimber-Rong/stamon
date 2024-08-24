@@ -31,9 +31,9 @@ class String {
 		char_type* str;
 		char_type cache[32] = {0};
 
-		void* StrCalloc(int size) {
+		void* StrCalloc(size_type size) {
 			if(size*sizeof(char_type)<=32) {
-				int i = 0;
+				size_type i = 0;
 				while((cache[i]!=0) && (i<32)) {
 					cache[i] = 0;
 					i++;
@@ -55,7 +55,9 @@ class String {
 			str = (char_type*)StrCalloc(1);
 		}			   //初始化为空字符串
 
-		String(char_type *s) {
+		// 使用const char_type*是必要的
+		// 因为C++中双引号包含的字符串默认类型便是 const char* 
+		String(const char_type *s) {
 			str = (char_type*)StrCalloc(strlen(s)+1);
 			strcpy(str, s);
 		}	   //初始化，将s复制到this

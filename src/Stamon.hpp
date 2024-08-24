@@ -82,7 +82,8 @@ namespace stamon {
 			}
 
 			void compile(
-			    String src, String dst, bool isSupportImport, bool isStrip
+				// 这里的引用传递是必要的，可以避免拷贝带来的开销，提高效率
+			    String& src, String& dst, bool isSupportImport, bool isStrip
 			) {
 				c::Compiler compiler(ex);
 
@@ -104,7 +105,7 @@ namespace stamon {
 					);
 				}
 
-				ast::AstNode* node = new ast::AstProgram(program);
+				pointer<ast::AstNode> node = new ast::AstProgram(program);
 
 				//编译为IR
 
