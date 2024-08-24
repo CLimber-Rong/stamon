@@ -41,3 +41,21 @@
 * TheFlySong [Github主页](https://github.com/TheFlySong)
 * XIAOYI12 [Github主页](https://github.com/XIAOYI1212)
 * 冻橘 [Github主页](https://github.com/MikanAffine)
+
+## 或许需要
+在**example**目录下，我们给出了一些组织源码的常用方式 <br>
+你可以通过阅读 **demo** 目录下的示例代码来学习Stamon的使用方法。
++ 使用 **make** 
+``` console
+$ cd example
+$ make run R=main
+```
++ 使用 **bash**
+``` console
+$ cd example
+$ bash example.sh main
+```
+样例程序中仅给出了一小段示例代码
+可以在demo目录下看到更多的示例代码
+## 最后
+stamon2还在不断的开发中，欢迎大家的参与！
