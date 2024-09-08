@@ -49,7 +49,7 @@ public:
 	}
 
 	template<typename T, typename... Types> T *NewObject(Types &&...args) {
-		if (PoolCacheSize == 0) {
+		if (PoolCacheSize <= 0) {
 			// 无缓存，直接使用new
 			return new T(args...);
 		} else {
@@ -94,7 +94,7 @@ public:
 	}
 
 	template<typename T> void DeleteObject(T *object) {
-		if (PoolCacheSize == 0) {
+		if (PoolCacheSize <= 0) {
 			// 无缓存，直接使用delete
 			delete object;
 			return;

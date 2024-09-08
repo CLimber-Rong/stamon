@@ -55,12 +55,12 @@ class String {
 			str = (char_type*)StrCalloc(1);
 		}			   //初始化为空字符串
 
-		String(char_type *s) {
+		String(const char_type *s) {
 			str = (char_type*)StrCalloc(strlen(s)+1);
 			strcpy(str, s);
 		}	   //初始化，将s复制到this
 
-		String(char_type* s, size_type len) {
+		String(const char_type* s, size_type len) {
 			str = (char_type*)StrCalloc(len+1);
 			strncpy(str, s, len);
 		}

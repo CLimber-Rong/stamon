@@ -43,8 +43,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/tac)
 set(CMAKE_C_FLAGS_DEBUG "-g -Og -DDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Og -DDEBUG")
 
-set(CMAKE_C_FLAGS_RELEASE "-O2")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -static")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -static")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "-std=c17")
