@@ -46,6 +46,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -Og -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -static")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -static")
 
+if(CMAKE_HOST_APPLE)
+        set(CMAKE_C_FLAGS_RELEASE "-O2")    # 在MacOS上使用-static会报错
+        set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "-std=c17")
     set(CMAKE_CXX_FLAGS "-std=c++17")
