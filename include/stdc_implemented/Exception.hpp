@@ -9,6 +9,7 @@
 
 #include"stmlib.hpp"
 #include"String.hpp"
+#include"ArrayList.hpp"
 //该库不依赖平台，无需移植
 
 char* ExceptionMessage;
@@ -38,18 +39,35 @@ char* ExceptionMessage;
 #define CATCH if(ex->isError)
 #define ERROR (ex->getError())
 
+#define WARN(message) ex->Warn(String(message));
+#define WARN_S(message_s) ex->Warn(message_s);
+#define CATCH_WARNING if(ex->isWarning)
+#define IS_WARNING (ex->getError())
+#define WARNING (ex->getWarning())
+
 class STMException {
 		String ExceptionMessage;
+		ArrayList<String> WarningMessages;
 	public:
 		bool isError = false;
+		bool isWarning = false;
 
 		void Throw(String msg) {
 			ExceptionMessage = msg;
 			isError = true;
 		}
 
+		void Warn(String msg) {
+			WarningMessages.add(msg);
+			isWarning = true;
+		}
+
 		String getError() {
 			return ExceptionMessage;
 		}
-		
+
+		ArrayList<String> getWarning() {
+			return WarningMessages;
+		}
+
 };

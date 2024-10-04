@@ -11,7 +11,7 @@
 namespace stamon {
 	constexpr int STAMON_VER_X = 2;
 	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 25;
+	constexpr int STAMON_VER_Z = 28;
 }
 
 #include"ArrayList.hpp"
@@ -68,6 +68,7 @@ namespace stamon {
 		public:
 			STMException* ex;
 			ArrayList<String>* ErrorMsg;
+			ArrayList<String>* WarningMsg;
 
 			int VerX, VerY, VerZ;   //这三个变量代表版本为X.Y.Z
 
@@ -76,6 +77,7 @@ namespace stamon {
 			void Init() {
 				ex = new STMException();
 				ErrorMsg = new ArrayList<String>();
+				WarningMsg = new ArrayList<String>();
 				VerX = STAMON_VER_X;
 				VerY = STAMON_VER_Y;
 				VerZ = STAMON_VER_Z;
@@ -161,7 +163,7 @@ namespace stamon {
 					}
 
 					if(ir_tableconst[i]->getType()==datatype::DoubleTypeID) {
-						float val = ((datatype::DoubleType*)ir_tableconst[i])
+						double val = ((datatype::DoubleType*)ir_tableconst[i])
 						            ->getVal();
 						//逐个字节写入
 						char* val_ptr = (char*)&val;
@@ -243,6 +245,8 @@ namespace stamon {
 
 				writer.close();
 
+				WarningMsg = compiler.WarningMsg;
+
 				return;
 			}
 
@@ -305,6 +309,8 @@ namespace stamon {
 					ErrorMsg->add(ex->getError());
 					return;
 				}
+
+				*WarningMsg = runner.ex->getWarning();
 
 				return;
 			}
@@ -439,6 +445,8 @@ namespace stamon {
 					WRITE_I(ir_list[i].data)
 				}
 
+				*WarningMsg = ex->getWarning();
+
 				writer.close();
 
 				return;
@@ -446,6 +454,10 @@ namespace stamon {
 
 			ArrayList<String>* getErrorMessages() {
 				return ErrorMsg;
+			}
+
+			ArrayList<String>* getWarningMessages() {
+				return WarningMsg;
 			}
 
 	};

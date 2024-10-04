@@ -341,7 +341,7 @@ namespace stamon::ir {
 							rst.data = index;
 						}
 						if(num_type==ast::FloatNumberType) {
-							int n = ((ast::AstFloatNumber*)top)->getVal();
+							float n = ((ast::AstFloatNumber*)top)->getVal();
 							datatype::FloatType* dt
 							    = new datatype::FloatType(n);
 
@@ -356,7 +356,7 @@ namespace stamon::ir {
 							rst.data = index;
 						}
 						if(num_type==ast::DoubleNumberType) {
-							int n = ((ast::AstDoubleNumber*)top)->getVal();
+							double n = ((ast::AstDoubleNumber*)top)->getVal();
 							datatype::DoubleType* dt
 							    = new datatype::DoubleType(n);
 

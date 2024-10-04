@@ -106,7 +106,7 @@ namespace stamon::ir {
 						double value;
 						char* tmp = (char*)&value;
 						for(int i=0; i<8; i++) {
-							tmp[i] = stvc[pos+i]<<(64-i*8-8);
+							tmp[i] = stvc[pos+i];
 							/*
 							 * 比如i=0时：
 							 * tmp[0] = stvc[pos]<<56

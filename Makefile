@@ -123,3 +123,6 @@ release_macos:
 	-lm
 
 	$(STRIP) -s bin/stamon
+
+zip_release:
+	$(UPX) --best --lzma bin/stamon.exe

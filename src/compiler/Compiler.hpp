@@ -18,6 +18,7 @@ namespace stamon::c {
 			ArrayList<SourceSyntax>* src;
 			STMException* ex;
 			ArrayList<String>* ErrorMsg;
+			ArrayList<String>* WarningMsg;
 			bool ImportFlag = false;
 
 			Compiler() {}
@@ -35,6 +36,7 @@ namespace stamon::c {
 				src = new ArrayList<SourceSyntax>();
 				ex = e;
 				ErrorMsg = new ArrayList<String>();
+				WarningMsg = new ArrayList<String>();
 			}
 
 
@@ -75,6 +77,21 @@ namespace stamon::c {
 						ErrorMsg->add(ex->getError());
 
 						ex->isError = false;
+					}
+
+					CATCH_WARNING {
+						for(int i=0,len=WARNING.size();i<len;i++) {
+							String warning_msg = WARNING[i];
+							WarningMsg->add(
+								String((char*)"Warning: at \"")
+								+ filename
+								+ String((char*)"\": ")
+								+ toString(lineNo)
+								+ String((char*)": ")
+								+ warning_msg
+							);
+						}
+						ex->isWarning = false;
 					}
 
 					lineNo++;

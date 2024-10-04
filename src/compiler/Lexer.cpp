@@ -250,6 +250,53 @@ namespace stamon::c {   //编译器命名空间
 				ex = e;
 			}
 
+			int StrToInt(int line, String s) {
+				//词法分析器需要特判整数过大引起溢出的情况，所以不能直接使用String的toInt
+				int rst = 0;
+				for(int i=0,len=s.length();i<len;i++) {
+					rst *= 10;
+					rst += s[i] - '0';
+					if(rst<0) {
+						WARN("the integer is too large");
+						return -1;
+					}
+				}
+				return rst;
+			}
+
+			double StrToDouble(int line, String s) {
+				//词法分析器需要特判小数过大引起溢出的情况
+				int integer = 0;
+				double decimal = 0.0;
+				int i = 0;
+
+				while(s[i]!='.') {
+					//分析整数部分
+					integer *= 10;
+					integer += s[i] - '0';
+					if(integer<0) {
+						WARN("the floating point is too large");
+						return -1.0;
+					}
+					i++;
+				}
+
+				i++;	//去除小数点
+
+				while(i<s.length()) {
+					//分析小数部分
+					decimal /= 10;
+					decimal += (double)(s[i]-'0');
+					if(decimal<0) {
+						WARN("the floating point is too large");
+						return -1.0;
+					}
+					i++;
+				}
+
+				return (double)integer + decimal;
+			}
+
 			Token* getTok() {
 				//读取一个Token
 				if(tokens.empty()==true) {
@@ -340,13 +387,12 @@ namespace stamon::c {   //编译器命名空间
 							}
 						} //分析小数
 						if(isInt==true) {
-							int value = text.substring(st, ed).toInt();
+							int value = StrToInt(line, text.substring(st, ed));
 							IntToken* rst = new IntToken(line, value);
 							tokens.add((Token*)rst);
 						} else {
-							double value = text
-							               .substring(st, ed)
-							               .toDouble();
+							double value = StrToDouble(line 
+												,text.substring(st, ed));
 							DoubleToken* rst = new DoubleToken(line, value);
 							tokens.add((Token*)rst);
 						}

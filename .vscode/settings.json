@@ -47,7 +47,8 @@
         "limits": "cpp",
         "numbers": "cpp",
         "alloc.h": "c",
-        "mman.c": "cpp"
+        "mman.c": "cpp",
+        "stdlib.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

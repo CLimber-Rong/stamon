@@ -24,6 +24,13 @@ String getNoEndingSeparatorPath(String path);	//获取末尾没有分隔符的�
 
 void checkEnvironmentVariableWarning();	//检查环境变量是否存在，不存在则输出警告
 
+enum STAMON_WARNING_SAFE_LEVEL {
+	// 警告等级
+	StamonWarningSafeLevel_IgnoreWarning = 0,
+	StamonWarningSafeLevel_JustWarn,
+	StamonWarningSafeLevel_FatalWarning
+};
+
 int main(int argc, char* argv[]) {
 
 	//参数表
@@ -31,6 +38,8 @@ int main(int argc, char* argv[]) {
 
 	//获取可执行文件路径
 	String s(argv[0]);
+
+	int warning_level = StamonWarningSafeLevel_JustWarn;	//默认只警告
 
 	for(int i=1; i<argc; i++) {
 		args.add(String(argv[i]));
@@ -95,7 +104,19 @@ int main(int argc, char* argv[]) {
 					} else if(args[i].equals(String((char*)"--strip=true"))) {
 
 						isStrip = true;
+					
+					} else if(args[i].equals(String((char*)"--IgnoreWarning"))) {
 
+						warning_level = StamonWarningSafeLevel_IgnoreWarning;
+					
+					} else if(args[i].equals(String((char*)"--JustWarn"))) {
+
+						warning_level = StamonWarningSafeLevel_JustWarn;
+					
+					} else if(args[i].equals(String((char*)"--FatalWarning"))) {
+
+						warning_level = StamonWarningSafeLevel_FatalWarning;
+					
 					} else if(
 					    args[i].length()>3
 					    &&args[i].substring(0, 2).equals((char*)"-I")) {
@@ -139,6 +160,22 @@ int main(int argc, char* argv[]) {
 		stamon.Init();
 
 		stamon.compile(src, dst, isSupportImport, isStrip);
+
+		if(
+			stamon.WarningMsg->empty()==false
+			&& warning_level != StamonWarningSafeLevel_IgnoreWarning
+		) {
+			if(warning_level==StamonWarningSafeLevel_JustWarn) {
+				printf("stamon: compile: warning:\n");
+			} else if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				printf("stamon: compile: fatal error:\n");
+			}
+
+			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
+				printf("%s\n", stamon.WarningMsg->at(i).getstr());
+			}
+			return -1;
+		}
 
 		if(stamon.ErrorMsg->empty()==false) {
 			printf("stamon: compile: fatal error:\n");
@@ -185,7 +222,7 @@ int main(int argc, char* argv[]) {
 					MemLimit = args[i]
 					           .substring(11, args[i].length())
 					           .toInt();
-				}else if(
+				} else if(
 				    args[i].length()>15
 				    &&args[i].substring(0, 15).equals(
 				        String((char*)"--MemPoolCache=")
@@ -194,6 +231,18 @@ int main(int argc, char* argv[]) {
 					PoolCacheSize = args[i]
 									.substring(15, args[i].length())
 									.toInt();
+				} else if(args[i].equals(String((char*)"--IgnoreWarning"))) {
+
+					warning_level = StamonWarningSafeLevel_IgnoreWarning;
+				
+				} else if(args[i].equals(String((char*)"--JustWarn"))) {
+
+					warning_level = StamonWarningSafeLevel_JustWarn;
+				
+				} else if(args[i].equals(String((char*)"--FatalWarning"))) {
+
+					warning_level = StamonWarningSafeLevel_FatalWarning;
+				
 				} else {
 					printf(
 					    "stamon: run: bad command\n"
@@ -210,6 +259,21 @@ int main(int argc, char* argv[]) {
 		stamon.Init();
 
 		stamon.run(src, isGC, MemLimit, PoolCacheSize);
+
+		if(
+			stamon.WarningMsg->empty()==false
+			&& warning_level != StamonWarningSafeLevel_IgnoreWarning
+		) {
+			if(warning_level==StamonWarningSafeLevel_JustWarn) {
+				printf("stamon: run: warning:\n");
+			} else if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				printf("stamon: run: fatal error:\n");
+			}
+			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
+				printf("%s\n", stamon.WarningMsg->at(i).getstr());
+			}
+			return -1;
+		}
 
 		if(stamon.ErrorMsg->empty()==false) {
 			printf("stamon: run: fatal error:\n");
@@ -235,6 +299,21 @@ int main(int argc, char* argv[]) {
 			       "to get more information.\n");
 		} else {
 			src = args[1];
+			for(int i=2;i<args.size();i++) {
+				if(args[i].equals(String((char*)"--IgnoreWarning"))) {
+
+					warning_level = StamonWarningSafeLevel_IgnoreWarning;
+				
+				} else if(args[i].equals(String((char*)"--JustWarn"))) {
+
+					warning_level = StamonWarningSafeLevel_JustWarn;
+				
+				} else if(args[i].equals(String((char*)"--FatalWarning"))) {
+
+					warning_level = StamonWarningSafeLevel_FatalWarning;
+				
+				}
+			}
 		}
 
 		Stamon stamon;
@@ -242,6 +321,21 @@ int main(int argc, char* argv[]) {
 		stamon.Init();
 
 		stamon.strip(src);
+
+		if(
+			stamon.WarningMsg->empty()==false
+			&& warning_level != StamonWarningSafeLevel_IgnoreWarning
+		) {
+			if(warning_level==StamonWarningSafeLevel_JustWarn) {
+				printf("stamon: strip: warning:\n");
+			} else if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				printf("stamon: strip: fatal error:\n");
+			}
+			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
+				printf("%s\n", stamon.WarningMsg->at(i).getstr());
+			}
+			return -1;
+		}
 
 		if(stamon.ErrorMsg->empty()==false) {
 			printf("stamon: strip: fatal error:\n");
