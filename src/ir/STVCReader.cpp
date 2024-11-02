@@ -1,5 +1,5 @@
 /*
-	Name: IRReader.cpp
+	Name: STVCReader.cpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/12/23 17:34
@@ -13,8 +13,6 @@
 #include"DataType.hpp"
 #include"String.hpp"
 #include"AstIR.cpp"
-
-#include"stdio.h"
 
 namespace stamon::ir {
 	class STVCReader {

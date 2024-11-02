@@ -17,6 +17,7 @@ using namespace stamon;
 
 #include"stdio.h"
 #include"stdlib.h"
+#include"locale.h"
 
 void getHelpInformation();  //输出帮助信息
 
@@ -118,7 +119,7 @@ int main(int argc, char* argv[]) {
 						warning_level = StamonWarningSafeLevel_FatalWarning;
 					
 					} else if(
-					    args[i].length()>3
+					    args[i].length()>=3
 					    &&args[i].substring(0, 2).equals((char*)"-I")) {
 
 						//添加引用路径
@@ -127,6 +128,13 @@ int main(int argc, char* argv[]) {
 						        args[i].substring(2, args[i].length())
 						    )
 						);
+
+					} else if(
+					    args[i].length()>=10
+					    &&args[i].substring(0, 9).equals((char*)"--locale=")) {
+
+						//设置语言环境
+						setlocale(LC_ALL, args[i].substring(9,args[i].length()).getstr());
 
 					} else {
 
@@ -243,6 +251,13 @@ int main(int argc, char* argv[]) {
 
 					warning_level = StamonWarningSafeLevel_FatalWarning;
 				
+				} else if(
+					args[i].length()>=10
+					&&args[i].substring(0, 9).equals((char*)"--locale=")) {
+
+					//设置语言环境
+					setlocale(LC_ALL, args[i].substring(9,args[i].length()).getstr());
+
 				} else {
 					printf(
 					    "stamon: run: bad command\n"
