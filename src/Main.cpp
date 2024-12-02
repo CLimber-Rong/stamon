@@ -182,7 +182,9 @@ int main(int argc, char* argv[]) {
 			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
 				printf("%s\n", stamon.WarningMsg->at(i).getstr());
 			}
-			return -1;
+			if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				return -1;
+			}
 		}
 
 		if(stamon.ErrorMsg->empty()==false) {
@@ -287,7 +289,9 @@ int main(int argc, char* argv[]) {
 			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
 				printf("%s\n", stamon.WarningMsg->at(i).getstr());
 			}
-			return -1;
+			if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				return -1;
+			}
 		}
 
 		if(stamon.ErrorMsg->empty()==false) {
@@ -349,7 +353,9 @@ int main(int argc, char* argv[]) {
 			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
 				printf("%s\n", stamon.WarningMsg->at(i).getstr());
 			}
-			return -1;
+			if(warning_level==StamonWarningSafeLevel_FatalWarning) {
+				return -1;
+			}
 		}
 
 		if(stamon.ErrorMsg->empty()==false) {

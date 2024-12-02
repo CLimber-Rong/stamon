@@ -252,13 +252,14 @@ namespace stamon::c {   //编译器命名空间
 
 			int StrToInt(int line, String s) {
 				//词法分析器需要特判整数过大引起溢出的情况，所以不能直接使用String的toInt
+				bool warnflag = false;
 				int rst = 0;
 				for(int i=0,len=s.length();i<len;i++) {
 					rst *= 10;
 					rst += s[i] - '0';
-					if(rst<0) {
+					if(rst<0 && warnflag==false) {
 						WARN("the integer is too large");
-						return -1;
+						warnflag = true;
 					}
 				}
 				return rst;
@@ -266,6 +267,7 @@ namespace stamon::c {   //编译器命名空间
 
 			double StrToDouble(int line, String s) {
 				//词法分析器需要特判小数过大引起溢出的情况
+				bool warnflag = false;
 				int integer = 0;
 				double decimal = 0.0;
 				int i = 0;
@@ -274,9 +276,9 @@ namespace stamon::c {   //编译器命名空间
 					//分析整数部分
 					integer *= 10;
 					integer += s[i] - '0';
-					if(integer<0) {
+					if(integer<0 && warnflag==false) {
 						WARN("the floating point is too large");
-						return -1.0;
+						warnflag = true;
 					}
 					i++;
 				}
@@ -287,9 +289,9 @@ namespace stamon::c {   //编译器命名空间
 					//分析小数部分
 					decimal /= 10;
 					decimal += (double)(s[i]-'0');
-					if(decimal<0) {
+					if(decimal<0 && warnflag==false) {
 						WARN("the floating point is too large");
-						return -1.0;
+						warnflag = true;
 					}
 					i++;
 				}

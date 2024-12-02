@@ -16,8 +16,8 @@ namespace stamon::ast {
 		public:
 			AstSFN() : AstNode() {}
 			AstSFN(AstIdentifier* port, AstIdentifier* result) : AstNode() {
-				children->add(port);
-				children->add(result);
+				children->add((AstNode*)port);
+				children->add((AstNode*)result);
 			}
 			virtual int getType() {
 				return AstSFNType;
