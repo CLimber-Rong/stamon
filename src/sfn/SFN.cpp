@@ -203,9 +203,20 @@ void sfn_int(SFN_PARA_LIST) {
 
 	} else if(val->getType()==stamon::datatype::StringTypeID) {
 
-		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
-		                ((stamon::datatype::StringType*)val)->getVal().toInt()
-		            );
+		String src = ((stamon::datatype::StringType*)val)->getVal();
+		int dst = 0;
+
+		for(int i=0; i<src.length(); i++) {
+			if('0'<=src[i]&&src[i]<='9') {
+				dst *= 10;
+				dst += src[i] - '0';
+			} else {
+				THROW("bad integer format");
+				return;
+			}
+		}
+
+		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(dst);
 
 	} else {
 		THROW("bad type in\'int\'")

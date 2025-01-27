@@ -215,8 +215,6 @@ namespace stamon::c {
 
 			ArrayList<SyntaxScope> scopes;
 
-
-
 		public:
 
 			int ParsingLineNo = 1;	//当前正在分析的行号
@@ -227,6 +225,15 @@ namespace stamon::c {
 			FileMap filemap;
 			ArrayList<SourceSyntax>* src_project;
 			ArrayList<String>* ErrorMsg;
+
+			ArrayList<int> loop_levels;
+			/*
+			 * 通过维护该变量，我们可以判断break和continue是否处于循环当中
+			 * 在全局初始化时，loop_levels默认只有一个值为0的元素
+			 * 每进入一个新的函数，loop_levels加入一个值为0的元素，退出时弹出这个元素
+			 * 每嵌套一个新的循环，loop_levels的结尾元素自增1，退出时结尾元素自减1
+			 * 不难发现，如果loop_levels的结尾元素大于0，则当前处于循环当中
+			 */
 
 			Parser(Matcher matcher, STMException* e) {
 				this->matcher = matcher;
@@ -252,6 +259,7 @@ namespace stamon::c {
 				filemap = map;
 				src_project = src;
 				ErrorMsg = msg;
+				loop_levels.add(0);
 			}
 
 			template<class T, typename...Types>
@@ -361,48 +369,80 @@ namespace stamon::c {
 				//读取一条语句，并将解析后的ast加入stm当中
 				//这里的返回值类型为void*，纯粹为了方便CE时return NULL;
 				if(check(TokenDef)) {
+
 					def_var(stm);
+
 				} else if(check(TokenFunc)
 				          &&matcher.Peek(1)->type==TokenIden) {
+
 					//定义函数
 					stm->add(def_func());
+
 				} else if(check(TokenClass)
 				          ||matcher.Peek(1)->type==TokenClass) {
+
 					stm->add(def_class());
+
 				} else if(check(TokenIf)) {
+
 					stm->add(statement_if());
+
 				} else if(check(TokenWhile)) {
+
 					stm->add(statement_while());
 					CE
+
 				} else if(check(TokenFor)) {
+
 					stm->add(statement_for());
+
 				}  else if(check(TokenReturn)) {
+					
 					stm->add(statement_return());
+
 				} else if(check(TokenContinue)) {
+
+					if(loop_levels[loop_levels.size()-1]==0) {
+						THROW_S(String("\'continue\' outside loop"));
+						return NULL;
+					}
 					stm->add(
 					    Ast<ast::AstContinue>(
 					        _pop->lineNo
 					    )
 					);
 					match(TokenSemi);
+
 				} else if(check(TokenBreak)) {
+
+					if(loop_levels[loop_levels.size()-1]==0) {
+						THROW_S(String("\'break\' outside loop"));
+						return NULL;
+					}
 					stm->add(
 					    Ast<ast::AstBreak>(
 					        _pop->lineNo
 					    )
 					);
 					match(TokenSemi);
+
 				} else if(check(TokenSemi)) {	//空语句
 					_pop;	//弹出分号
 				} else if(check(TokenSFN)) {
+
 					stm->add(sfn());
+
 				} else if(check(TokenImport)) {
+
 					statement_import();
+
 				} else {
+
 					//如果以上情况都不是，那就只有可能是表达式了
 					stm->add(expression());
 					CE
 					match(TokenSemi);
+
 				}
 				CE
 
@@ -512,6 +552,8 @@ namespace stamon::c {
 				//新建作用域
 				pushscope(1)
 
+				loop_levels.add(0);
+
 				ArrayList<ast::AstNode*>* args = new ArrayList<ast::AstNode*>();
 
 				if(check(TokenLBR)) {
@@ -555,6 +597,8 @@ namespace stamon::c {
 
 				ast::AstBlock* blk = block();
 				CE
+
+				loop_levels.erase(loop_levels.size()-1);
 
 				popscope;
 
@@ -575,6 +619,8 @@ namespace stamon::c {
 				//新建作用域
 				pushscope(1)
 
+				loop_levels.add(0);
+
 				ArrayList<ast::AstNode*>* args = new ArrayList<ast::AstNode*>();
 
 				if(check(TokenLBR)) {
@@ -618,6 +664,8 @@ namespace stamon::c {
 
 				ast::AstBlock* blk = block();
 				CE
+
+				loop_levels.erase(loop_levels.size()-1);
 
 				popscope;
 
@@ -787,8 +835,12 @@ namespace stamon::c {
 
 				pushscope(0)
 
+				loop_levels[loop_levels.size()-1]++;
+
 				ast::AstBlock* blk = block();
 				CE
+
+				loop_levels[loop_levels.size()-1]--;
 
 				popscope;
 
@@ -819,8 +871,12 @@ namespace stamon::c {
 				pushscope(0)	//新建作用域
 				scopes[scopes.size()-1].mark(iden_tok);	//登记变量
 
+				loop_levels[loop_levels.size()-1]++;
+
 				ast::AstBlock* blk = block();	//代码块
 				CE
+
+				loop_levels[loop_levels.size()-1]--;
 
 				popscope;
 
@@ -1104,7 +1160,7 @@ namespace stamon::c {
 			ast::AstUnary* unary_operator() {
 				//判断是否还有前缀的单目运算符
 				unary_check(TokenAdd, UnaryPositiveType)
-				unary_check(TokenSub, UnaryNegative)
+				unary_check(TokenSub, UnaryNegativeType)
 				unary_check(TokenBitNot, UnaryInverseType)
 				unary_check(TokenLogNot, UnaryNotType)
 				//如果没有，则直接返回quark { postfix }

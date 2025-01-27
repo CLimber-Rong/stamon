@@ -10,13 +10,15 @@
 
 ## 下载发行版
 
-目前Stamon的发行版存在于以下三个站点，你可以挑选一个最适合的站点下载Stamon：
+目前Stamon的发行版存在于以下站点，你可以挑选一个最适合的站点下载Stamon：
 
 * [Github Releases](https://github.com/CLimber-Rong/stamon/releases)
 * [CLimber-Rong.github.io](https://CLimber-Rong.github.io/resource/stamon2/releases)
-* [copi144.eu.org:2000](https://copi144.eu.org:2000/index.php/s/Cstsjcfc4MTCfLf)
+* [stamon-rsc.github.io](https://stamon-rsc.github.io/releases)
 
 你也可以在 **Github Action** 中下载最新测试版。
+
+我们希望更多人可以帮忙把Stamon的发行版挂载到自己的站点中，以此让更多地方可以流畅下载Stamon。
 
 ## 手动编译
 
@@ -30,7 +32,7 @@
 
 文档位于doc目录里，如果你想要阅读每次提交的内容以及对源码的解释，请阅读``doc/工作日志``目录下的文档。
 
-在阅读源码之前，可以先阅读``doc/工作日志/代码速览指南.md``，来了解本项目的一些误区和源码阅读顺序。
+在阅读源码之前，可以先阅读[代码速览指南](doc/代码速览指南.md)，来了解本项目的一些误区和源码阅读顺序。
 
 ## 开源项目保护
 

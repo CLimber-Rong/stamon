@@ -14,6 +14,7 @@
 #include"stmlib.hpp"
 #include"Ast.hpp"
 #include"DataType.hpp"
+#include"TypeCalculator.cpp"
 #include"ObjectManager.cpp"
 #include"AstIR.cpp"
 #include"SFN.cpp"
@@ -38,163 +39,13 @@
 	}
 //Get datatype::DataType，想要安全的获取datatype::DataType，应该使用这个宏
 
-
 #define CE			CATCH { return RetStatus(RetStatusErr, NULL); }
 //如果执行代码中出现异常，直接返回
 #define CTH(message)	CATCH { THROW(message) }
 //如果执行代码中出现异常，抛出异常
 #define CTH_S(message)	CATCH { THROW_S(message) }
-
-#define OPERATE_BINARY(type, op) \
-	if(bin_node->getOperatorType()==ast::Binary##type##Type) {\
-		RetStatus left_st = RUN(bin_node->Children()->at(0));\
-		datatype::DataType* left = left_st.retval->data;\
-		CDT(left, datatype::IntegerType)\
-		OPND_PUSH(left)\
-		\
-		RetStatus right_st = RUN(bin_node->Children()->at(1));\
-		datatype::DataType* right = right_st.retval->data;\
-		CDT(left, datatype::IntegerType)\
-		OPND_PUSH(right)\
-		\
-		datatype::DataType* rst = manager->MallocObject<datatype::IntegerType>(\
-		                          ((datatype::IntegerType*)left)->getVal()\
-		                          op ((datatype::IntegerType*)right)->getVal()\
-		                                                                      );\
-		CE\
-		\
-		OPND_POP\
-		OPND_POP\
-		\
-		return RetStatus(RetStatusNor, new Variable(rst));\
-	}
-
-//这个宏用于简便编写，并且只能用于整数之间的运算
-
-#define ASMD_OPERATE(op, ErrCheck) \
-	if(t1->getType()==datatype::IntegerTypeID) {\
-		auto l = (datatype::IntegerType*)t1;\
-		auto r = (datatype::IntegerType*)t2;\
-		ErrCheck\
-		CE\
-		rst = manager->MallocObject<datatype::IntegerType>(\
-		        l->getVal() op r->getVal()\
-		                                                  );\
-	} else if(t1->getType()==datatype::FloatTypeID) {\
-		auto l = (datatype::FloatType*)t1;\
-		auto r = (datatype::FloatType*)t2;\
-		ErrCheck\
-		CE\
-		rst = manager->MallocObject<datatype::FloatType>(\
-		        l->getVal() op r->getVal()\
-		                                                );\
-	} else if(t1->getType()==datatype::DoubleTypeID) {\
-		auto l = (datatype::DoubleType*)t1;\
-		auto r = (datatype::DoubleType*)t2;\
-		ErrCheck\
-		CE\
-		rst = manager->MallocObject<datatype::DoubleType>(\
-		        l->getVal() op r->getVal()\
-		                                                 );\
-	}\
-	CE
-
-//专门用于加减乘除运算的宏（Add Sub Mul Div）
-//其中的ErrCheck用于除法中，检测除数是否为0
-
-//利用t1、t2拷贝了一份left和right，使其原值不受影响
-
-#define DIV_ERRCHECK \
-	if(r->getVal()==0) {\
-		ThrowDivZeroError();\
-	}
-//用于ASMD_OPERATE中的ErrCheck
-
-#define MATH_OPERATE(type, op, ErrCheck) \
-	if(bin_node->getOperatorType()==ast::Binary##type##Type) {\
-		RetStatus left_st = RUN(bin_node->Children()->at(0));\
-		datatype::DataType* left = left_st.retval->data;\
-		OPND_PUSH(left)\
-		\
-		RetStatus right_st = RUN(bin_node->Children()->at(1));\
-		datatype::DataType* right = right_st.retval->data;\
-		OPND_PUSH(right)\
-		\
-		datatype::DataType* t1;\
-		datatype::DataType* t2;\
-		BinaryOperatorConvert(left, t1, right, t2);\
-		CE\
-		\
-		datatype::DataType* rst;\
-		\
-		ASMD_OPERATE(op, ErrCheck)\
-		\
-		OPND_POP\
-		OPND_POP\
-		\
-		return RetStatus(RetStatusNor, new Variable(rst));\
-	}
-
+//用于绑定函数指针
 #define BIND(name) RunAstFunc[ast::Ast##name##Type] = &AstRunner::run##name;
-
-#define CHECK_ASS(op_type, op, ErrCheck) \
-	if(expr_node->ass_type==c::Token##op_type##Ass) {\
-		datatype::DataType* t1;\
-		datatype::DataType* t2;\
-		BinaryOperatorConvert(left_value->data, t1, right_value->data, t2);\
-		OPND_PUSH(t1); \
-		OPND_PUSH(t2); \
-		if(t1->getType()==datatype::IntegerTypeID) {\
-			auto l = (datatype::IntegerType*)t1;\
-			auto r = (datatype::IntegerType*)t2;\
-			ErrCheck\
-			CE\
-			left_value->data = manager->MallocObject<datatype::IntegerType>(\
-			                   l->getVal() op r->getVal()\
-			                                                               );\
-		} else if(t1->getType()==datatype::FloatTypeID) {\
-			auto l = (datatype::FloatType*)t1;\
-			auto r = (datatype::FloatType*)t2;\
-			ErrCheck\
-			CE\
-			left_value->data = manager->MallocObject<datatype::FloatType>(\
-			                   l->getVal() op r->getVal()\
-			                                                             );\
-		} else if(t1->getType()==datatype::DoubleTypeID) {\
-			auto l = (datatype::DoubleType*)t1;\
-			auto r = (datatype::DoubleType*)t2;\
-			ErrCheck\
-			CE\
-			left_value->data = manager->MallocObject<datatype::DoubleType>(\
-			                   l->getVal() op r->getVal()\
-			                                                              );\
-		}\
-		CE\
-		OPND_POP\
-		OPND_POP\
-	}
-
-
-#define CHECK_INT_ASS(op_type, op) \
-	if(expr_node->ass_type==c::Token##op_type##Ass) {\
-		CDT(left_value->data, datatype::IntegerType)\
-		CDT(right_value->data, datatype::IntegerType)\
-		auto t1 = manager->MallocObject<datatype::IntegerType>(\
-		          ((datatype::IntegerType*)left_value->data)->getVal()\
-		                                                      );\
-		OPND_PUSH(t1)\
-		auto t2 = manager->MallocObject<datatype::IntegerType>(\
-		          ((datatype::IntegerType*)right_value->data)->getVal()\
-		                                                      );\
-		OPND_PUSH(t2)\
-		left_value->data = manager\
-		                   ->MallocObject<datatype::IntegerType>(\
-		                           t1->getVal() op t2->getVal()\
-		                                                        );\
-		OPND_POP\
-		OPND_POP\
-		CE\
-	}
 
 namespace stamon::vm {
 
@@ -238,6 +89,7 @@ namespace stamon::vm {
 			ArrayList<String> vm_args;	//虚拟机参数
 			STMException* ex;	//异常
 			sfn::SFN sfn;
+			TypeCalculator typecalculator;
 
 			int RunningLineNo;
 			String RunningFileName;
@@ -295,6 +147,7 @@ namespace stamon::vm {
 			void ThrowUnknownOperatorError();
 			void ThrowUnknownMemberError(int id);
 			void ThrowLengthError();
+			void ThrowNegativeShiftError();
 
 			RetStatus excute(
 			    ast::AstNode* main_node, bool isGC, int vm_mem_limit,
@@ -315,6 +168,8 @@ namespace stamon::vm {
 											pool_cache_size, ex);
 
 				sfn = sfn::SFN(e, manager);
+
+				typecalculator = TypeCalculator(ex, manager);
 
 				//执行程序
 				auto st = runAst(program);
@@ -657,8 +512,6 @@ namespace stamon::vm {
 				       );
 			}
 
-			bool DataType2Bool(datatype::DataType* dt);	//用于条件判断
-
 			RetStatus runForStatement(ast::AstNode* node) {
 				auto stm_node = (ast::AstForStatement*)node;
 
@@ -718,7 +571,7 @@ namespace stamon::vm {
 
 				manager->PushScope();
 
-				while(DataType2Bool(cond)==true) {
+				while(typecalculator.toBool(cond)==true) {
 					RetStatus st = RUN(node->Children()->at(1));
 
 					if(st.status==RetStatusBrk) {
@@ -757,7 +610,7 @@ namespace stamon::vm {
 
 				RetStatus st;
 
-				if(DataType2Bool(cond)==true) {
+				if(typecalculator.toBool(cond)==true) {
 
 					manager->PushScope();
 
@@ -838,37 +691,68 @@ namespace stamon::vm {
 
 				//如果是赋值表达式
 
-				//先分析左值
+				//先得出左右两式
 				Variable* left_value = runAst(node->Children()->at(0))
 				                       .retval;
 				CE
-
-				OPND_PUSH(left_value->data)
 
 				Variable* right_value = runAst(node->Children()->at(1))
 				                        .retval;
 				CE
 
-				OPND_PUSH(right_value->data)
-
 				if(expr_node->ass_type==c::TokenAssign) {
+					//直接赋值
 					left_value->data = right_value->data;
+					return RetStatus(RetStatusNor, left_value);
 				}
 
-				CHECK_ASS(Add, +,)
-				CHECK_ASS(Sub, -,)
-				CHECK_ASS(Mul, *,)
-				CHECK_ASS(Div, /, DIV_ERRCHECK)
-				CE
-				CHECK_INT_ASS(Mod, %)
-				CHECK_INT_ASS(And, &)
-				CHECK_INT_ASS(XOr, ^)
-				CHECK_INT_ASS(Or, |)
-				CHECK_INT_ASS(LSH, <<)
-				CHECK_INT_ASS(RSH, >>)
+				OPND_PUSH(left_value->data);
+				OPND_PUSH(right_value->data);
 
-				OPND_POP
-				OPND_POP
+				//特判错误情况
+
+				if(
+					(
+						expr_node->ass_type==c::TokenDivAss
+						|| expr_node->ass_type==c::TokenModAss
+					)
+					&& typecalculator.toBool(right_value->data)==false
+				) {
+					//除数为0
+					ThrowDivZeroError();
+					CE;
+				}
+
+				int optype = typecalculator.AssignOperatorToBinaryOperator(
+												expr_node->ass_type
+											);
+				
+				if(optype==-1) {
+					//符号有误
+					ThrowUnknownOperatorError();
+					CE;
+				}
+
+				if(typecalculator.CheckBinaryOperandType(
+									left_value->data, optype, right_value->data
+								  )
+					==false
+				) {
+					//运算类型有误
+					ThrowTypeError(left_value->data->getType());
+					CE;
+				}
+
+				//开始运算
+
+				left_value->data = typecalculator.BinaryOperate(
+											left_value->data,
+											optype,
+											right_value->data
+								   );
+				
+				OPND_POP;
+				OPND_POP;
 
 				return RetStatus(RetStatusNor, left_value);
 
@@ -904,126 +788,88 @@ namespace stamon::vm {
 				return RetStatus(RetStatusCon, NULL);
 			}
 
-			void BinaryOperatorConvert(
-			    datatype::DataType*& left, datatype::DataType*& t1,
-			    datatype::DataType*&right, datatype::DataType*& t2
-			);
-
 			RetStatus runBinary(ast::AstNode* node) {
 				ast::AstBinary* bin_node = (ast::AstBinary*)node;
-				if(bin_node->getOperatorType()==-1) {
+				int optype = bin_node->getOperatorType();
+
+				if(optype==-1) {
 					RetStatus st = RUN(bin_node->Children()->at(0));
 					return st;
 				}
-				OPERATE_BINARY(BitOR, |)
-				OPERATE_BINARY(BitXOR, ^)
-				OPERATE_BINARY(BitAND, &)
-				OPERATE_BINARY(LeftShift, <<)
-				OPERATE_BINARY(RightShift, >>)
-				OPERATE_BINARY(Mod, %)
 
-				if(bin_node->getOperatorType()==ast::BinaryLogicORType) {
-					RetStatus left_st = RUN(bin_node->Children()->at(0));
-					datatype::DataType* left = left_st.retval->data;
-					OPND_PUSH(left)
+				//获取运算数
 
-					RetStatus right_st = RUN(bin_node->Children()->at(1));
-					datatype::DataType* right = right_st.retval->data;
-					OPND_PUSH(right)
+				RetStatus left_st = RUN(bin_node->Children()->at(0));
+				datatype::DataType* left = left_st.retval->data;
+				OPND_PUSH(left);
 
-					datatype::DataType* rst;
+				RetStatus right_st = RUN(bin_node->Children()->at(1));
+				datatype::DataType* right = right_st.retval->data;
+				OPND_PUSH(right);
 
-					rst = right;	//默认返回右边
-
-					//检查left，如果left为非零值和非空值，直接返回left即可
-					//即逻辑短路
-
-					if(left->getType()==datatype::IntegerTypeID) {
-						if(((datatype::IntegerType*)left)->getVal()!=0) {
-							rst = left;
-						}
-					} else if(left->getType()==datatype::FloatTypeID) {
-						if(((datatype::FloatType*)left)->getVal()!=0) {
-							rst = left;
-						}
-					} else if(left->getType()==datatype::DoubleTypeID) {
-						if(((datatype::DoubleType*)left)->getVal()!=0) {
-							rst = left;
-						}
-					} else {
-						rst = left;
-					}
-
-					OPND_POP
-					OPND_POP
-
-					return RetStatus(RetStatusNor, new Variable(rst));
+				//先特判运算符和运算类型是否合法
+				if(typecalculator.CheckBinaryOperator(optype)==false) {
+					ThrowUnknownOperatorError();
+					CE;
+				}
+				
+				if(
+					typecalculator.CheckBinaryOperandType(
+									left, optype, right
+								  )
+					== false
+				) {
+					ThrowTypeError(left->getType());
+					CE;
 				}
 
-				if(bin_node->getOperatorType()==ast::BinaryLogicANDType) {
-					RetStatus left_st = RUN(bin_node->Children()->at(0));
-					datatype::DataType* left = left_st.retval->data;
-					OPND_PUSH(left)
+				//再判断位移、除法的数值是否合法
 
-					RetStatus right_st = RUN(bin_node->Children()->at(1));
-					datatype::DataType* right = right_st.retval->data;
-					OPND_PUSH(right)
-
-					datatype::DataType* rst = NULL;
-
-					rst = right;	//默认返回右边
-
-
-					//检查left，如果left为零值和空值，直接返回left即可
-					//即逻辑短路
-
-					if(left->getType()==datatype::NullTypeID) {
-						rst = left;
-					} else if(left->getType()==datatype::IntegerTypeID) {
-						if(((datatype::IntegerType*)left)->getVal()==0) {
-							rst = left;
-						}
-					} else if(left->getType()==datatype::FloatTypeID) {
-						if(((datatype::FloatType*)left)->getVal()==0) {
-							rst = left;
-						}
-					} else if(left->getType()==datatype::DoubleTypeID) {
-						if(((datatype::DoubleType*)left)->getVal()==0) {
-							rst = left;
-						}
-					}
-
-					OPND_POP
-					OPND_POP
-
-					return RetStatus(RetStatusNor, new Variable(rst));
+				if(
+					(
+						optype==ast::BinaryLeftShiftType
+						||optype==ast::BinaryRightShiftType
+					)
+					&& typecalculator.toInt(right) < 0
+				) {
+					//位移数不能为负
+					ThrowNegativeShiftError();
+					CE;
 				}
 
-				MATH_OPERATE(Add, +, )
-				MATH_OPERATE(Sub, -, )
-				MATH_OPERATE(Mult, *, )
-				MATH_OPERATE(Divi, /, DIV_ERRCHECK)
+				if(
+					(
+						optype==ast::BinaryDiviType
+						||optype==ast::BinaryModType
+					)
+					&& typecalculator.toBool(right)==false
+				) {
+					//除数不能为0
+					//将b转为布尔值，如果b是0，则一定为false
+					ThrowDivZeroError();
+					CE;
+				}
+				
+				datatype::DataType* rst = typecalculator.BinaryOperate(
+															left, optype, right
+														 );
 
-				MATH_OPERATE(Equality, ==,)
-				MATH_OPERATE(Inequality, !=,)
-				MATH_OPERATE(BigThan, >,)
-				MATH_OPERATE(LessThan, <,)
-				MATH_OPERATE(BigThanOrEqual, >=,)
-				MATH_OPERATE(LessThanOrEqual, <=,)
+				OPND_POP;
+				OPND_POP;
 
-				ThrowUnknownOperatorError();
-
-				return RetStatus(RetStatusErr, NULL);
+				return RetStatus(RetStatusNor, new Variable(rst));
 
 			}
 
 			RetStatus runUnary(ast::AstNode* node) {
 				ast::AstUnary* unary_node = (ast::AstUnary*)node;
+
 				if(unary_node->getOperatorType()==-1) {
 					//先分析quark
 					datatype::DataType* quark;
 					GETDT(quark, runAst(node->Children()->at(0)))
 					OPND_PUSH(quark);
+
 					//接着逐个分析后缀
 					for(int i=1,len=node->Children()->size(); i<len; i++) {
 						GETDT(
@@ -1033,164 +879,41 @@ namespace stamon::vm {
 						OPND_POP;
 						OPND_PUSH(quark);
 					}
+
 					OPND_POP;
+
 					return RetStatus(RetStatusErr, new Variable(quark));
 				}
 
 				//如果是单目运算符
 
 				datatype::DataType* src;
-				RetStatus rst(RetStatusErr, NULL);
+				int optype = unary_node->getOperatorType();
 
 				GETDT(src, runAst(node->Children()->at(0)));
 
-				OPND_PUSH(src)
+				OPND_PUSH(src);
 
-				if(unary_node->getOperatorType()==ast::UnaryNotType) {
-					//逻辑非
-					//规定!(非零数)和!(null)为1，其余皆为0
-					if(src->getType()==datatype::NullTypeID) {
-						//!(null)为1
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::IntegerType>(1)
-						          )
-						      );
-
-					} else if(src->getType()==datatype::IntegerTypeID) {
-						//!(非零数)为0
-						int v = ((datatype::IntegerType*)src)->getVal();
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::IntegerType>(!v)
-						          )
-						      );
-					} else {
-						//其余皆为0
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::IntegerType>(0)
-						          )
-						      );
-						CE
-					}
-				}
-
-				if(unary_node->getOperatorType()==ast::UnaryNegative) {
-					if(
-					    !(
-					        src->getType()==datatype::IntegerTypeID
-					        ||src->getType()==datatype::FloatTypeID
-					        ||src->getType()==datatype::DoubleTypeID
-					    )
-					) {
-						//负数运算只能对数字进行
-						ThrowTypeError(src->getType());
-						rst = RetStatus(RetStatusErr, NULL);
-					}
-
-					if(src->getType()==datatype::IntegerTypeID) {
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::IntegerType>(
-						                  -(
-						                      ((datatype::IntegerType*)src)
-						                      ->getVal()
-						                  )
-						              )
-						          )
-						      );
-					}
-
-					if(src->getType()==datatype::FloatTypeID) {
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::FloatType>(
-						                  -(
-						                      ((datatype::FloatType*)src)
-						                      ->getVal()
-						                  )
-						              )
-						          )
-						      );
-					}
-
-					if(src->getType()==datatype::DoubleTypeID) {
-						rst = RetStatus(
-						          RetStatusNor,
-						          new Variable(
-						              manager
-						              ->MallocObject<datatype::DoubleType>(
-						                  -(
-						                      ((datatype::DoubleType*)src)
-						                      ->getVal()
-						                  )
-						              )
-						          )
-						      );
-					}
-
-				}
-
-				if(src->getType()==ast::UnaryPositiveType) {
-					//正数运算无需任何处理
-					if(
-					    !(
-					        src->getType()==datatype::IntegerTypeID
-					        ||src->getType()==datatype::FloatTypeID
-					        ||src->getType()==datatype::DoubleTypeID
-					    )
-					) {
-						//正数运算只能对数字进行
-						ThrowTypeError(src->getType());
-						rst = RetStatus(RetStatusErr, NULL);
-					}
-				}
-
-				if(src->getType()==ast::UnaryPositiveType) {
-					if(
-					    !(
-					        src->getType()==datatype::IntegerTypeID
-					    )
-					) {
-						//取反运算只能对整数进行
-						ThrowTypeError(src->getType());
-					}
-
-					rst = RetStatus(
-					          RetStatusNor,
-					          new Variable(
-					              manager
-					              ->MallocObject<datatype::IntegerType>(
-					                  ~(
-					                      ((datatype::IntegerType*)src)
-					                      ->getVal()
-					                  )
-					              )
-					          )
-					      );
-				}
-
-				OPND_POP
-
-				CE
-
-				if(rst.status==RetStatusErr) {
-					//说明没有分析到任何运算符
+				//特判运算符和运算类型是否合法
+				if(typecalculator.CheckUnaryOperator(optype)==false) {
 					ThrowUnknownOperatorError();
+					CE;
+				}
+				
+				if(
+					typecalculator.CheckUnaryOperandType(src, optype) == false
+				) {
+					ThrowTypeError(src->getType());
+					CE;
 				}
 
-				return rst;
+				datatype::DataType* rst = typecalculator
+										  .UnaryOperate(src, optype);
+
+				OPND_POP;
+
+				return RetStatus(RetStatusNor, new Variable(rst));
+
 			}
 
 			RetStatus runPostfix(ast::AstNode* node, datatype::DataType* src) {
@@ -1451,38 +1174,20 @@ namespace stamon::vm {
 //一些冗余的函数放到后面
 
 inline String stamon::vm::AstRunner::getDataTypeName(int type) {
-	if(type==stamon::datatype::ClassTypeID) {
-		return String((char*)"class");
-	}
-	if(type==stamon::datatype::MethodTypeID) {
-		return String((char*)"function");
-	}
-	if(type==stamon::datatype::NullTypeID) {
-		return String((char*)"null");
-	}
+	switch (type)
+	{
+	case stamon::datatype::ClassTypeID:		return String("class");
+	case stamon::datatype::MethodTypeID:	return String("function");
+	case stamon::datatype::IntegerTypeID:	return String("int");
+	case stamon::datatype::FloatTypeID:		return String("float");
+	case stamon::datatype::DoubleTypeID:	return String("double");
+	case stamon::datatype::ObjectTypeID:	return String("object");
+	case stamon::datatype::SequenceTypeID:	return String("sequence");
+	case stamon::datatype::StringTypeID:	return String("string");
 
-	if(type==stamon::datatype::IntegerTypeID) {
-		return String((char*)"integer");
-	}
-	if(type==stamon::datatype::FloatTypeID) {
-		return String((char*)"float");
-	}
-	if(type==stamon::datatype::DoubleTypeID) {
-		return String((char*)"double");
-	}
-	if(type==stamon::datatype::ObjectTypeID) {
-		return String((char*)"object");
-	}
-	if(type==stamon::datatype::SequenceTypeID) {
-		return String((char*)"sequence");
-	}
-	if(type==stamon::datatype::StringTypeID) {
-		return String((char*)"string");
-	}
-	if(type==-1) {
-		return String((char*)"identifier");
-	} else {
-		return String((char*)"unknown-type");
+	case -1:								return String("identifier");
+
+	default:								return String("unknown-type");
 	}
 }
 
@@ -1607,160 +1312,12 @@ inline void stamon::vm::AstRunner::ThrowLengthError() {
 	)
 }
 
-inline void stamon::vm::AstRunner::BinaryOperatorConvert(
-    datatype::DataType*& left, datatype::DataType*& t1,
-    datatype::DataType*&right, datatype::DataType*& t2
-) {
-
-	OPND_PUSH(left);
-	OPND_PUSH(right);
-
-	//先确定两者之间的最大优先级
-	int priority_max = left->getType()>right->getType() ?
-	                   left->getType() : right->getType();
-
-	//先判断类型
-	if(
-	    !(
-	        left->getType()==datatype::IntegerTypeID
-	        ||left->getType()==datatype::FloatTypeID
-	        ||left->getType()==datatype::DoubleTypeID
-	    )
-	) {
-		ThrowTypeError(left->getType());
-	}
-
-	if(
-	    !(
-	        right->getType()==datatype::IntegerTypeID
-	        ||right->getType()==datatype::FloatTypeID
-	        ||right->getType()==datatype::DoubleTypeID
-	    )
-	) {
-		ThrowTypeError(right->getType());
-	}
-
-	//接着进行繁杂的转换
-
-
-	if(priority_max==datatype::IntegerTypeID) {
-		t1 = manager->MallocObject<datatype::IntegerType>(
-		         ((datatype::IntegerType*)left)->getVal()
-		     );
-		OPND_PUSH(t1);
-		t2 = manager->MallocObject<datatype::IntegerType>(
-		         ((datatype::IntegerType*)right)->getVal()
-		     );
-		OPND_POP;
-	}
-
-	if(priority_max==datatype::FloatTypeID) {
-		if(left->getType()==datatype::FloatTypeID) {
-			if(right->getType()==datatype::IntegerTypeID) {
-				t1 = manager->MallocObject<datatype::FloatType>(
-				         ((datatype::FloatType*)left)->getVal()
-				     );
-				OPND_PUSH(t1);
-				t2 = manager->MallocObject<datatype::FloatType>(
-				         (float)
-				         (
-				             ((datatype::IntegerType*)right)
-				             ->getVal()
-				         )
-				     );
-				OPND_POP;
-			}
-			//如果不是int，那就只能是float，即left和right皆为float
-		}
-		if(right->getType()==datatype::FloatTypeID) {
-			if(left->getType()==datatype::IntegerTypeID) {
-				t1 = manager->MallocObject<datatype::FloatType>(
-				         ((datatype::FloatType*)left)->getVal()
-				     );
-				OPND_PUSH(t1);
-				t1 = manager->MallocObject<datatype::FloatType>(
-				         (float)
-				         (
-				             ((datatype::IntegerType*)left)
-				             ->getVal()
-				         )
-				     );
-				OPND_POP;
-			}
-			//如果不是int，那就只能是float，即left和right皆为float
-		}
-	}
-
-	if(priority_max==datatype::DoubleTypeID) {
-		if(left->getType()==datatype::IntegerTypeID) {
-			t1 = manager->MallocObject<datatype::DoubleType>(
-			         (double)
-			         (
-			             ((datatype::IntegerType*)left)
-			             ->getVal()
-			         )
-			     );
-		} else if(left->getType()==datatype::FloatTypeID) {
-			t1 = manager->MallocObject<datatype::DoubleType>(
-			         (double)
-			         (
-			             ((datatype::FloatType*)left)
-			             ->getVal()
-			         )
-			     );
-		} else {
-			t1 = manager->MallocObject<datatype::DoubleType>(
-			         ((datatype::DoubleType*)left)->getVal()
-			     );
-		}
-
-		OPND_PUSH(t1);
-
-		if(right->getType()==datatype::IntegerTypeID) {
-			t2 = manager->MallocObject<datatype::DoubleType>(
-			         (double)
-			         (
-			             ((datatype::IntegerType*)right)
-			             ->getVal()
-			         )
-			     );
-		} else if(right->getType()==datatype::FloatTypeID) {
-			t2 = manager->MallocObject<datatype::DoubleType>(
-			         (double)
-			         (
-			             ((datatype::FloatType*)right)
-			             ->getVal()
-			         )
-			     );
-		} else {
-			t2 = manager->MallocObject<datatype::DoubleType>(
-			         ((datatype::DoubleType*)right)->getVal()
-			     );
-		}
-		OPND_POP;
-	}
-
-	OPND_POP; 	//弹出right
-	OPND_POP;	//弹出left
-
-	return;
-}
-
-bool stamon::vm::AstRunner::DataType2Bool(datatype::DataType* dt) {
-	if(dt->getType()==datatype::NullTypeID) {
-		return false;
-	}
-	if(dt->getType()==datatype::IntegerTypeID) {
-		return ((datatype::IntegerType*)dt)->getVal() != 0 ? true : false;
-	}
-	if(dt->getType()==datatype::FloatTypeID) {
-		return ((datatype::FloatType*)dt)->getVal() != 0 ? true : false;
-	}
-	if(dt->getType()==datatype::DoubleTypeID) {
-		return ((datatype::DoubleType*)dt)->getVal() != 0 ? true : false;
-	}
-
-	return true;
+inline void stamon::vm::AstRunner::ThrowNegativeShiftError() {
+	THROW_S(
+		String((char*)"Negative Shift Error: ")
+		+ getExcutePosition()
+		+ String((char*)"negative shift count")
+	)
 }
 
 #undef CDT

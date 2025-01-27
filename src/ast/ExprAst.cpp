@@ -16,7 +16,7 @@ namespace stamon::ast {
 	    PostfixMemberType = 0, //成员后缀
 	    PostfixElementType,	   //下标后缀
 	    PostfixCallType,	   //调用函数后缀
-	    PostfixNewType,		   //新建对象后缀
+	    PostfixNewType		   //新建对象后缀
 	};
 	enum _BinaryOperatorType {
 	    //双目运算符类型定义
@@ -38,13 +38,15 @@ namespace stamon::ast {
 	    BinaryMultType,			   //乘法
 	    BinaryDiviType,			   //除法
 	    BinaryModType,			   //取余
+		BinaryTypeCount			   //类型总数
 	};
 	enum _UnaryOperatorType {
 	    //单目运算符类型定义
 	    UnaryPositiveType = 0, //正
-	    UnaryNegative,		   //负
+	    UnaryNegativeType,		   //负
 	    UnaryNotType,		   //非
-	    UnaryInverseType	   //按位反
+	    UnaryInverseType,	   //按位反
+		UnaryTypeCount		   //类型总数
 	};
 
 	class AstExpression : public AstNode {

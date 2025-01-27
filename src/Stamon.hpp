@@ -11,7 +11,7 @@
 namespace stamon {
 	constexpr int STAMON_VER_X = 2;
 	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 31;
+	constexpr int STAMON_VER_Z = 36;
 }
 
 #include"ArrayList.hpp"
@@ -36,12 +36,6 @@ namespace stamon {
 	// using namespace stamon::sfn;
 
 	class Stamon {
-			template<typename T>
-			void SpliceArrayList(ArrayList<T>* dst, ArrayList<T>* src) {
-				for(int i=0,len=src->size(); i<len; i++) {
-					dst->add(src->at(i));
-				}
-			}
 		public:
 			STMException* ex;
 			ArrayList<String>* ErrorMsg;
@@ -80,9 +74,7 @@ namespace stamon {
 				    = new ArrayList<ast::AstNode*>();
 
 				for(int i=0,len=compiler.src->size(); i<len; i++) {
-					SpliceArrayList(
-					    program, compiler.src->at(i).program->Children()
-					);
+					*program += *(compiler.src->at(i).program->Children());
 				}
 
 				ast::AstNode* node = new ast::AstProgram(program);

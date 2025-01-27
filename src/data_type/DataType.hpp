@@ -23,7 +23,8 @@ namespace stamon::datatype {
 	    SequenceTypeID,
 	    ClassTypeID,
 	    MethodTypeID,
-	    ObjectTypeID
+	    ObjectTypeID,
+		DataTypeCount
 	};
 
 	class DataType;

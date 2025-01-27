@@ -150,9 +150,12 @@ int main(int argc, char* argv[]) {
 
 				}
 			}
+		} else {
+			printf("stamon: build: too few arguments\n"
+			       "please enter \'stamon help\' "
+			       "to get more information.\n");
+			return -1;
 		}
-
-		//printf(program_path.c_arr());
 
 		if(isSupportImport) {
 			ImportPaths.insert(
@@ -215,6 +218,7 @@ int main(int argc, char* argv[]) {
 			printf("stamon: run: too few arguments\n"
 			       "please enter \'stamon help\' "
 			       "to get more information.\n");
+			return -1;
 		} else {
 			src = args[1];
 
@@ -316,6 +320,7 @@ int main(int argc, char* argv[]) {
 			printf("stamon: strip: too few arguments\n"
 			       "please enter \'stamon help\' "
 			       "to get more information.\n");
+			return -1;
 		} else {
 			src = args[1];
 			for(int i=2;i<args.size();i++) {
@@ -405,19 +410,27 @@ int main(int argc, char* argv[]) {
 void getHelpInformation() {
 	printf(
 	    "Usage: stamon options [arguments..]\n"
-	    "Options\n"
+	    "Options:\n"
 	    "\tversion | -v\t\t\tDisplay this version.\n"
 	    "\thelp | -h\t\t\tDisplay this information.\n"
 	    "\tbuild | -b\t\t\tBuild this source to program.\n"
 	    "\t\t<filename>\t\tSource filename (Required)\n"
 	    "\t\t<filename>\t\tTarget filename\n"
-	    "\t\t--import=<boolean>\t\tSupport Import Flag\n"
-	    "\t\t--strip=<boolean>\t\tStrip Debug Information Flag\n"
-	    "\t\t-I<path>\t\tAdd Include Path\n"
+	    "\t\t--import=<boolean>\t\tSupport import flag\n"
+	    "\t\t--strip=<boolean>\t\tStrip debug information flag\n"
+	    "\t\t-I<path>\t\tAdd include path\n"
+		"\t\t--IgnoreWarning\t\tDo not print warnings\n"
+		"\t\t--JustWarn\t\tWarnings are just warnings\n"
+		"\t\t--FatalWarning\t\tMake warnings block compilation\n"
+		"\t\t--locale=<text>\t\tSet Language Environment\n"
 	    "\trun | -r\t\t\tRun STVC.\n"
 	    "\t\t<filename>\t\tSource filename (Required)\n"
-	    "\t\t--GC=<boolean>\t\tGC Flag\n"
-	    "\t\t--MemLimit=<Integer>\tSet VM Memory Limit\n"
+	    "\t\t--GC=<boolean>\t\tGC flag\n"
+	    "\t\t--MemLimit=<Integer>\tSet VM memory limit\n"
+		"\t\t--IgnoreWarning\t\tDo not print warnings\n"
+		"\t\t--JustWarn\t\tWarnings are just warnings\n"
+		"\t\t--FatalWarning\t\tMake warnings block compilation\n"
+		"\t\t--locale=<text>\t\tSet Language Environment\n"
 	    "\tstrip | -s\t\t\tStrip STVC.\n"
 	    "\t\t<filename>\t\tSource filename (Required)\n"
 	);
