@@ -242,7 +242,6 @@ namespace stamon::ir {
 				ArrayList<AstIR> list;
 
 				if(program==NULL) {
-					stack.destroy();
 					return list;
 				}
 
@@ -389,8 +388,6 @@ namespace stamon::ir {
 
 				}
 
-				stack.destroy();
-
 				return list;
 			}
 
@@ -459,8 +456,6 @@ namespace stamon::ir {
 					//压入
 					stack.push(n);
 				}
-
-				stack.destroy();
 
 				return rst;
 			}

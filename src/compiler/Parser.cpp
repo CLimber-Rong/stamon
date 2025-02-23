@@ -165,10 +165,6 @@ namespace stamon::c {
 				//该函数用于弱定义
 				scope.put(((IdenToken*)iden)->iden, NULL);
 			}
-
-			void destroy() {
-				scope.destroy();
-			}
 	};
 
 	class SourceSyntax {	//用来存储一个文件的文件名和程序

@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
 		printf(
 		    "stamon %d.%d.%d\n"
 		    "Be Released by CLimber-Rong(github.com/CLimber-Rong/)\n"
-		    "Open Source in \'github.com/CLimber-Rong/stamon/\'\n"
+		    "Open Source on \'https://github.com/CLimber-Rong/stamon/\'\n"
 		    "This program has absolutely no warranty.\n",
 		    STAMON_VER_X, STAMON_VER_Y, STAMON_VER_Z
 		);
@@ -427,6 +427,7 @@ void getHelpInformation() {
 	    "\t\t<filename>\t\tSource filename (Required)\n"
 	    "\t\t--GC=<boolean>\t\tGC flag\n"
 	    "\t\t--MemLimit=<Integer>\tSet VM memory limit\n"
+		"\t\t--MemPoolCache=<Integer>\tSet MemoryPool Cache Size\n"
 		"\t\t--IgnoreWarning\t\tDo not print warnings\n"
 		"\t\t--JustWarn\t\tWarnings are just warnings\n"
 		"\t\t--FatalWarning\t\tMake warnings block compilation\n"

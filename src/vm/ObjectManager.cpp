@@ -64,14 +64,7 @@ namespace stamon::vm {
 					obj.add(var.at(i)->data);
 				}
 
-				var.clear();
-
 				return obj;
-			}
-			void DestroyScope() {
-				if(isDestroy) {
-					scope.destroy();
-				}
 			}
 	};
 
@@ -237,7 +230,6 @@ namespace stamon::vm {
 			}
 
 			void PopScope() {
-				Scopes.at(Scopes.size()-1).DestroyScope();
 				Scopes.erase(Scopes.size()-1);
 			}
 
@@ -252,12 +244,11 @@ namespace stamon::vm {
 				//标记非垃圾对象
 
 				//先把操作数标记为非垃圾对象
-				ArrayList<datatype::DataType*> opnd_unscanned = OPND.clone();
+				ArrayList<datatype::DataType*> opnd_unscanned = OPND;
 				for(int i=0,len=OPND.size(); i<len; i++) {
 					OPND[i]->gc_flag = true;
 				}
 				MarkScopeObject(opnd_unscanned);
-				opnd_unscanned.clear();
 
 				//再根据GC Root标记非垃圾对象
 				for(int i=0; i<Scopes.size(); i++) {
@@ -270,8 +261,6 @@ namespace stamon::vm {
 					//把作用域里的变量（也就是GCRoots）加载到unscanned里
 					MarkScopeObject(unscanned);
 					//遍历该作用域的变量涉及到的全部对象，并且标记他们
-					unscanned.clear();
-					//清空未扫描列表
 				}
 
 				//清除垃圾对象
@@ -323,8 +312,6 @@ namespace stamon::vm {
 							}
 						}
 
-						referObjects.clear();
-
 					}
 
 					if(o->getType()==datatype::ObjectTypeID) {
@@ -353,8 +340,6 @@ namespace stamon::vm {
 								unscanned.add(p);
 							}
 						}
-
-						referObjects.clear();
 
 					}
 
@@ -387,8 +372,6 @@ namespace stamon::vm {
 						NewObjects.add(Objects.at(i));
 					}
 				}
-
-				Objects.clear();
 
 				Objects = NewObjects;
 				//更新对象列表

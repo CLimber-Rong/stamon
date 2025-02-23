@@ -232,7 +232,9 @@ namespace stamon::vm {
 					                        )
 					                        ->getID()
 					                    );
-
+					CATCH {
+						return NULL;
+					}
 					if(father_class->data->getType()!=datatype::ClassTypeID) {
 						ThrowTypeError(father_class->data->getType());
 						return NULL;
@@ -242,8 +244,6 @@ namespace stamon::vm {
 					CATCH {
 						return NULL;
 					}
-
-					membertab.destroy();	//先销毁之前创建的空表
 
 					membertab = rst->getVal();
 
@@ -308,7 +308,7 @@ namespace stamon::vm {
 				auto container = method->getContainer();
 
 				/*再获得形参*/
-				auto FormArg = method->getVal()->Children()->clone();
+				auto FormArg = *(method->getVal()->Children());
 				FormArg.erase(FormArg.size()-1);	//删除ast::AstBlock，只保留参数
 
 				/*接着计算实际参数的表达式*/

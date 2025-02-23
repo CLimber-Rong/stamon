@@ -1,4 +1,4 @@
-# STVC-TAC中间代码规范
+# STVC-TAC中间代码规范（第二版）
 
 ### 前言
 
@@ -43,13 +43,28 @@ STVC文件由以下部分组成：
 
 标识符有三个种类：用户标识符，临时标识符和内部标识符。
 
-用户标识符一般为用户自定义的标识符，其格式与C标识符格式相同。
+**用户标识符**一般为用户自定义的标识符，其格式与C标识符格式相同。
 
-临时标识符则是表达式计算过程当中会用到的标识符，此类标识符的格式为``.XXX``，其中“XXX”为数字。
+**临时标识符**则是表达式计算过程当中会用到的标识符，此类标识符的格式为``.XXX``，其中“XXX”为数字。
 
-内部标识符则是用于匿名类、匿名函数的声明，此类标识符的格式为``#XXX``，其中“XXX”为数字。
+**内部标识符**则是用于匿名类、匿名函数的声明，此类标识符的格式为``#XXX``，其中“XXX”为数字。
 
 因此编译器在编译时应先指明标识符的类型，再指明标识符的编号。
+
+##### SFN
+
+SFN，全称*Stamon For Native*，是Stamon调用外部库的一个机制。调用SFN时，需要指定一个端口并提供参数，不同的端口对应不同的外部功能。
+
+##### 容器
+
+“容器”的概念与“成员”的概念恰好相反。
+
+如果一个对象 *O* 拥有一个成员 *m*，那么规定 *O* 是 *m* 的容器。
+
+初始化一个类对象时，通常需要初始化类方法。
+而初始化类方法时，通常需要为其指定容器。这样用户在调用类方法时，Stamon会自动将容器传入“self”参数，从而实现类方法调用其他类成员。
+
+类方法和全局函数在数据类型上是相同的。唯一不同之处在于：类方法拥有容器，而全局函数不具有容器。
 
 ##### 运算语句
 
@@ -67,17 +82,33 @@ STVC文件由以下部分组成：
 
 上述的ASSIGN、UNARY和BINARY均为助记符，虚拟机可以通过助记符直接判断运算类型。助记符应当在二进制文件中表现出来。
 
+4. ``x[index] = y``
+
+将x的第index个元素赋值为y。
+
+5. ``x = y[index]``
+
+将x赋值为y的第index个元素。
+
+6. ``x.member = y``
+
+将x的member成员赋值为y。
+
+7. ``x = y.member``
+
+将x赋值为y的member成员。
+
 ##### 流程控制语句
 
 1. ``goto addr``
 
 无条件跳转至相对addr行指令所在处。若addr<0，向上跳转，否则向下跳转。
 
-2. ``if condition => addr``
+2. ``if condition addr``
    
 如果condition不为``null``或``0``则跳转至相对addr行指令所在处。若addr<0，向上跳转，否则向下跳转。
 
-3. ``call result function: arg1 arg2 ...``
+3. ``call result function arg1 arg2 ...``
 
 调用function值。参数为arg1、arg2等标识符或值。返回值存入result当中。
 
@@ -85,58 +116,62 @@ STVC文件由以下部分组成：
 
 返回value值。
 
-5. ``try addr``
-
-监测该以下addr（addr必须是正数）行的代码是否有抛出异常，如果出现异常，就直接跳转到``try``指令以下addr行（即跳过try代码块），因此try代码块在包含本应包含的代码的同时，也要在结尾加上``goto catch代码块大小``，以此跳过catch块；在try代码块后需要紧跟着catch代码块。
-
 
 值得注意的是：
 * 入口代码不需要在结尾返回
 * 跳转的指令偏差应该是能接受的（如一个函数有五条指令，显然不能往下跳转六条指令）
 
-##### 特别的...
+##### 内存操作语句
 
 1. ``new object source arg1 arg2 ...``
 
-将source标识符作为类，新建对象，构造参数为arg1、arg2等，新建后的对象值存入object标识符
+将source标识符作为类，新建对象，构造参数为arg1、arg2等，新建后的对象值存入object标识符。
 
-2. ``member dst src mber``
+2. ``list identifier element1 element2...``
 
-将src中的mber成员取出，存入dst。
+将element1、element2...作为元素，组合成数列，并存入identifier标识符中。
 
-3. ``sfn port arg``
+3. ``array identifier length``
 
-设置SFN，port为端口号标识符。arg参数标识符。
+将identifier赋值为一个长度为length的空数列。
 
-SFN的介绍见``编译器开发文档.md``
-
-4. ``list identifier element1 element2...``
-
-将element1、element2...作为元素，组合成数列，并存入identifier标识符中
-
-5. ``pushscope``
-
-压入一个作用域，用于跳转指令
-
-6. ``popscope``
-
-弹出一个作用域，用于跳转指令
-
-7. ``free identifier``
+4. ``free identifier``
 
 如果identifier所存储的是字面量值（如整型），则释放。该指令和C语言的register关键字类似，**是否释放取决于虚拟机状态。**该指令通常用于释放临时标识符。
 
-8. ``throw identifier``
+##### 作用域操作语句
 
-将identifier标识符所存储的值作为异常内容，进行抛出。
+1. ``pushscope``
 
-9. ``getexception identifier``
+压入一个作用域，用于跳转指令。
+
+2. ``popscope``
+
+弹出一个作用域，用于跳转指令。
+
+3. ``def identifier``
+
+在当前作用域定义一个名为identifier的变量。
+
+##### 异常处理语句
+
+1. ``pushcatch addr``
+
+进入一个新的try-catch块时，需要调用该指令，addr为catch块的地址。
+
+2. ``popcatch``
+
+退出一个try-catch块时，需要调用该指令。
+
+3. ``getexception identifier``
 
 将当前异常内容存入identifier。
 
-10. ``resetexceptionflag``
+##### 外部库调用语句
 
-重置异常标记（即标记为无异常状态）。
+1. ``sfn port arg``
+
+调用SFN的port端口，参数为arg。
 
 ### 代码声明
 
@@ -145,29 +180,28 @@ SFN的介绍见``编译器开发文档.md``
 ##### 声明函数
 
 ```
-function identifier: arg1 arg2 arg3 ...
+function identifier arg1 arg2 ...
 ...some codes...
 end
 ```
 
-其中identifier为函数名。arg1、arg2、arg3等为函数的参数名。“...some codes...”为函数体代码
+其中identifier为函数名。arg1、arg2等为函数的参数名。“...some codes...”为函数体代码。
 
 函数内部不能嵌套声明函数或类（因此需要在函数外部，用内部标识符定义函数或类，在运行时赋值）。
 
 ##### 声明类
 
 ```
-class identifier: member1 member2 member3 ...
+class identifier member1 member2 * member3...
 ...some codes...
-method member1 member2 ... 
 end
 ```
 
 其中identifier为类名。member1、member2、member3等为类成员名。“...some codes...”为类初始化赋值代码（并不是构造函数）。
 
-method语句包含了若干个标识符，表示此标识符为方法。
+如果类成员名的左侧带有“*”，则代表此成员是类方法。
 
-在初始化类对象时，会先执行初始化赋值代码，根据method语句为方法指定容器，再调用构造函数。
+在初始化类对象时，会先执行初始化赋值代码，接着为类方法指定容器，再调用构造函数。
 
 类内部不能嵌套声明函数或类（因此需要在在外部用内部标识符定义函数或类，在初始化时赋值）。
 
@@ -177,53 +211,30 @@ method语句包含了若干个标识符，表示此标识符为方法。
 
 ### 附表
 
-所有基本语句有以下几种：
+所有语句有以下几种：
 
 * ``x = ASSIGN y``
 * ``x = UNARY op y``
 * ``x = BINARY y op z``
+* ``x[index] = y``
+* ``x = y[index]``
+* ``x.member = y``
+* ``x = y.member``
 * ``goto addr``
 * ``if condition => addr``
-* ``call result function: arg1 arg2 ...``
+* ``call result function arg1 arg2 ...``
 * ``return value``
-* ``try addr``
 * ``new object source arg1 arg2 ...``
-* ``member dst src mber``
-* ``sfn port arg``
 * ``list identifier element1 element2...``
+* ``array identifier length``
+* ``free identifier``
 * ``pushscope``
 * ``popscope``
-* ``free identifier``
+* ``def identifier``
+* ``pushcatch addr``
+* ``popcatch``
 * ``getexception identifier``
-* ``resetexceptionflag``
-
-
-双目运算符有以下种类：
-
-* add：加
-* sub：减
-* mul：乘
-* div：除
-* mod：取余
-* lsh：左移
-* rsh：右移
-* less：小于
-* lequ：小等于
-* big：大于
-* bequ：大等于
-* equ：判等
-* iequ：判不等
-* band：按位与
-* bxor：按位异或
-* bor：按位或
-* land：逻辑与
-* lor：逻辑或
-* index：取下标
-
-而单目运算符有以下种类：
-
-* pos：正
-* neg：负
-* cpl：按位取反
-* not：逻辑非
-* arr：组成为数列
+* ``sfn port arg``
+* ``function identifier arg1 arg2 ...``
+* ``class identifier member1 member2 * member3...``
+* ``end``

@@ -19,7 +19,6 @@ class ByteMap {
 		T* get(char* s, int size); //获取值
 		bool containsKey(char* s, int size); //是否存在该键
 		int clear(); //清空
-		int destroy(); //销毁
 		bool empty(); //是否为空
 
 		template<typename list_T>

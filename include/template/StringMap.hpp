@@ -19,7 +19,6 @@ class StringMap {
 		T* get(const String& s);					//获取值
 		bool containsKey(const String& s);				//是否存在该键
 		int clear();							//清空
-		int destroy();							//销毁
 		bool empty();							//是否为空
 		int traverse(TRIE_VISIT visit);			//遍历
 		STRIE* getStrie();

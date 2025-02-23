@@ -11,7 +11,7 @@
 namespace stamon {
 	constexpr int STAMON_VER_X = 2;
 	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 36;
+	constexpr int STAMON_VER_Z = 37;
 }
 
 #include"ArrayList.hpp"
@@ -70,14 +70,20 @@ namespace stamon {
 
 				//将编译结果整合成一个AST
 
-				ArrayList<ast::AstNode*>* program
-				    = new ArrayList<ast::AstNode*>();
+				ArrayList<ast::AstNode*> program;
 
 				for(int i=0,len=compiler.src->size(); i<len; i++) {
-					*program += *(compiler.src->at(i).program->Children());
+					ArrayList<ast::AstNode*> temp = *(
+												compiler
+												.src
+												->at(i)
+												.program
+												->Children()
+											);
+					program += temp;
 				}
 
-				ast::AstNode* node = new ast::AstProgram(program);
+				ast::AstNode* node = new ast::AstProgram(&program);
 
 				//编译为IR
 
@@ -236,5 +242,10 @@ namespace stamon {
 				return WarningMsg;
 			}
 
+			~Stamon() {
+				delete ex;
+				delete ErrorMsg;
+				delete WarningMsg;
+			}
 	};
 } //namespace stamon

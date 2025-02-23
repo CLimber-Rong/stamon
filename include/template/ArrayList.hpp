@@ -13,7 +13,7 @@
 template<typename T>
 class ArrayList {
 	public:
-		/*值得注意的是：正常的ArrayList赋值，实际上是引用传递*/
+		/*值得注意的是：正常的ArrayList赋值，实际上是拷贝传递*/
 
 		ArrayList();		// 创建一个空列表
 
@@ -33,8 +33,6 @@ class ArrayList {
 
 		int size() const ;  // 获得元素个数
 
-		ArrayList<T> clone(); // 复制一个相同的ArrayList
-
 		ArrayList<T> operator+(ArrayList<T> src);
 
 		ArrayList<T> operator+=(ArrayList<T> src);
@@ -42,4 +40,6 @@ class ArrayList {
 		T &operator[](int index);
 
 		T operator[](int index) const ;
+
+		~ArrayList();
 };
