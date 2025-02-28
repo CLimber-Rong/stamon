@@ -28,11 +28,11 @@ jobs:
         run: make release_win
       
       - name: Build Project for Linux
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: make release_linux
       
-      - name: Build Project for Windows
-        if: matrix.os == 'windows-latest'
+      - name: Build Project for macOS
+        if: matrix.os == 'macos-latest'
         run: make release_macos
       
       - name: Upload executable for Windows
