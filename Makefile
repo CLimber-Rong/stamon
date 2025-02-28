@@ -85,7 +85,8 @@ release_win:
 
 release_linux:
 #	编译Linux版本
-	cp -r -T ./src/bin-include ./bin/include
+	mkdir -p "bin/include"
+	cp -r -T src/bin-include bin/include
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
 	-O2 $(LINK) \
@@ -105,8 +106,8 @@ release_linux:
 
 release_macos:
 #	编译MacOS版本
-	mkdir "bin/include"
-	cp -r "./src/bin-include/" "./bin/include"
+	mkdir -p "bin/include"
+	cp -r "src/bin-include/" "bin/include"
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
 	-O2 $(LINK) \
