@@ -110,7 +110,7 @@ release_macos:
 	cp -r "src/bin-include/" "bin/include"
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
-	-O2 $(LINK) \
+	-O2 \
 	-std=c++17 \
 	-I include/stdc_implemented \
 	-I src/ast \
