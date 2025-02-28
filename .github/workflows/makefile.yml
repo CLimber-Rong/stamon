@@ -1,0 +1,71 @@
+# github action which uses makefile
+
+name: Makefile CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    # build project for 3 platforms
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      # build project
+
+      - name: Build Project for Windows
+        if: matrix.os == 'windows-latest'
+        run: make release_win
+      
+      - name: Build Project for Linux
+        if: matrix.os == 'windows-latest'
+        run: make release_linux
+      
+      - name: Build Project for Windows
+        if: matrix.os == 'windows-latest'
+        run: make release_macos
+      
+      - name: Upload executable for Windows
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'windows-latest'
+        with:
+          name: stamon-for-windows
+          path: |
+            ${{ github.workspace }}/bin/${{ matrix.build_type }}/stamon.exe
+            ${{ github.workspace }}/bin/${{ matrix.build_type }}/include
+            ${{ github.workspace }}/LICENSE
+          compression-level: 9
+
+      # upload executable
+
+      - name: Upload executable for Linux
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: stamon-for-linux
+          path: |
+            ${{ github.workspace }}/bin/stamon
+            ${{ github.workspace }}/bin/include
+            ${{ github.workspace }}/LICENSE
+          compression-level: 9
+
+      - name: Upload executable for macOS
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'macos-latest'
+        with:
+          name: stamon-for-macos
+          path: |
+            ${{ github.workspace }}/bin/stamon
+            ${{ github.workspace }}/bin/include
+            ${{ github.workspace }}/LICENSE
+          compression-level: 9
