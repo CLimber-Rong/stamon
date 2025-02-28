@@ -1420,45 +1420,6 @@ namespace stamon::c {
 	};
 }
 
-/*
-
-实例：
-
-class c {
-	func helloworld(this) {
-		print("Hello world!");
-	}
-}
-
-def main = func {
-	def cls = c.new;
-	cls.helloworld();
-}();
-
-类 输出类 {
-	函数 你好世界（后台） {
-		输出（“Hello world!”）；
-	}
-}
-
-设 主 = 函数() {
-	设 类对象 = 输出类——新建；
-	类对象——你好世界();
-}
-
-类 输出类 {
-	函数 你好世界（后台） {
-		输出（“Hello world!”）；
-	}
-}
-
-设 主 = 函数 {
-	设 类对象 = 输出类——新建；
-	类对象——你好世界（）；
-}（）；
-
-*/
-
 #undef check
 #undef pop
 #undef CE

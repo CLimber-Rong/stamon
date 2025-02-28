@@ -55,8 +55,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "-std=c17")
     set(CMAKE_CXX_FLAGS "-std=c++17")
 
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
     
     else()
     
@@ -99,24 +99,3 @@ if(CMAKE_HOST_APPLE)
             COMMAND cp -r "${PROJECT_SOURCE_DIR}/src/bin-include/" "${EXECUTABLE_OUTPUT_PATH}/include"
         )
 endif()
-
-# if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-#         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-#             set(stamon_binary ${EXECUTABLE_OUTPUT_PATH}/stamon.exe)
-#             set(test_binary ${EXECUTABLE_OUTPUT_PATH}/stamon-test.exe)
-#         else()
-#             set(stamon_binary ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_BUILD_TYPE}/stamon.exe)
-#             set(test_binary ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_BUILD_TYPE}/stamon-test.exe)
-#         endif()
-# else()
-#     set(stamon_binary ${EXECUTABLE_OUTPUT_PATH}/stamon)
-#     set(test_binary ${EXECUTABLE_OUTPUT_PATH}/stamon-test)
-# endif()
-
-# add_test(NAME stamon
-#     COMMAND ${stamon_binary} build code.st code.stvc
-# )
-
-# add_test(NAME test
-#     COMMAND ${test_binary}
-# )
