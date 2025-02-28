@@ -1,6 +1,6 @@
 # github action which uses makefile
 
-name: Makefile CI
+name: Makefile on multiple platforms
 
 on:
   push:
