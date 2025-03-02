@@ -5,8 +5,7 @@ UPX = upx
 REMOVE = del
 
 STD = c++17
-LINK = 	-static \
-		-I include/stdc_implemented \
+LINK = 	-I include/stdc_implemented \
 		-I src/ast \
 		-I src/data_type \
 		-I src/vm \
@@ -62,6 +61,7 @@ release:
 	-o bin/stamon.exe \
 	-O2 \
 	-std=$(STD) \
+	-static \
 	$(LINK)
 
 	$(STRIP) -s bin/stamon.exe
@@ -74,6 +74,7 @@ release_win:
 	-o bin/stamon.exe \
 	-O2 \
 	-std=$(STD) \
+	-static \
 	$(LINK)
 
 	$(STRIP) -s bin/stamon.exe
@@ -86,6 +87,7 @@ release_linux:
 	-o bin/stamon \
 	-O2 \
 	-std=$(STD) \
+	-static \
 	$(LINK)
 
 	$(STRIP) -s bin/stamon
