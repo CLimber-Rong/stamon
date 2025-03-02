@@ -3,7 +3,20 @@ COMPILER = g++
 STRIP = strip
 UPX = upx
 REMOVE = del
-LINK = -static
+
+STD = c++17
+LINK = 	-static \
+		-I include/stdc_implemented \
+		-I src/ast \
+		-I src/data_type \
+		-I src/vm \
+		-I src/ir \
+		-I src/compiler \
+		-I src/sfn  \
+		-I src/tac \
+		-I src \
+		-lm
+
 # -static选项让编译的程序更通用，但是程序体积更大，删去可以缩小程序体积
 
 # 以下指令用于兼容先前调试时的编译指令
@@ -47,18 +60,9 @@ release:
 	xcopy src\bin-include bin\include /s /e /y /i
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
-	-O2 $(LINK) \
-	-std=c++17 \
-	-I include/stdc_implemented \
-	-I src/ast \
-	-I src/data_type \
-	-I src/vm \
-	-I src/ir \
-	-I src/compiler \
-	-I src/sfn \
-	-I src/tac \
-	-I src \
-	-lm
+	-O2 \
+	-std=$(STD) \
+	$(LINK)
 
 	$(STRIP) -s bin/stamon.exe
 
@@ -68,18 +72,9 @@ release_win:
 	xcopy src\bin-include bin\include /s /e /y /i
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
-	-O2 $(LINK) \
-	-std=c++17 \
-	-I include/stdc_implemented \
-	-I src/ast \
-	-I src/data_type \
-	-I src/vm \
-	-I src/ir \
-	-I src/compiler \
-	-I src/sfn \
-	-I src/tac \
-	-I src \
-	-lm
+	-O2 \
+	-std=$(STD) \
+	$(LINK)
 
 	$(STRIP) -s bin/stamon.exe
 
@@ -89,18 +84,9 @@ release_linux:
 	cp -r -T src/bin-include bin/include
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
-	-O2 $(LINK) \
-	-std=c++17 \
-	-I include/stdc_implemented \
-	-I src/ast \
-	-I src/data_type \
-	-I src/vm \
-	-I src/ir \
-	-I src/compiler \
-	-I src/sfn \
-	-I src/tac \
-	-I src \
-	-lm
+	-O2 \
+	-std=$(STD) \
+	$(LINK)
 
 	$(STRIP) -s bin/stamon
 
@@ -111,17 +97,8 @@ release_macos:
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon \
 	-O2 \
-	-std=c++17 \
-	-I include/stdc_implemented \
-	-I src/ast \
-	-I src/data_type \
-	-I src/vm \
-	-I src/ir \
-	-I src/compiler \
-	-I src/sfn \
-	-I src/tac \
-	-I src \
-	-lm
+	-std=$(STD) \
+	$(LINK)
 
 	$(STRIP) bin/stamon
 
