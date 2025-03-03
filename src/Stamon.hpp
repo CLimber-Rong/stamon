@@ -11,7 +11,7 @@
 namespace stamon {
 	constexpr int STAMON_VER_X = 2;
 	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 37;
+	constexpr int STAMON_VER_Z = 38;
 }
 
 #include"ArrayList.hpp"
@@ -20,8 +20,8 @@ namespace stamon {
 #include"AstRunner.cpp"
 #include"ObjectManager.cpp"
 #include"Ast.hpp"
-#include"STVCReader.cpp"
-#include"STVCWriter.cpp"
+#include"AstIrReader.cpp"
+#include"AstIrWriter.cpp"
 #include"AstIR.cpp"
 #include"Compiler.hpp"
 #include"Exception.hpp"
@@ -84,6 +84,10 @@ namespace stamon {
 				}
 
 				ast::AstNode* node = new ast::AstProgram(&program);
+				
+				//初始化node
+				node->filename = String();
+				node->lineNo = -1;
 
 				//编译为IR
 
@@ -96,7 +100,7 @@ namespace stamon {
 				ArrayList<datatype::DataType*>
 				ir_tableconst = generator.tableConst;
 
-				ir::STVCWriter writer(ex);
+				ir::AstIrWriter writer(ex);
 
 				writer.write(
 					ir_list, ir_tableconst, dst, isStrip,
@@ -124,7 +128,7 @@ namespace stamon {
 					return;
 				}
 
-				ir::STVCReader ir_reader(reader.read(), reader.size, ex);
+				ir::AstIrReader ir_reader(reader.read(), reader.size, ex);
 				//初始化字节码读取器
 
 				CATCH {
@@ -189,7 +193,7 @@ namespace stamon {
 					return;
 				}
 
-				ir::STVCReader ir_reader(reader.read(), reader.size, ex);
+				ir::AstIrReader ir_reader(reader.read(), reader.size, ex);
 				//初始化字节码读取器
 
 				CATCH {
@@ -217,7 +221,7 @@ namespace stamon {
 
 				//写入魔数
 				
-				ir::STVCWriter writer(ex);
+				ir::AstIrWriter writer(ex);
 
 				writer.write(
 					ir_list, ir_tableconst, src, true,

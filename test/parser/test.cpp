@@ -19,7 +19,7 @@
 #include"DataType.hpp"
 #include"ObjectManager.cpp"
 #include"Ast.hpp"
-#include"STVCReader.cpp"
+#include"AstIrReader.cpp"
 #include"Lexer.cpp"
 #include"Parser.cpp"
 

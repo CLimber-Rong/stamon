@@ -1,4 +1,6 @@
-# 虚拟机开发文档
+# AstRunner开发文档
+
+> 注意：此文档旨在说明``AstRunner``（以下简称“虚拟机”）的工作原理
 
 虚拟机的运行原理为：将二进制文件读取为AstIR，交给AstIRGenerator类解析为Running-Ast，最后交给``vm/AstRunner.cpp``递归运行。
 
@@ -6,13 +8,13 @@
 
 我们来逐步讲解。
 
-首先是二进制文件读取为AstIR，这部分的实现位于``src/vm/STVCReader.cpp``，STVCReader类的主要接口有：
+首先是二进制文件读取为AstIR，这部分的实现位于``src/vm/AstIrReader.cpp``，AstIrReader类的主要接口有：
 
-* ``STVCReader(char* vmcode, int code_size, STMException* e)``：构造函数，vmcode为字节码在内存中的地址，code_size指字节码的大小，e为异常类
+* ``AstIrReader(char* vmcode, int code_size, STMException* e)``：构造函数，vmcode为字节码在内存中的地址，code_size指字节码的大小，e为异常类
 * ``bool ReadHeader()``：读取字节码头，读取失败则抛出异常并返回false，否则返回true
 * ``ArrayList<AstIR> ReadIR()``：读取AstIR，返回由AstIR组成的ArrayList
 
-想要完整的读取一个STVC文件，应该要先创建一个STVCReader对象，然后先调用``ReadHeader``读取文件头信息，接着调用``ReadIR``来读取AstIR。调用这两个函数之后要分别检查是否有异常抛出。
+想要完整的读取一个STVC文件，应该要先创建一个AstIrReader对象，然后先调用``ReadHeader``读取文件头信息，接着调用``ReadIR``来读取AstIR。调用这两个函数之后要分别检查是否有异常抛出。
 
 接着是让AstIRGenerator类解析为Running-Ast，这一部分在**写了Ast与AstIR之间的互转工具**部分里已经详细提及过了，故不再赘述。
 

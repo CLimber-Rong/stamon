@@ -17,6 +17,7 @@ target("stamon")
     add_includedirs("src/ir")
     add_includedirs("src/compiler")
     add_includedirs("src/sfn")
+    add_includedirs("src/action")
     add_includedirs("include/stdc_implemented")
 
     set_optimize("faster")

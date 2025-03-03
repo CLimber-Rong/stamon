@@ -1,5 +1,5 @@
 /*
-	Name: STVCwriter.cpp
+	Name: AstIrWriter.cpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/12/23 17:34
@@ -32,14 +32,14 @@
 	}
 
 namespace stamon::ir {
-	class STVCWriter {
+	class AstIrWriter {
 
 		public:
 
 			STMException* ex;
 
-			STVCWriter() {}
-			STVCWriter(STMException* e) {
+			AstIrWriter() {}
+			AstIrWriter(STMException* e) {
 				ex = e;
 			}
 

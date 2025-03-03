@@ -10,6 +10,7 @@
                 "${workspaceFolder}/src/ir/",
                 "${workspaceFolder}/src/compiler/",
                 "${workspaceFolder}/src/sfn/",
+                "${workspaceFolder}/src/action/",
                 "${workspaceFolder}/src/"
             ],
             "defines": [],

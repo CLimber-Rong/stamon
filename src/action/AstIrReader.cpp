@@ -1,5 +1,5 @@
 /*
-	Name: STVCReader.cpp
+	Name: AstIrReader.cpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/12/23 17:34
@@ -15,7 +15,7 @@
 #include"AstIR.cpp"
 
 namespace stamon::ir {
-	class STVCReader {
+	class AstIrReader {
 			char* stvc;		//代码
 			int stvc_size;	//代码大小
 			int pos;		//设当前需要读取的字节为stvc[pos]
@@ -25,7 +25,7 @@ namespace stamon::ir {
 
 			STMException* ex;
 
-			STVCReader(char* vmcode, int code_size, STMException* e) {
+			AstIrReader(char* vmcode, int code_size, STMException* e) {
 				ex = e;
 				//传入字节码和字节码大小
 				stvc_size = code_size;

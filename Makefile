@@ -13,6 +13,7 @@ LINK = 	-I include/stdc_implemented \
 		-I src/compiler \
 		-I src/sfn  \
 		-I src/tac \
+		-I src/action \
 		-I src \
 		-lm
 
