@@ -12,7 +12,7 @@
 #include"ArrayList.hpp"
 #include"stmlib.hpp"
 #include"Exception.hpp"
-
+#include"CompilerExceptionMessage.cpp"
 
 #define CHECK_KEYWORD(keyword, TokType) \
 	if(iden==String((char*)keyword)) {\
@@ -25,7 +25,7 @@
 
 #define STR_EX(len) \
 	if(text_len-ed<(len-1)) {\
-		THROW("the string was entered incorrectly")\
+		THROW_S(err::WrongStringFormat());\
 		return st;\
 	}
 //为了方便判断字符串token是否错误，我编写了这个宏（全名应该叫做CHECK_STRING_EXCEPTION）
@@ -258,7 +258,7 @@ namespace stamon::c {   //编译器命名空间
 					rst *= 10;
 					rst += s[i] - '0';
 					if(rst<0 && warnflag==false) {
-						WARN("the integer is too large");
+						WARN_S(warning::TooLargeInteger());
 						warnflag = true;
 					}
 				}
@@ -277,7 +277,7 @@ namespace stamon::c {   //编译器命名空间
 					integer *= 10;
 					integer += s[i] - '0';
 					if(integer<0 && warnflag==false) {
-						WARN("the floating point is too large");
+						WARN_S(warning::TooLargeFloat());
 						warnflag = true;
 					}
 					i++;
@@ -290,7 +290,7 @@ namespace stamon::c {   //编译器命名空间
 					decimal /= 10;
 					decimal += (double)(s[i]-'0');
 					if(decimal<0 && warnflag==false) {
-						WARN("the floating point is too large");
+						WARN_S(warning::TooLargeFloat());
 						warnflag = true;
 					}
 					i++;
@@ -382,9 +382,7 @@ namespace stamon::c {   //编译器命名空间
 							}
 							
 							if(is_has_decimal_part==false) {
-								THROW(
-									"the floating point was entered incorrectly"
-								)
+								THROW_S(err::WrongFloatFormat());
 								return st;
 							}
 						} //分析小数
@@ -562,11 +560,7 @@ namespace stamon::c {   //编译器命名空间
 						CHECK_OPERATOR('!', TokenLogNot)
 						CHECK_OPERATOR('~', TokenBitNot)
 						//执行到这里，说明碰到了未知字符
-						THROW_S(
-						    String((char*)"unknown token: \'")
-						    + text.substring(ed, ed+1)
-						    + String((char*)"\'")
-						)
+						THROW_S(err::UnknownToken(text.substring(ed, ed+1)));
 						return st;
 					}
 				}

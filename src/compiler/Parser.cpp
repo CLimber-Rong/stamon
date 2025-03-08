@@ -14,6 +14,7 @@
 #include"FileMap.hpp"
 
 #include"Lexer.cpp"
+#include"CompilerExceptionMessage.cpp"
 
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
@@ -89,7 +90,7 @@ namespace stamon::c {
 				if(Check(type)) {
 					return lexer.getTok();
 				} else {
-					THROW("invalid syntax")
+					THROW_S(err::InvalidSyntax());
 					return NULL;
 				}
 			}
@@ -151,10 +152,10 @@ namespace stamon::c {
 			void mark(Token* iden) {	//声明一个变量
 				if(scope.containsKey(((IdenToken*)iden)->iden)) {
 					THROW_S(
-					    String((char*)"variable \"")
-					    +((IdenToken*)iden)->iden
-					    + String((char*)"\" are declared repeatedly")
-					)
+						err::VariableDeclaredRepeatedly(
+									((IdenToken*)iden)->iden
+							 )
+					);
 					return;
 				}
 				scope.put(((IdenToken*)iden)->iden, NULL);
@@ -309,7 +310,7 @@ namespace stamon::c {
 				ast::AstIdentifierName *port, *arg;
 
 				if(!check(TokenIden)) {
-					THROW("the port of the SFN statement must be an identifier");
+					THROW_S(err::WrongSfnSyntax());
 					CE;
 				}
 				port = IDEN();
@@ -318,7 +319,7 @@ namespace stamon::c {
 				match(TokenCmm);
 
 				if(!check(TokenIden)) {
-					THROW("the port of the SFN statement must be an identifier");
+					THROW_S(err::WrongSfnSyntax());
 					CE;
 				}
 
@@ -399,7 +400,7 @@ namespace stamon::c {
 				} else if(check(TokenContinue)) {
 
 					if(loop_levels[loop_levels.size()-1]==0) {
-						THROW_S(String("\'continue\' outside loop"));
+						THROW_S(err::ContinueOutsideLoop());
 						return NULL;
 					}
 					stm->add(
@@ -412,7 +413,7 @@ namespace stamon::c {
 				} else if(check(TokenBreak)) {
 
 					if(loop_levels[loop_levels.size()-1]==0) {
-						THROW_S(String("\'break\' outside loop"));
+						THROW_S(err::BreakOutsideLoop());
 						return NULL;
 					}
 					stm->add(
@@ -476,7 +477,7 @@ namespace stamon::c {
 
 				if(iden->type!=TokenIden) {
 					//变量名必须为标识符
-					THROW("the name of the variable must be an identifier")
+					THROW_S(err::WrongVariableFormat());
 					return NULL;
 				}
 
@@ -585,7 +586,7 @@ namespace stamon::c {
 					}
 
 					if(match(TokenRBR)==NULL) {
-						THROW("the parentheses are not closed")
+						THROW_S(err::ParenthesesNotClosed());
 					}
 				}
 
@@ -652,7 +653,7 @@ namespace stamon::c {
 					}
 
 					if(match(TokenRBR)==NULL) {
-						THROW("the parentheses are not closed")
+						THROW_S(err::ParenthesesNotClosed())
 					}
 				}
 
@@ -712,8 +713,7 @@ namespace stamon::c {
 					          ||matcher.Peek(1)->type==TokenClass) {
 						stm->add(def_class());
 					} else {
-						THROW("only functions, classes, and variables "
-						      "can be defined in a class")
+						THROW_S(err::WrongClassDefined());
 						return NULL;
 					}
 
@@ -769,8 +769,7 @@ namespace stamon::c {
 					          ||matcher.Peek(1)->type==TokenClass) {
 						stm->add(def_class());
 					} else {
-						THROW("only functions, classes, and variables "
-						      "can be defined in a class")
+						THROW_S(err::WrongClassDefined());
 						return NULL;
 					}
 
@@ -904,7 +903,7 @@ namespace stamon::c {
 				ParsingLineNo = lineNo;
 
 				if(ImportFlag==false) {
-					THROW("cannot import")
+					THROW_S(err::CannotImport());
 					return NULL;
 				}
 
@@ -1049,15 +1048,13 @@ namespace stamon::c {
 				    = new ArrayList<ast::AstNode*>();
 
 				if(val->getOperatorType()!=-1) {	//binary_operator: -1
-					THROW("lvalue required as "
-					      "left operand of assignment")
+					THROW_S(err::LvalueRequieredLeftOperand())
 				}
 
 				ast::AstUnary* unary = (ast::AstUnary*)val->Children()->at(0);
 
 				if(unary->getOperatorType()!=-1) {	//unary_operator: -1
-					THROW("lvalue required as "
-					      "left operand of assignment")
+					THROW_S(err::LvalueRequieredLeftOperand())
 				}
 
 				ArrayList<ast::AstNode*>* children = unary->Children();
@@ -1068,8 +1065,7 @@ namespace stamon::c {
 
 				if(quark->getType()!=ast::AstIdentifierType) {
 					//quark: IDEN
-					THROW("lvalue required as "
-					      "left operand of assignment")
+					THROW_S(err::LvalueRequieredLeftOperand())
 				}
 
 				CE
@@ -1084,8 +1080,7 @@ namespace stamon::c {
 					    p->getPostfixType()!=ast::PostfixMemberType
 					    &&p->getPostfixType()!=ast::PostfixElementType
 					) {	//如果不满足左值后缀条件
-						THROW("lvalue required as "
-						      "left operand of assignment")
+						THROW_S(err::LvalueRequieredLeftOperand())
 					}
 
 
@@ -1241,7 +1236,7 @@ namespace stamon::c {
 					           line, ast::PostfixMemberType, iden
 					       );
 				}
-				THROW("invalid syntax")
+				THROW_S(err::InvalidSyntax())
 				return NULL;
 			}
 
@@ -1305,7 +1300,7 @@ namespace stamon::c {
 					return anon_class();
 				}
 				CE
-				THROW("invalid syntax")
+				THROW_S(err::InvalidSyntax());
 				return NULL;
 			}
 
@@ -1334,11 +1329,7 @@ namespace stamon::c {
 
 				if(isIdenExist==false) {
 					//未声明的标识符
-					THROW_S(
-					    String((char*)"undefined variable: \"")
-					    + tok->iden
-					    + String((char*)"\"")
-					)
+					THROW_S(err::UndefinedVariable(tok->iden))
 
 					return NULL;
 				}
@@ -1362,7 +1353,7 @@ namespace stamon::c {
 					ParsingLineNo = matcher.Peek(0)->lineNo;
 					return Ast<ast::AstIntNumber>(_pop->lineNo, 0);
 				} else {
-					THROW("invalid syntax")
+					THROW_S(err::InvalidSyntax());
 				}
 				return NULL;
 			}

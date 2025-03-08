@@ -11,6 +11,7 @@
                 "${workspaceFolder}/src/compiler/",
                 "${workspaceFolder}/src/sfn/",
                 "${workspaceFolder}/src/action/",
+                "${workspaceFolder}/src/error/",
                 "${workspaceFolder}/src/"
             ],
             "defines": [],

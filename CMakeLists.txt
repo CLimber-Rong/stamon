@@ -39,6 +39,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/ir)
 include_directories(${PROJECT_SOURCE_DIR}/src/compiler)
 include_directories(${PROJECT_SOURCE_DIR}/src/sfn)
 include_directories(${PROJECT_SOURCE_DIR}/src/tac)
+include_directories(${PROJECT_SOURCE_DIR}/src/error)
 include_directories(${PROJECT_SOURCE_DIR}/src/action)
 
 set(CMAKE_C_FLAGS_DEBUG "-g -Og -DDEBUG")

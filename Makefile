@@ -14,6 +14,7 @@ LINK = 	-I include/stdc_implemented \
 		-I src/sfn  \
 		-I src/tac \
 		-I src/action \
+		-I src/error \
 		-I src \
 		-lm
 
