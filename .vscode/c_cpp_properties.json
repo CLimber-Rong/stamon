@@ -12,6 +12,7 @@
                 "${workspaceFolder}/src/sfn/",
                 "${workspaceFolder}/src/action/",
                 "${workspaceFolder}/src/error/",
+                "${workspaceFolder}/src/config/",
                 "${workspaceFolder}/src/"
             ],
             "defines": [],

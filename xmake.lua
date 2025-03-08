@@ -19,6 +19,7 @@ target("stamon")
     add_includedirs("src/sfn")
     add_includedirs("src/action")
     add_includedirs("src/error")
+    add_includedirs("src/config")
     add_includedirs("include/stdc_implemented")
 
     set_optimize("faster")

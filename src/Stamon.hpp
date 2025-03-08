@@ -8,12 +8,6 @@
 
 #pragma once
 
-namespace stamon {
-	constexpr int STAMON_VER_X = 2;
-	constexpr int STAMON_VER_Y = 4;
-	constexpr int STAMON_VER_Z = 38;
-}
-
 #include"ArrayList.hpp"
 #include"String.hpp"
 #include"DataType.hpp"
@@ -26,7 +20,7 @@ namespace stamon {
 #include"Compiler.hpp"
 #include"Exception.hpp"
 #include"BinaryReader.hpp"
-
+#include"StamonConfig.hpp"
 
 namespace stamon {
 	// using namespace stamon::ir;

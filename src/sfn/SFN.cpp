@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include"StamonConfig.hpp"
 #include"Stamon.hpp"
 
 #define SFN_PARA_LIST \
