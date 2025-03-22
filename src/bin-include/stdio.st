@@ -5,7 +5,7 @@ import math;
 import string;
 
 func puts(s) {
-    native("puts", s);
+    native("print", s);
 }
 
 func print(n) {

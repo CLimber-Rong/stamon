@@ -8,27 +8,25 @@
 
 #pragma once
 
-#include"StamonConfig.hpp"
-#include"Stamon.hpp"
+#include "Stamon.hpp"
+#include "StamonConfig.hpp"
 
 #define SFN_PARA_LIST \
-	stamon::sfn::SFN& sfn,\
-	stamon::datatype::Variable* arg,\
-	stamon::vm::ObjectManager* manager
+	stamon::sfn::SFN &sfn, stamon::datatype::Variable *arg, \
+			stamon::vm::ObjectManager *manager
 
-//用这个宏（SFN Parameter List）可以快速声明SFN函数的参数列表
+// 用这个宏（SFN Parameter List）可以快速声明SFN函数的参数列表
 
 namespace stamon::sfn {
-	constexpr int STAMON_SFN_FUNCTIONS_MAX = 65536;
-	//SFN的库函数个数最大值
-	class SFN;
-}
+constexpr int STAMON_SFN_FUNCTIONS_MAX = 65536;
+// SFN的库函数个数最大值
+class SFN;
+} // namespace stamon::sfn
 
+String DataType2String(STMException *ex, stamon::datatype::DataType *dt);
 
-String DataType2String(STMException* ex, stamon::datatype::DataType* dt);
-
-void sfn_puts(SFN_PARA_LIST);
-void sfn_printNum(SFN_PARA_LIST);
+void sfn_input(SFN_PARA_LIST);
+void sfn_print(SFN_PARA_LIST);
 
 void sfn_int(SFN_PARA_LIST);
 void sfn_str(SFN_PARA_LIST);
@@ -43,172 +41,133 @@ void sfn_exit(SFN_PARA_LIST);
 void sfn_version(SFN_PARA_LIST);
 
 namespace stamon::sfn {
-	class SFN {
-			StringMap<void(SFN_PARA_LIST)> sfn_functions;
-			//定义一个函数指针map
-		public:
-			STMException* ex;
+class SFN {
+	StringMap<void(SFN_PARA_LIST)> sfn_functions;
+	// 定义一个函数指针map
+public:
+	STMException *ex;
 
-			vm::ObjectManager* manager;
+	vm::ObjectManager *manager;
 
-			SFN() {}
+	SFN() {
+	}
 
-			SFN(STMException* e, vm::ObjectManager* objman) {
-				ex = e;
+	SFN(STMException *e, vm::ObjectManager *objman) {
+		ex = e;
 
-				manager = objman;
+		manager = objman;
 
-				//在这里将库函数按接口号填入
-				sfn_functions.put(String((char*)"puts"), sfn_puts);
-				sfn_functions.put(String((char*)"printNum"), sfn_printNum);
-				sfn_functions.put(String((char*)"int"), sfn_int);
-				sfn_functions.put(String((char*)"str"), sfn_str);
-				sfn_functions.put(String((char*)"len"), sfn_len);
-				sfn_functions.put(String((char*)"input"), sfn_input);
-				sfn_functions.put(String((char*)"typeof"), sfn_typeof);
-				sfn_functions.put(String((char*)"throw"), sfn_throw);
-				sfn_functions.put(String((char*)"system"), sfn_system);
-				sfn_functions.put(String((char*)"exit"), sfn_exit);
-				sfn_functions.put(String((char*)"version"), sfn_version);
-			}
-			void call(String port, datatype::Variable* arg) {
-				if(sfn_functions.containsKey(port)==0) {
-					THROW("undefined sfn port")
-				} else {
-					sfn_functions.get(port)(*this, arg, manager);
-				}
-				CATCH {
-					THROW_S(
-						String((char*)"SFN Error: ")
-						+ ex->getError()
-					)
-				}
-			}
-	};
-} //namespace stamon::sfn
+		// 在这里将库函数按接口号填入
+		sfn_functions.put(String("print"), sfn_print);
+		sfn_functions.put(String("int"), sfn_int);
+		sfn_functions.put(String("str"), sfn_str);
+		sfn_functions.put(String("len"), sfn_len);
+		sfn_functions.put(String("input"), sfn_input);
+		sfn_functions.put(String("typeof"), sfn_typeof);
+		sfn_functions.put(String("throw"), sfn_throw);
+		sfn_functions.put(String("system"), sfn_system);
+		sfn_functions.put(String("exit"), sfn_exit);
+		sfn_functions.put(String("version"), sfn_version);
+	}
+	void call(String port, datatype::Variable *arg) {
+		if (sfn_functions.containsKey(port) == 0) {
+			THROW("undefined sfn port")
+		} else {
+			sfn_functions.get(port)(*this, arg, manager);
+		}
+		CATCH {
+			THROW_S(String((char *) "SFN Error: ") + ex->getError())
+		}
+	}
+};
+} // namespace stamon::sfn
 
+String DataType2String(STMException *ex, stamon::datatype::DataType *dt) {
+	switch (dt->getType()) {
+	case stamon::datatype::IntegerTypeID:
+		return toString(((stamon::datatype::IntegerType *) dt)->getVal());
 
-String DataType2String(STMException* ex, stamon::datatype::DataType* dt) {
-	if(dt->getType()==stamon::datatype::IntegerTypeID) {
+	case stamon::datatype::FloatTypeID:
+		return toString(((stamon::datatype::FloatType *) dt)->getVal());
 
-		return toString(((stamon::datatype::IntegerType*)dt)->getVal());
+	case stamon::datatype::DoubleTypeID:
+		return toString(((stamon::datatype::DoubleType *) dt)->getVal());
 
-	} else if(dt->getType()==stamon::datatype::FloatTypeID) {
+	case stamon::datatype::StringTypeID:
+		return String((char *) "\"") + ((stamon::datatype::StringType *) dt)->getVal()
+			 + String((char *) "\"");
 
-		return toString(((stamon::datatype::FloatType*)dt)->getVal());
+	case stamon::datatype::NullTypeID:
+		return String((char *) "null");
 
-	} else if(dt->getType()==stamon::datatype::DoubleTypeID) {
+	case stamon::datatype::SequenceTypeID: {
+		String rst((char *) "{ ");
 
-		return toString(((stamon::datatype::DoubleType*)dt)->getVal());
+		ArrayList<stamon::datatype::Variable *> list;
 
-	} else if(dt->getType()==stamon::datatype::StringTypeID) {
+		list = ((stamon::datatype::SequenceType *) dt)->getVal();
 
-		return String((char*)"\"")
-		       + ((stamon::datatype::StringType*)dt)->getVal()
-		       + String((char*)"\"");
-
-	} else if(dt->getType()==stamon::datatype::NullTypeID) {
-
-		return String((char*)"null");
-
-	} else if(dt->getType()==stamon::datatype::SequenceTypeID) {
-
-		String rst((char*)"{ ");
-
-		ArrayList<stamon::datatype::Variable*> list;
-
-		list = ((stamon::datatype::SequenceType*)dt)->getVal();
-
-		for(int i=0,len=list.size(); i<len; i++) {
+		for (int i = 0, len = list.size(); i < len; i++) {
 			rst = rst + DataType2String(ex, list[i]->data);
 
-			if(i!=len-1) {
-				//如果不是最后一个元素，那么就在元素末尾加逗号
-				rst = rst + String((char*)", ");
+			if (i != len - 1) {
+				// 如果不是最后一个元素，那么就在元素末尾加逗号
+				rst = rst + String((char *) ", ");
 			}
-
 		}
 
-		rst = rst + String((char*)" }");
+		rst = rst + String((char *) " }");
 
 		return rst;
+	}
 
-	} else if(dt->getType()==stamon::datatype::ClassTypeID) {
+	case stamon::datatype::ClassTypeID:
+		return String((char *) "<class>");
 
-		return String((char*)"<class>");
+	case stamon::datatype::MethodTypeID:
+		return String((char *) "<function>");
 
-	} else if(dt->getType()==stamon::datatype::MethodTypeID) {
+	case stamon::datatype::ObjectTypeID:
+		return String((char *) "<object>");
 
-		return String((char*)"<function>");
-
-	} else if(dt->getType()==stamon::datatype::ObjectTypeID) {
-
-		return String((char*)"<object>");
-
-	} else {
+	default: {
 		THROW("unknown type")
-		return String((char*)"");
+		return String((char *) "");
+	}
 	}
 }
 
-void sfn_puts(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
-	if(val->getType()!=stamon::datatype::StringTypeID) {
-		THROW("bad type in puts")
+void sfn_print(SFN_PARA_LIST) {
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
+	if (val->getType() != stamon::datatype::StringTypeID) {
+		THROW("bad type in print")
 	}
-	platform_printf("%s", ((stamon::datatype::StringType*)(arg->data))->getVal().getstr());
-	return;
-}
-
-void sfn_printNum(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
-
-	if(val->getType()==stamon::datatype::IntegerTypeID) {
-		platform_printf("%d", ((stamon::datatype::IntegerType*)val)->getVal());
-	} else if(val->getType()==stamon::datatype::FloatTypeID) {
-		platform_printf("%f", ((stamon::datatype::FloatType*)val)->getVal());
-	} else if(val->getType()==stamon::datatype::DoubleTypeID) {
-		platform_printf("%lf", ((stamon::datatype::DoubleType*)val)->getVal());
-	} else {
-		THROW("bad type in printNum")
-	}
-
+	platform_print(((stamon::datatype::StringType *) (arg->data))->getVal());
 	return;
 }
 
 void sfn_int(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
 
-	if(val->getType()==stamon::datatype::IntegerTypeID) {
-
+	if (val->getType() == stamon::datatype::IntegerTypeID) {
 		return;
 
-	} else if(val->getType()==stamon::datatype::FloatTypeID) {
-
+	} else if (val->getType() == stamon::datatype::FloatTypeID) {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
-		                (int)(
-		                    ((stamon::datatype::FloatType*)val)->getVal()
-		                )
-		            );
+				(int) (((stamon::datatype::FloatType *) val)->getVal()));
 
-	} else if(val->getType()==stamon::datatype::DoubleTypeID) {
-
+	} else if (val->getType() == stamon::datatype::DoubleTypeID) {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
-		                (int)(
-		                    ((stamon::datatype::DoubleType*)val)->getVal()
-		                )
-		            );
+				(int) (((stamon::datatype::DoubleType *) val)->getVal()));
 
-	} else if(val->getType()==stamon::datatype::StringTypeID) {
-
-		String src = ((stamon::datatype::StringType*)val)->getVal();
+	} else if (val->getType() == stamon::datatype::StringTypeID) {
+		String src = ((stamon::datatype::StringType *) val)->getVal();
 		int dst = 0;
 
-		for(int i=0; i<src.length(); i++) {
-			if('0'<=src[i]&&src[i]<='9') {
+		for (int i = 0; i < src.length(); i++) {
+			if ('0' <= src[i] && src[i] <= '9') {
 				dst *= 10;
 				dst += src[i] - '0';
 			} else {
@@ -227,32 +186,32 @@ void sfn_int(SFN_PARA_LIST) {
 }
 
 void sfn_str(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
 
-	if(arg->data->getType()==stamon::datatype::StringTypeID) {
+	if (arg->data->getType() == stamon::datatype::StringTypeID) {
 		return;
 	}
 
 	arg->data = manager->MallocObject<stamon::datatype::StringType>(
-	                DataType2String(ex, val)
-	            );
+			DataType2String(ex, val)
+	);
 
 	return;
 }
 
 void sfn_len(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
 
-	if(val->getType()==stamon::datatype::SequenceTypeID) {
+	if (val->getType() == stamon::datatype::SequenceTypeID) {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
-		                ((stamon::datatype::SequenceType*)val)->getVal().size()
-		            );
-	} else if(val->getType()==stamon::datatype::StringTypeID) {
+				((stamon::datatype::SequenceType *) val)->getVal().size());
+
+	} else if (val->getType() == stamon::datatype::StringTypeID) {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
-		                ((stamon::datatype::StringType*)val)->getVal().length()
-		            );
+				((stamon::datatype::StringType *) val)->getVal().length());
+
 	} else {
 		THROW("bad type in\'len\'")
 	}
@@ -261,30 +220,24 @@ void sfn_len(SFN_PARA_LIST) {
 }
 
 void sfn_input(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
 
-	char s[1024];
+	String s = platform_input();
 
-	if(platform_scanf("%s", s)!=1) {
-		THROW("input error")
-	}
-
-	arg->data = manager->MallocObject<stamon::datatype::StringType>(
-	                String(s)
-	            );
+	arg->data = manager->MallocObject<stamon::datatype::StringType>(String(s));
 
 	return;
 }
 
 #define CHECK_DATA_TYPE_ID(type) \
-	if(val->getType()==stamon::datatype::type##ID) {\
-		rst = String((char*)#type);\
+	if (val->getType() == stamon::datatype::type##ID) { \
+		rst = String((char *) #type); \
 	}
 
 void sfn_typeof(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	stamon::datatype::DataType* val = arg->data;
+	STMException *ex = sfn.ex;
+	stamon::datatype::DataType *val = arg->data;
 	String rst;
 
 	CHECK_DATA_TYPE_ID(NullType)
@@ -303,33 +256,26 @@ void sfn_typeof(SFN_PARA_LIST) {
 }
 
 void sfn_throw(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	THROW_S(((stamon::datatype::StringType*)arg->data)->getVal())
+	STMException *ex = sfn.ex;
+	THROW_S(((stamon::datatype::StringType *) arg->data)->getVal())
 	return;
 }
 
 void sfn_system(SFN_PARA_LIST) {
-	STMException* ex = sfn.ex;
-	int status = platform_system(
-	                 ((stamon::datatype::StringType*)arg->data)
-	                 ->getVal()
-	                 .getstr()
-	             );
+	STMException *ex = sfn.ex;
+	int status = platform_system(((stamon::datatype::StringType *) arg->data)->getVal());
 	arg->data = manager->MallocObject<stamon::datatype::IntegerType>(status);
 	return;
 }
 
 void sfn_exit(SFN_PARA_LIST) {
-	platform_exit(((stamon::datatype::IntegerType*)arg->data)->getVal());
+	platform_exit(((stamon::datatype::IntegerType *) arg->data)->getVal());
 }
 
 void sfn_version(SFN_PARA_LIST) {
 	arg->data = manager->MallocObject<stamon::datatype::StringType>(
-		toString(stamon::STAMON_VER_X)
-		+ String((char*)".")
-		+ toString(stamon::STAMON_VER_Y)
-		+ String((char*)".")
-		+ toString(stamon::STAMON_VER_Z)
-	);
+			toString(stamon::STAMON_VER_X) + String((char *) ".")
+			+ toString(stamon::STAMON_VER_Y) + String((char *) ".")
+			+ toString(stamon::STAMON_VER_Z));
 	return;
 }

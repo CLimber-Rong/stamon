@@ -240,7 +240,7 @@ namespace stamon::vm {
 						return NULL;
 					}
 
-					rst = initObject((datatype::ClassType*)father_class);
+					rst = initObject((datatype::ClassType*)(father_class->data));
 					CATCH {
 						return NULL;
 					}
@@ -531,7 +531,7 @@ namespace stamon::vm {
 
 				auto list = ((datatype::SequenceType*)list_dt)->getVal();
 
-				for(int i=0,len=list.size(); i<len; i++) {
+				for(int i=0; i<list.size(); i++) {
 
 					manager->PushScope();
 
@@ -1067,10 +1067,6 @@ namespace stamon::vm {
 				    i<len;
 				    i++
 				) {
-					// ((datatype::SequenceType*)rst_var->data)->sequence[i]
-					//     = new Variable(
-					//     manager->MallocObject<datatype::NullType>()
-					// );
 					((datatype::SequenceType*)rst_var->data)->sequence[i]
 					    = new Variable(
 					    manager->getNullConst()
