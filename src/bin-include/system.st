@@ -3,16 +3,21 @@
 import stddef;
 import math;
 
-System = class {
-
-    func version(self) {
-        return native("version", null);
-    }
+Stamon = class {
 
     func typeof(self, v) {
-        //返回类型
+        //给定对象，返回其类型
         return native("typeof", v);
     }
+
+    func version(self) {
+        //返回版本号
+        return native("version", null);
+    }
+    
+}.new;
+
+System = class {
 
     func throw(self, s) {
         //抛出异常，同时让虚拟机退出

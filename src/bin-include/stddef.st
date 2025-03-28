@@ -17,6 +17,7 @@ def println;
 def input;
 
 //平台库定义
+def Stamon;
 def System;
 
 //字符串库定义

@@ -32,8 +32,6 @@ void sfn_int(SFN_PARA_LIST);
 void sfn_str(SFN_PARA_LIST);
 void sfn_len(SFN_PARA_LIST);
 
-void sfn_input(SFN_PARA_LIST);
-
 void sfn_typeof(SFN_PARA_LIST);
 void sfn_throw(SFN_PARA_LIST);
 void sfn_system(SFN_PARA_LIST);

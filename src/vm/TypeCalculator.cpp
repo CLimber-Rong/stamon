@@ -97,32 +97,6 @@ namespace stamon::vm {
                 BIND_BIN(ast::BinaryDiviType           , BinaryDivi);
                 BIND_BIN(ast::BinaryModType            , BinaryMod);
 
-                // //初始化单目运算函数
-                // UnCalcFunc[ast::UnaryPositiveType]          = &TypeCalculator::UnaryPositive;
-                // UnCalcFunc[ast::UnaryNegativeType]          = UnaryNegative;
-                // UnCalcFunc[ast::UnaryNotType]               = UnaryNot;
-                // UnCalcFunc[ast::UnaryInverseType]           = UnaryInverse;
-                
-                // //初始化双目运算函数
-                // BinCalcFunc[ast::BinaryLogicORType]         = BinaryLogicOR;
-                // BinCalcFunc[ast::BinaryLogicANDType]        = BinaryLogicAND;
-                // BinCalcFunc[ast::BinaryBitORType]           = BinaryBitOR;
-                // BinCalcFunc[ast::BinaryBitXORType]          = BinaryBitXOR;
-                // BinCalcFunc[ast::BinaryBitANDType]          = BinaryBitAND;
-                // BinCalcFunc[ast::BinaryEqualityType]        = BinaryEquality;
-                // BinCalcFunc[ast::BinaryInequalityType]      = BinaryInequality;
-                // BinCalcFunc[ast::BinaryBigThanType]         = BinaryBigThan;
-                // BinCalcFunc[ast::BinaryLessThanType]        = BinaryLessThan;
-                // BinCalcFunc[ast::BinaryBigThanOrEqualType]  = BinaryBigThanOrEqual;
-                // BinCalcFunc[ast::BinaryLessThanOrEqualType] = BinaryLessThanOrEqual;
-                // BinCalcFunc[ast::BinaryLeftShiftType]       = BinaryLeftShift;
-                // BinCalcFunc[ast::BinaryRightShiftType]      = BinaryRightShift;
-                // BinCalcFunc[ast::BinaryAddType]             = BinaryAdd;
-                // BinCalcFunc[ast::BinarySubType]             = BinarySub;
-                // BinCalcFunc[ast::BinaryMultType]            = BinaryMult;
-                // BinCalcFunc[ast::BinaryDiviType]            = BinaryDivi;
-                // BinCalcFunc[ast::BinaryModType]             = BinaryMod;
-
             }
 
             inline int AssignOperatorToBinaryOperator(int op) {
@@ -246,7 +220,7 @@ namespace stamon::vm {
                                         | (1<<datatype::NullTypeID)
                                         | (1<<datatype::ClassTypeID)
                                         | (1<<datatype::MethodTypeID);
-                    return (1<<a->getType()) & range != 0;
+                    return ((1<<a->getType()) & range) != 0;
                 }
 
                 case ast::BinaryBigThanType:
