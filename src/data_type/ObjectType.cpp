@@ -25,7 +25,12 @@ namespace stamon::datatype {
 			virtual NumberMap<Variable> getVal() const {
 				return vals;
 			}
-			virtual ~ObjectType() = default;
+			virtual ~ObjectType() {
+				ArrayList<Variable*> vars = vals.getValList<Variable*>();
+				for(int i=0;i<vars.size();i++) {
+					delete vars[i];
+				}
+			}
 	};
 
 } //namespace stamon::datatype

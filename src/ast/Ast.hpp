@@ -114,7 +114,13 @@ namespace stamon {
 					return AstNodeType;
 				}
 
-				virtual ~AstNode() = default;
+				virtual ~AstNode() {
+					//删除该节点及其所有字节点
+					for(int i=0;i<children->size();i++) {
+						delete children->at(i);
+					}
+					delete children;
+				}
 		};
 	}
 }

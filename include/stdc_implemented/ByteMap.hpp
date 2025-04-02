@@ -9,14 +9,27 @@
 #pragma once
 
 #include "ArrayList.hpp"
-#include "SmartStrie.hpp"
+#include "EasySmartPtr.hpp"
 #include "Stack.hpp"
+#include "strie.h"
+
+void __SMARTSTRIE_DESTROY_FUNCTION__(EasySmartPtr<STRIE>* p) {
+	DestroyTrie(p->ptr);
+}
+
+class SmartStrie : public EasySmartPtr<STRIE> {
+public:
+	SmartStrie()
+		: EasySmartPtr<STRIE>(InitTrie(), __SMARTSTRIE_DESTROY_FUNCTION__) {
+	}
+};
 
 template<typename T> class ByteMap {
 	SmartStrie map;
 
 public:
-	ByteMap() {}
+	ByteMap() {
+	}
 
 	int put(char *s, int size, T *data) { // 设置键值
 		return SetTrieKeyVal(map.get(), (unsigned char *) s, size, (void *) data);

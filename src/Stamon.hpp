@@ -31,9 +31,9 @@ namespace stamon {
 
 	class Stamon {
 		public:
-			STMException* ex;
-			ArrayList<String>* ErrorMsg;
-			ArrayList<String>* WarningMsg;
+			STMException *ex;
+			ArrayList<String> ErrorMsg;
+			ArrayList<String> WarningMsg;
 
 			int VerX, VerY, VerZ;   //这三个变量代表版本为X.Y.Z
 
@@ -41,8 +41,6 @@ namespace stamon {
 
 			void Init() {
 				ex = new STMException();
-				ErrorMsg = new ArrayList<String>();
-				WarningMsg = new ArrayList<String>();
 				VerX = STAMON_VER_X;
 				VerY = STAMON_VER_Y;
 				VerZ = STAMON_VER_Z;
@@ -51,48 +49,52 @@ namespace stamon {
 			void compile(
 			    String src, String dst, bool isSupportImport, bool isStrip
 			) {
-				c::Compiler compiler(ex);
+				c::Compiler compiler(ex, &ErrorMsg, &WarningMsg);
 
-				compiler.compile(src, isSupportImport);	//开始编译
+				compiler.compile(src, isSupportImport);
+				//开始编译
 
-				WarningMsg = compiler.WarningMsg;	//获取警告信息
-
-				if(compiler.ErrorMsg->empty()==false) {
-					ErrorMsg = compiler.ErrorMsg;
+				if(ErrorMsg.empty() == false) {
+					//出现报错
 					return;
 				}
 
 				//将编译结果整合成一个AST
 
-				ArrayList<ast::AstNode*> program;
+				ArrayList<ast::AstNode*>* program 
+										  = new ArrayList<ast::AstNode*>();
 
 				for(int i=0,len=compiler.src->size(); i<len; i++) {
-					ArrayList<ast::AstNode*> temp = *(
-												compiler
-												.src
-												->at(i)
-												.program
-												->Children()
-											);
-					program += temp;
+					//获取该文件的AST根节点
+					ast::AstNode* node = compiler.src->at(i).program;
+
+					//放入总节点中
+					(*program) += *(node->Children());
+
+					//node只是暂存了ast，需要被删除
+					//为了防止删除时将子节点也删除，因此需要先清空字节点列表
+					node->Children()->clear();
+					delete node;
 				}
 
-				ast::AstNode* node = new ast::AstProgram(&program);
-				
+				ast::AstNode* node = new ast::AstProgram(program);
+
 				//初始化node
 				node->filename = String();
 				node->lineNo = -1;
 
 				//编译为IR
 
-				ir::AstIRGenerator generator;
+				ir::AstIRConverter converter;
 
-				ArrayList<ir::AstIR> ir_list = generator.gen(node);
+				ArrayList<ir::AstIR> ir_list = converter.ast2ir(node);
+
+				delete node;	//删除AST
 
 				//开始写入
 
 				ArrayList<datatype::DataType*>
-				ir_tableconst = generator.tableConst;
+				ir_tableconst = converter.tableConst;
 
 				ir::AstIrWriter writer(ex);
 
@@ -101,8 +103,10 @@ namespace stamon {
 					VerX, VerY, VerZ
 				);
 
+				converter.destroyConst(converter.tableConst);
+
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
@@ -118,7 +122,7 @@ namespace stamon {
 				BinaryReader reader(ex, src);	//打开文件
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
@@ -126,20 +130,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
 				if(ir_reader.ReadHeader()==false) {
 					//读取文件头
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
 				ir_list = ir_reader.ReadIR();
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
@@ -150,26 +154,30 @@ namespace stamon {
 				VerY = ir_reader.VerY;
 				VerZ = ir_reader.VerZ;
 
-				ir::AstIRGenerator generator;	//初始化IR读取器
+				ir::AstIRConverter converter;	//初始化转换器
 
-				generator.tableConst = ir_reader.tableConst;
-				//复制常量表到IR读取器
+				converter.tableConst = ir_reader.tableConst;
+				//复制常量表到转换器
+
+				ast::AstNode* running_node = converter.ir2ast(ir_list);
 
 				vm::AstRunner runner;
 
-				ast::AstNode* running_node = generator.read(ir_list);
-
 				runner.excute(
-				    running_node, isGC, MemLimit, generator.tableConst,
+				    running_node, isGC, MemLimit, converter.tableConst,
 				    ArrayList<String>(), PoolCacheSize ,ex
 				);
 
+				delete running_node;	//删除AST
+
+				converter.destroyConst(converter.tableConst);
+
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
-				*WarningMsg = runner.ex->getWarning();
+				WarningMsg = runner.ex->getWarning();
 
 				return;
 			}
@@ -183,7 +191,7 @@ namespace stamon {
 				BinaryReader reader(ex, src);	//打开文件
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
@@ -191,20 +199,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
 				if(ir_reader.ReadHeader()==false) {
 					//读取文件头
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
 				ir_list = ir_reader.ReadIR();
 
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
@@ -222,28 +230,30 @@ namespace stamon {
 					VerX, VerY, VerZ
 				);
 
+				ir::AstIRConverter converter;
+				//利用转换器来销毁常量表
+				converter.destroyConst(ir_tableconst);
+
 				CATCH {
-					ErrorMsg->add(ex->getError());
+					ErrorMsg.add(ex->getError());
 					return;
 				}
 
-				*WarningMsg = ex->getWarning();
+				WarningMsg = ex->getWarning();
 
 				return;
 			}
 
-			ArrayList<String>* getErrorMessages() {
+			ArrayList<String> getErrorMessages() {
 				return ErrorMsg;
 			}
 
-			ArrayList<String>* getWarningMessages() {
+			ArrayList<String> getWarningMessages() {
 				return WarningMsg;
 			}
 
 			~Stamon() {
 				delete ex;
-				delete ErrorMsg;
-				delete WarningMsg;
 			}
 	};
 } //namespace stamon

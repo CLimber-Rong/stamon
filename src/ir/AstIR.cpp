@@ -85,9 +85,10 @@ namespace stamon::ir {
 			virtual int getType() {
 				return ast::AstLeafType;
 			}
+			virtual ~AstLeaf() = default;
 	};
 
-	class AstIRGenerator {
+	class AstIRConverter {
 		public:
 
 			ArrayList<datatype::DataType*> tableConst;
@@ -236,7 +237,7 @@ namespace stamon::ir {
 				return -1;
 			}
 
-			ArrayList<AstIR> gen(ast::AstNode* program) {
+			ArrayList<AstIR> ast2ir(ast::AstNode* program) {
 
 				Stack<ast::AstNode> stack;
 				ArrayList<AstIR> list;
@@ -391,9 +392,9 @@ namespace stamon::ir {
 				return list;
 			}
 
-			ast::AstNode* read(ArrayList<AstIR> ir) {
+			ast::AstNode* ir2ast(ArrayList<AstIR> ir) {
 				/*
-				 * AstIR转ast::Ast
+				 * AstIR转Ast
 				 * 如果ir不正确，程序会运行时错误
 				 * 所以请在运行该函数前检查ir
 				 */
@@ -458,6 +459,13 @@ namespace stamon::ir {
 				}
 
 				return rst;
+			}
+
+			void destroyConst(ArrayList<datatype::DataType*> tabconst) {
+				//销毁指定的常量表
+				for(int i=0;i<tabconst.size();i++) {
+					delete tabconst[i];
+				}
 			}
 	};
 } //namespace stamon::ir

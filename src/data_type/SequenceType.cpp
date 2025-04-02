@@ -29,6 +29,10 @@ namespace stamon::datatype {
 			virtual ArrayList<Variable*> getVal() const {
 				return sequence;
 			}
-			virtual ~SequenceType() = default;
+			virtual ~SequenceType() {
+				for(int i=0;i<sequence.size();i++) {
+					delete sequence[i];
+				}
+			}
 	};
 } //namespace stamon::datatype

@@ -2,7 +2,7 @@
 
 > 注意：此文档旨在说明``AstRunner``（以下简称“虚拟机”）的工作原理
 
-虚拟机的运行原理为：将二进制文件读取为AstIR，交给AstIRGenerator类解析为Running-Ast，最后交给``vm/AstRunner.cpp``递归运行。
+虚拟机的运行原理为：将二进制文件读取为AstIR，交给AstIRConverter类解析为Running-Ast，最后交给``vm/AstRunner.cpp``递归运行。
 
 我们规定：Stamon编译后的二进制文件为**STVC文件**，文件后缀为``.stvc``
 
@@ -16,7 +16,7 @@
 
 想要完整的读取一个STVC文件，应该要先创建一个AstIrReader对象，然后先调用``ReadHeader``读取文件头信息，接着调用``ReadIR``来读取AstIR。调用这两个函数之后要分别检查是否有异常抛出。
 
-接着是让AstIRGenerator类解析为Running-Ast，这一部分在**写了Ast与AstIR之间的互转工具**部分里已经详细提及过了，故不再赘述。
+接着是让AstIRConverter类解析为Running-Ast，这一部分在**写了Ast与AstIR之间的互转工具**部分里已经详细提及过了，故不再赘述。
 
 最后是交给``vm/AstRunner.cpp``递归运行，``AstRunner``类采用了和语法分析器类似的结构，下面我们来看看重点的数据接口及接口：
 
@@ -27,13 +27,13 @@ class RetStatus {	//返回的状态（Return Status）
         //这个类用于运行时
     public:
         int status;	//状态码
-        Variable* retval;	//返回值（Return-Value），无返回值时为NULL
+        EasySmartPtr<Variable> retval;	//返回值（Return-Value），无返回值时为NULL
         RetStatus() {}
         RetStatus(const RetStatus& right) {
             status = right.status;
             retval = right.retval;
         }
-        RetStatus(int status_code, Variable* retvalue) {
+        RetStatus(int status_code, EasySmartPtr<Variable> retvalue) {
             status = status_code;
             retval = retvalue;
         }

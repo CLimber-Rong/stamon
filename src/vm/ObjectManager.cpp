@@ -30,41 +30,56 @@
 #include"strie.h"
 
 namespace stamon::vm {
+	typedef datatype::Variable Variable;
+
 	class ObjectScope {		//单个对象作用域
-			NumberMap<datatype::Variable> scope; //实际上存储的是DataType指针
+			NumberMap<Variable> scope; //实际上存储的是DataType指针
 		public:
-			bool isDestroy = true;
+
 			ObjectScope() {}
-			ObjectScope(NumberMap<datatype::Variable> s) {
+			ObjectScope(NumberMap<Variable> s) {
 				scope = s;
-				isDestroy = false;	//说明scope另有他用，不能销毁
 			}
 
 			bool exist(int key) {	//是否存在该标识符
 				return scope.containsKey(key);
 			}
-			datatype::Variable* get(int key) {
+
+			Variable* get(int key) {
 				//除非你能保证要获取的变量一定存在，否则你最好先用exist函数检查
 				return scope.get(key);
 			}
-			void put(int key, datatype::Variable* object) {	//存储一个标识符
+
+			void put(int key, Variable* object) {	//存储一个标识符
 				scope.put(key, object);
 				return;
 			}
-			NumberMap<datatype::Variable> getScope() {
+
+			NumberMap<Variable> getScope() {
 				return scope;
 			}
+
 			ArrayList<datatype::DataType*> getObjects() {
-				ArrayList<datatype::Variable*> var;
+				ArrayList<Variable*> var;
 				ArrayList<datatype::DataType*> obj;
 
-				var = getScope().getValList<datatype::Variable*>();
+				var = getScope().getValList<Variable*>();
 
 				for(int i=0,len=var.size(); i<len; i++) {
 					obj.add(var.at(i)->data);
 				}
 
 				return obj;
+			}
+			
+			void destroyScope() {
+				ArrayList<Variable*> var;
+
+				var = getScope().getValList<Variable*>();
+
+				for(int i=0;i<var.size();i++) {
+					delete var[i];
+				}
 			}
 	};
 
@@ -181,35 +196,21 @@ namespace stamon::vm {
 				return result;  //返回对象
 			}
 
-			datatype::Variable* NewVariable(int id) {
-				datatype::Variable* result = new datatype::Variable();
+			Variable* NewVariable(int id) {
+				Variable* result = new Variable();
 				result->data = &NullConst;
 				Scopes.at(Scopes.size()-1).put(id, result);
 				return result;
 			}
 
-			datatype::Variable* NewVariable(int id, datatype::DataType* val) {
-				datatype::Variable* result = new datatype::Variable();
+			Variable* NewVariable(int id, datatype::DataType* val) {
+				Variable* result = new Variable();
 				result->data = val;
 				Scopes.at(Scopes.size()-1).put(id, result);
 				return result;
 			}
 
-			datatype::Variable* GetLeftVariable(int id) {
-				//获取变量，如果该变量不存在，就创建它
-				for(int i=Scopes.size()-1; i>=0; i--) {
-					if(Scopes.at(i).exist(id) == true) {
-						return Scopes.at(i).get(id);
-					}
-				}
-				//执行到这里，意味着该变量不存在
-				datatype::Variable* result = new datatype::Variable();
-				result->data = &NullConst;
-				Scopes.at(Scopes.size()-1).put(id, result);
-				return result;
-			}
-
-			datatype::Variable* GetVariable(int id) {
+			Variable* GetVariable(int id) {
 				//从最新的作用域到全局作用域逐个查找
 				for(int i=Scopes.size()-1; i>=0; i--) {
 					if(Scopes.at(i).exist(id) == true) {
@@ -230,6 +231,7 @@ namespace stamon::vm {
 			}
 
 			void PopScope() {
+				Scopes[Scopes.size()-1].destroyScope();
 				Scopes.erase(Scopes.size()-1);
 			}
 
@@ -293,7 +295,7 @@ namespace stamon::vm {
 						datatype::SequenceType* list;
 						list = cast_class(datatype::SequenceType*, o);
 						//把Variable里的DataType*提取出来
-						ArrayList<datatype::Variable*> referVariables;
+						ArrayList<Variable*> referVariables;
 						referVariables = list->getVal();
 						ArrayList<datatype::DataType*> referObjects;
 						for(int i=0,len=referVariables.size(); i<len; i++) {
@@ -318,15 +320,15 @@ namespace stamon::vm {
 						//扫描类对象引用的对象
 						datatype::ObjectType* obj
 						    = cast_class(datatype::ObjectType*, o);
-						NumberMap<datatype::Variable> map = obj->getVal();
+						NumberMap<Variable> map = obj->getVal();
 						//获得对象表
 
 						//把Variable里的DataType*提取出来
-						ArrayList<datatype::Variable*> referVaiables;
+						ArrayList<Variable*> referVaiables;
 						ArrayList<datatype::DataType*> referObjects;
 						//引用的对象的列表
 
-						referVaiables = map.getValList<datatype::Variable*>();
+						referVaiables = map.getValList<Variable*>();
 						for(int i=0,len=referVaiables.size(); i<len; i++) {
 							referObjects.add(referVaiables.at(i)->data);
 						}
@@ -379,16 +381,7 @@ namespace stamon::vm {
 
 			void FreeObject(datatype::DataType* o) {
 				//释放对象
-				FREE_OBJECT(o, datatype::NullType, datatype::NullTypeID)
-				FREE_OBJECT(o, datatype::IntegerType, datatype::IntegerTypeID)
-				FREE_OBJECT(o, datatype::FloatType, datatype::FloatTypeID)
-				FREE_OBJECT(o, datatype::DoubleType, datatype::DoubleTypeID)
-				FREE_OBJECT(o, datatype::StringType, datatype::StringTypeID)
-				FREE_OBJECT(o, datatype::SequenceType, datatype::SequenceTypeID)
-				FREE_OBJECT(o, datatype::ClassType, datatype::ClassTypeID)
-				FREE_OBJECT(o, datatype::MethodType, datatype::MethodTypeID)
-				FREE_OBJECT(o, datatype::ObjectType, datatype::ObjectTypeID)
-				THROW("unknown data type")
+				delete o;
 			}
 
 			~ObjectManager() {

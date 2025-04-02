@@ -269,7 +269,7 @@ int StamonBuildCommand(ArrayList<String> args) {
 	stamon.compile(src, dst, isSupportImport, isStrip);
 
 	if(
-		stamon.WarningMsg->empty()==false
+		stamon.WarningMsg.empty()==false
 		&& warning_level != StamonWarningSafeLevel_IgnoreWarning
 	) {
 		if(warning_level==StamonWarningSafeLevel_JustWarn) {
@@ -278,18 +278,18 @@ int StamonBuildCommand(ArrayList<String> args) {
 			printf("stamon: compile: fatal error:\n");
 		}
 
-		for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
-			printf("%s\n", stamon.WarningMsg->at(i).getstr());
+		for(int i=0,len=stamon.WarningMsg.size(); i<len; i++) {
+			printf("%s\n", stamon.WarningMsg[i].getstr());
 		}
 		if(warning_level==StamonWarningSafeLevel_FatalWarning) {
 			return -1;
 		}
 	}
 
-	if(stamon.ErrorMsg->empty()==false) {
+	if(stamon.ErrorMsg.empty()==false) {
 		printf("stamon: compile: fatal error:\n");
-		for(int i=0,len=stamon.ErrorMsg->size(); i<len; i++) {
-			printf("%s\n", stamon.ErrorMsg->at(i).getstr());
+		for(int i=0,len=stamon.ErrorMsg.size(); i<len; i++) {
+			printf("%s\n", stamon.ErrorMsg[i].getstr());
 		}
 		return -1;
 	}
@@ -377,7 +377,7 @@ int StamonRunCommand(ArrayList<String> args) {
 	stamon.run(src, isGC, MemLimit, PoolCacheSize);
 
 	if(
-		stamon.WarningMsg->empty()==false
+		stamon.WarningMsg.empty()==false
 		&& warning_level != StamonWarningSafeLevel_IgnoreWarning
 	) {
 		if(warning_level==StamonWarningSafeLevel_JustWarn) {
@@ -385,18 +385,18 @@ int StamonRunCommand(ArrayList<String> args) {
 		} else if(warning_level==StamonWarningSafeLevel_FatalWarning) {
 			printf("stamon: run: fatal error:\n");
 		}
-		for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
-			printf("%s\n", stamon.WarningMsg->at(i).getstr());
+		for(int i=0,len=stamon.WarningMsg.size(); i<len; i++) {
+			printf("%s\n", stamon.WarningMsg[i].getstr());
 		}
 		if(warning_level==StamonWarningSafeLevel_FatalWarning) {
 			return -1;
 		}
 	}
 
-	if(stamon.ErrorMsg->empty()==false) {
+	if(stamon.ErrorMsg.empty()==false) {
 		printf("stamon: run: fatal error:\n");
-		for(int i=0,len=stamon.ErrorMsg->size(); i<len; i++) {
-			printf("%s\n", stamon.ErrorMsg->at(i).getstr());
+		for(int i=0,len=stamon.ErrorMsg.size(); i<len; i++) {
+			printf("%s\n", stamon.ErrorMsg[i].getstr());
 		}
 		return -1;
 	}
@@ -443,7 +443,7 @@ int StamonStripCommand(ArrayList<String> args) {
 		stamon.strip(src);
 
 		if(
-			stamon.WarningMsg->empty()==false
+			stamon.WarningMsg.empty()==false
 			&& warning_level != StamonWarningSafeLevel_IgnoreWarning
 		) {
 			if(warning_level==StamonWarningSafeLevel_JustWarn) {
@@ -451,18 +451,18 @@ int StamonStripCommand(ArrayList<String> args) {
 			} else if(warning_level==StamonWarningSafeLevel_FatalWarning) {
 				printf("stamon: strip: fatal error:\n");
 			}
-			for(int i=0,len=stamon.WarningMsg->size(); i<len; i++) {
-				printf("%s\n", stamon.WarningMsg->at(i).getstr());
+			for(int i=0,len=stamon.WarningMsg.size(); i<len; i++) {
+				printf("%s\n", stamon.WarningMsg[i].getstr());
 			}
 			if(warning_level==StamonWarningSafeLevel_FatalWarning) {
 				return -1;
 			}
 		}
 
-		if(stamon.ErrorMsg->empty()==false) {
+		if(stamon.ErrorMsg.empty()==false) {
 			printf("stamon: strip: fatal error:\n");
-			for(int i=0,len=stamon.ErrorMsg->size(); i<len; i++) {
-				printf("%s\n", stamon.ErrorMsg->at(i).getstr());
+			for(int i=0,len=stamon.ErrorMsg.size(); i<len; i++) {
+				printf("%s\n", stamon.ErrorMsg[i].getstr());
 			}
 			return -1;
 		}

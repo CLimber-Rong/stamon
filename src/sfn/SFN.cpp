@@ -140,8 +140,9 @@ void sfn_print(SFN_PARA_LIST) {
 	stamon::datatype::DataType *val = arg->data;
 	if (val->getType() != stamon::datatype::StringTypeID) {
 		THROW("bad type in print")
+		return;
 	}
-	platform_print(((stamon::datatype::StringType *) (arg->data))->getVal());
+	platform_print(((stamon::datatype::StringType *) val)->getVal());
 	return;
 }
 

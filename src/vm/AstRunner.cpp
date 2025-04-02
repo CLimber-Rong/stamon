@@ -39,7 +39,7 @@
 	}
 //Get datatype::DataType，想要安全的获取datatype::DataType，应该使用这个宏
 
-#define CE			CATCH { return RetStatus(RetStatusErr, NULL); }
+#define CE			CATCH { return RetStatus(RetStatusErr, NullVariablePtr()); }
 //如果执行代码中出现异常，直接返回
 #define CTH(message)	CATCH { THROW(message) }
 //如果执行代码中出现异常，抛出异常
@@ -49,8 +49,6 @@
 
 namespace stamon::vm {
 
-	typedef datatype::Variable Variable;
-
 	enum RET_STATUS_CODE {	//返回的状态码集合
 	    RetStatusErr = -1,	//错误退出（Error）
 	    RetStatusNor,		//正常退出（Normal）
@@ -59,19 +57,75 @@ namespace stamon::vm {
 	    RetStatusRet		//函数返回（Return）
 	};
 
+	/*
+	 * 由于在运行过程中，传递RetStatus就会传递Variable*
+	 * 这些Variable*中：
+	 	* 有些是为了传递而生成的（即临时Variable*）
+		* 有些是归ObjectManager管理的（即左值Variable*）
+		* 有些是不用传递的空指针（即空Variable*）
+	 * 为了保障将临时Variable*在合适的时间删除的同时
+	 * 不让空Variable*和左值Variable*被删除
+	 * 我使用了智能指针
+	 * 具体方式就是定义三个继承自智能指针类的子类：
+	 	* 左值Variable*（即LeftVariablePtr）
+		* 临时Variable*（即RightVariablePtr）
+		* 空Variable*（即NullVariablePtr）
+	 * 这三个子类会在初始化时指定销毁方式，只有RightVariablePtr会真正销毁指针
+	 * 利用这种方式，就能让AstRunner在运行过程中及时清理掉垃圾内存，减小内存泄漏
+	 */
+
+	using VariablePtr = EasySmartPtr<Variable>;
+	//为了简写，使用using关键字定义（效果类似typedef）
+
+	void __LEFT_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+		return;
+		//左值变量指针不需要被销毁
+	}
+
+	void __RIGHT_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+		delete p->ptr;
+		//右值变量指针需要被销毁
+	}
+
+	void __NULL_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+		return;
+		//空变量指针不需要被销毁
+	}
+
+	class LeftVariablePtr : public VariablePtr {
+		public:
+		LeftVariablePtr(Variable* ptr)
+		: VariablePtr(ptr, __LEFT_VARIABLE_PTR_DESTROY_FUNCTION__)
+		{}
+	};
+
+	class RightVariablePtr : public VariablePtr {
+		public:
+		RightVariablePtr(datatype::DataType* ptr)
+		: VariablePtr(
+			new Variable(ptr), __RIGHT_VARIABLE_PTR_DESTROY_FUNCTION__
+		) {}
+	};
+
+	class NullVariablePtr : public VariablePtr {
+		public:
+		NullVariablePtr()
+		: VariablePtr(NULL, __NULL_VARIABLE_PTR_DESTROY_FUNCTION__)
+		{}
+	};
+
 	class RetStatus {	//返回的状态（Return Status）
 			//这个类用于运行时
 		public:
 			int status;	//状态码
-			Variable* retval;	//返回值（Return-Value），无返回值时为NULL
-			RetStatus() {}
-			RetStatus(const RetStatus& right) {
+			VariablePtr retval;	//返回值（Return-Value），无返回值时为NULL
+			RetStatus() : retval(NullVariablePtr()) {}
+			RetStatus(const RetStatus& right) : retval(right.retval) {
 				status = right.status;
-				retval = right.retval;
 			}
-			RetStatus(int status_code, Variable* retvalue) {
+			RetStatus(int status_code, VariablePtr retvalue) 
+			: retval(retvalue) {
 				status = status_code;
-				retval = retvalue;
 			}
 	};
 
@@ -117,21 +171,7 @@ namespace stamon::vm {
 				BIND(Null)
 				BIND(ArrayLiteral)
 				BIND(ListLiteral)
-
 			}
-
-			/**
-			 * \brief 执行程序
-			 *
-			 * \param main_node 虚拟机的入口ast节点，即ast::AstProgram
-			 * \param isGC 是否允许gc
-			 * \param vm_mem_limit 虚拟机内存的最大限制
-			 * \param tableConst 常量表
-			 * \param args 虚拟机的命令行参数
-			 * \param e 异常对象，虚拟机发生异常时会将异常信息存入
-			 *
-			 * \return 程序的执行状态
-			 */
 
 			String getDataTypeName(int type);
 			String getExcutePosition();
@@ -148,6 +188,20 @@ namespace stamon::vm {
 			void ThrowUnknownMemberError(int id);
 			void ThrowLengthError();
 			void ThrowNegativeShiftError();
+
+			/**
+			 * \brief 执行程序
+			 *
+			 * \param main_node 虚拟机的入口ast节点，即ast::AstProgram
+			 * \param isGC 是否允许gc
+			 * \param vm_mem_limit 虚拟机内存的最大限制
+			 * \param tableConst 常量表
+			 * \param args 虚拟机的命令行参数
+			 * \param pool_cache_size 内存池缓冲区大小
+			 * \param e 异常对象，虚拟机发生异常时会将异常信息存入
+			 *
+			 * \return 程序的执行状态
+			 */
 
 			RetStatus excute(
 			    ast::AstNode* main_node, bool isGC, int vm_mem_limit,
@@ -212,7 +266,7 @@ namespace stamon::vm {
 
 				manager->PopScope();
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			datatype::ObjectType* initObject(datatype::ClassType* cls) {
@@ -297,13 +351,6 @@ namespace stamon::vm {
 			) {
 				OPND_PUSH(method);
 
-				/*返回的结果，默认返回null*/
-				datatype::DataType* rst = manager
-				                          ->MallocObject<datatype::NullType>();
-				CE
-
-				OPND_PUSH(rst);
-
 				/*先获取容器*/
 				auto container = method->getContainer();
 
@@ -349,8 +396,6 @@ namespace stamon::vm {
 					manager->NewVariable(method->id, method);
 				}
 
-
-
 				/*存入参数*/
 				for(int i=0,len=FormArg.size(); i<len; i++) {
 					manager->NewVariable(
@@ -386,10 +431,7 @@ namespace stamon::vm {
 
 				/*弹出作用域*/
 				manager->PopScope();
-				OPND_POP	//弹出rst
 				OPND_POP	//弹出method
-
-
 
 				/*返回*/
 				if(st.status==RetStatusRet) {
@@ -397,7 +439,10 @@ namespace stamon::vm {
 					return RetStatus(RetStatusNor, st.retval);
 				}
 				//无返回值，返回rst（即null）
-				return RetStatus(RetStatusNor, new Variable(rst));
+				return RetStatus(RetStatusNor, RightVariablePtr(
+												manager->getNullConst()
+											   )
+								);
 			}
 
 			RetStatus runBlock(ast::AstNode* node) {
@@ -415,7 +460,7 @@ namespace stamon::vm {
 					}
 				}
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runDefVar(ast::AstNode* node) {
@@ -427,7 +472,7 @@ namespace stamon::vm {
 				    ->getID(),
 				    val.retval->data
 				);
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			datatype::MethodType* runDefMethod(
@@ -468,7 +513,7 @@ namespace stamon::vm {
 
 				manager->NewVariable(iden, func);
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runDefClass(ast::AstNode* node) {
@@ -482,14 +527,14 @@ namespace stamon::vm {
 
 				manager->NewVariable(iden, cls);
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runAnonClass(ast::AstNode* node) {
 				auto ancl_node = (ast::AstAnonClass*)node;
 				return RetStatus(
 				           RetStatusNor,
-				           new Variable(
+				           RightVariablePtr(
 				               manager
 				               ->MallocObject<datatype::ClassType>(
 				                   ancl_node
@@ -502,7 +547,7 @@ namespace stamon::vm {
 				auto anfc_node = (ast::AstAnonFunc*)node;
 				return RetStatus(
 				           RetStatusNor,
-				           new Variable(
+				           RightVariablePtr(
 				               manager
 				               ->MallocObject<datatype::MethodType>(
 				                   -1, anfc_node, (datatype::ObjectType*)NULL
@@ -535,16 +580,17 @@ namespace stamon::vm {
 
 					manager->PushScope();
 
-					Variable* iter = manager->NewVariable(
-					                     iden, list[i]->data
-					                 );
+					//把迭代变量放到作用域当中
+					manager->NewVariable(
+						iden, list[i]->data
+					);
 
 					//每次都新建一个标识符
 
 					auto st = RUN(node->Children()->at(2));
 
 					if(st.status==RetStatusBrk) {
-						return RetStatus(RetStatusNor, NULL);
+						return RetStatus(RetStatusNor, NullVariablePtr());
 					}
 
 					if(st.status==RetStatusRet) {
@@ -557,7 +603,7 @@ namespace stamon::vm {
 
 				OPND_POP	//弹出list_dt
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runWhileStatement(ast::AstNode* node) {
@@ -576,7 +622,7 @@ namespace stamon::vm {
 
 					if(st.status==RetStatusBrk) {
 						OPND_POP;	//弹出cond
-						return RetStatus(RetStatusNor, NULL);
+						return RetStatus(RetStatusNor, NullVariablePtr());
 					}
 					if(st.status==RetStatusRet) {
 						OPND_POP;	//弹出cond
@@ -596,7 +642,7 @@ namespace stamon::vm {
 				OPND_POP	//弹出cond
 				manager->PopScope();
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runIfStatement(ast::AstNode* node) {
@@ -630,7 +676,7 @@ namespace stamon::vm {
 
 				} else {
 					//直接略过本代码块
-					st = RetStatus(RetStatusNor, NULL);
+					st = RetStatus(RetStatusNor, NullVariablePtr());
 				}
 
 				if(st.status==RetStatusBrk) {
@@ -649,7 +695,7 @@ namespace stamon::vm {
 
 				OPND_POP	//弹出cond
 
-				return RetStatus(RetStatusNor, NULL);
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 			RetStatus runReturnStatement(ast::AstNode* node) {
@@ -670,6 +716,9 @@ namespace stamon::vm {
 
 				CDT(port_var->data, datatype::StringType)
 
+				OPND_PUSH(port_var->data);
+				OPND_PUSH(arg_var->data);
+
 				sfn.call(
 				    (
 				        (datatype::StringType*)port_var->data
@@ -679,7 +728,10 @@ namespace stamon::vm {
 				);
 				CE
 
-				return RetStatus(RetStatusNor, NULL);
+				OPND_POP;
+				OPND_POP;
+
+				return RetStatus(RetStatusNor, NullVariablePtr());
 			}
 
 
@@ -692,11 +744,11 @@ namespace stamon::vm {
 				//如果是赋值表达式
 
 				//先得出左右两式
-				Variable* left_value = runAst(node->Children()->at(0))
+				VariablePtr left_value = runAst(node->Children()->at(0))
 				                       .retval;
 				CE
 
-				Variable* right_value = runAst(node->Children()->at(1))
+				VariablePtr right_value = runAst(node->Children()->at(1))
 				                        .retval;
 				CE
 
@@ -761,13 +813,15 @@ namespace stamon::vm {
 			RetStatus runLeftValue(ast::AstNode* node) {
 				auto lv_node = (ast::AstLeftValue*)node;
 				//获取标识符
-				Variable* lvalue = manager->GetVariable(
-				                       (
-				                           (ast::AstIdentifier*)
-				                           node->Children()->at(0)
-				                       )
-				                       ->getID()
-				                   );
+				VariablePtr lvalue = LeftVariablePtr(
+											manager->GetVariable(
+											(
+											(ast::AstIdentifier*)
+											node->Children()->at(0)
+											)
+											->getID()
+				                   		)
+									);
 				CE;
 				for(int i=1,len=node->Children()->size(); i<len; i++) {
 					//分析后缀
@@ -781,11 +835,11 @@ namespace stamon::vm {
 			}
 
 			RetStatus runBreak(ast::AstNode* node) {
-				return RetStatus(RetStatusBrk, NULL);
+				return RetStatus(RetStatusBrk, NullVariablePtr());
 			}
 
 			RetStatus runContinue(ast::AstNode* node) {
-				return RetStatus(RetStatusCon, NULL);
+				return RetStatus(RetStatusCon, NullVariablePtr());
 			}
 
 			RetStatus runBinary(ast::AstNode* node) {
@@ -857,7 +911,7 @@ namespace stamon::vm {
 				OPND_POP;
 				OPND_POP;
 
-				return RetStatus(RetStatusNor, new Variable(rst));
+				return RetStatus(RetStatusNor, RightVariablePtr(rst));
 
 			}
 
@@ -882,7 +936,7 @@ namespace stamon::vm {
 
 					OPND_POP;
 
-					return RetStatus(RetStatusErr, new Variable(quark));
+					return RetStatus(RetStatusNor, RightVariablePtr(quark));
 				}
 
 				//如果是单目运算符
@@ -912,7 +966,7 @@ namespace stamon::vm {
 
 				OPND_POP;
 
-				return RetStatus(RetStatusNor, new Variable(rst));
+				return RetStatus(RetStatusNor, RightVariablePtr(rst));
 
 			}
 
@@ -941,10 +995,11 @@ namespace stamon::vm {
 					}
 
 					return RetStatus(
-					           RetStatusNor,
-					           ((datatype::ObjectType*)src)	//类对象
-					           ->getVal()	//获取成员表
-					           .get(member_id)	//获取成员
+					           RetStatusNor, LeftVariablePtr(
+									((datatype::ObjectType*)src)	//类对象
+									->getVal()	//获取成员表
+									.get(member_id)	//获取成员
+							   )
 					       );
 				}
 
@@ -957,7 +1012,7 @@ namespace stamon::vm {
 					                           ->at(0);
 					RetStatus st = RUN(expr);
 
-					Variable* index_var = st.retval;
+					VariablePtr index_var = st.retval;
 
 					datatype::DataType* index_dt = index_var->data;
 
@@ -970,10 +1025,13 @@ namespace stamon::vm {
 
 					if(index<0 ||index>=list.size()) {
 						ThrowIndexError();
-						return RetStatus(RetStatusErr, NULL);
+						return RetStatus(RetStatusErr, NullVariablePtr());
 					}
 
-					return RetStatus(RetStatusNor, list[index]);
+					return RetStatus(RetStatusNor, LeftVariablePtr(
+														list[index]
+												   )
+									);
 
 				}
 
@@ -1010,7 +1068,7 @@ namespace stamon::vm {
 
 					OPND_POP
 
-					return RetStatus(RetStatusNor, new Variable(obj_dt));
+					return RetStatus(RetStatusNor, RightVariablePtr(obj_dt));
 
 				}
 
@@ -1034,7 +1092,7 @@ namespace stamon::vm {
 				}
 
 				ThrowPostfixError();
-				return RetStatus(RetStatusErr, NULL);
+				return RetStatus(RetStatusErr, NullVariablePtr());
 			}
 
 			RetStatus runArrayLiteral(ast::AstNode* node) {
@@ -1054,7 +1112,7 @@ namespace stamon::vm {
 
 				OPND_PUSH(length)
 
-				Variable* rst_var = new Variable(
+				VariablePtr rst_var = RightVariablePtr(
 				    manager->MallocObject<datatype::SequenceType>(
 				        ((datatype::IntegerType*)length)->getVal()
 				    )
@@ -1098,7 +1156,7 @@ namespace stamon::vm {
 				}
 
 
-				Variable* rst_var = new Variable(
+				VariablePtr rst_var = RightVariablePtr(
 				    manager->MallocObject<datatype::SequenceType>(
 				        content
 				    )
@@ -1123,21 +1181,21 @@ namespace stamon::vm {
 
 				if(index>=tabconst.size()) {
 					ThrowConstantsError();
-					return RetStatus(RetStatusErr, NULL);
+					return RetStatus(RetStatusErr, NullVariablePtr());
 				}
 
 				datatype::DataType* rst = tabconst[index];
 
 				CDT(rst, ir::IdenConstType)
 
-				return RetStatus(RetStatusNor, new Variable(rst));
+				return RetStatus(RetStatusNor, RightVariablePtr(rst));
 			}
 
 			RetStatus runLeaf(ast::AstNode* node) {
 				int index = ((ir::AstLeaf*)node)->getVal();
 				if(index>=tabconst.size()) {
 					ThrowConstantsError();
-					return RetStatus(RetStatusErr, NULL);
+					return RetStatus(RetStatusErr, NullVariablePtr());
 				}
 
 				datatype::DataType* rst = tabconst[index];
@@ -1146,19 +1204,21 @@ namespace stamon::vm {
 					//标识符
 
 					return RetStatus(
-					           RetStatusNor, manager->GetVariable(index)
+					           RetStatusNor, LeftVariablePtr(
+												manager->GetVariable(index)
+											 )
 					       );
 				}
 
 				return RetStatus(
-				           RetStatusNor, new Variable(rst)
+				           RetStatusNor, RightVariablePtr(rst)
 				       );
 			}
 
 			RetStatus runNull(ast::AstNode* node) {
 				return RetStatus(
 				           RetStatusNor,
-				           new Variable(
+				           RightVariablePtr(
 				               manager->getNullConst()
 				           )
 				       );

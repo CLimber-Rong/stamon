@@ -52,6 +52,7 @@ class BinaryReader {
         }
 
 		void close() {
+			free(buffer);
 			fclose(stream);
 		}
 };
