@@ -23,11 +23,9 @@
 #include"MemoryPool.hpp"
 #include"ArrayList.hpp"
 #include"Stack.hpp"
-#include"stack.h"
 #include"NumberMap.hpp"
 #include"Exception.hpp"
 #include"stmlib.hpp"
-#include"strie.h"
 
 namespace stamon::vm {
 	typedef datatype::Variable Variable;

@@ -915,6 +915,7 @@ namespace stamon::c {
 				import_path += ((IdenToken*)iden)->iden;
 
 				while(check(TokenMember)) {
+					match(TokenMember);
 					import_path += String((char*)"/");	//还有一层路径
 					iden = match(TokenIden);
 					CE

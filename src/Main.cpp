@@ -223,6 +223,7 @@ int StamonBuildCommand(ArrayList<String> args) {
 						getNoEndingSeparatorPath(
 							args[i].substring(2, args[i].length())
 						)
+						+ String("/")
 					);
 
 				} else if(
