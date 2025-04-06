@@ -19,7 +19,6 @@ public:
 	STMException *ex;
 	ArrayList<String> *ErrorMsg;
 	ArrayList<String> *WarningMsg;
-	bool ImportFlag = false;
 
 	Compiler() {
 	}
@@ -30,10 +29,10 @@ public:
 		src = right.src;
 		ex = right.ex;
 		ErrorMsg = right.ErrorMsg;
-		ImportFlag = right.ImportFlag;
 	}
 
-	Compiler(STMException *e, ArrayList<String> *error_msg, ArrayList<String> *warning_msg)
+	Compiler(STMException *e, ArrayList<String> *error_msg,
+			 ArrayList<String> *warning_msg)
 		: filemap(e)
 		, global_scope(e) {
 
@@ -45,7 +44,6 @@ public:
 	}
 
 	void compile(String filename, bool isSupportImport) {
-		ImportFlag = isSupportImport;
 
 		LineReader reader = filemap.mark(filename);
 
@@ -98,7 +96,8 @@ public:
 
 		Matcher matcher(lexer, ex);
 		Parser *parser = new Parser(
-				matcher, ex, global_scope, filename, src, filemap, ErrorMsg, ImportFlag);
+				matcher, ex, global_scope, filename, src, filemap, ErrorMsg,
+				isSupportImport);
 
 		ast::AstNode *node = parser->Parse(); // 语法分析
 

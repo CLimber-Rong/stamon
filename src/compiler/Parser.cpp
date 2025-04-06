@@ -19,7 +19,7 @@
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
 #define CE			CATCH { return NULL; }	//如果执行代码中出现异常，直接返回
-#define CTH(message)	CATCH { THROW(message) } //如果执行代码中出现异常，抛出异常
+#define CTH(message)	CATCH { THROW_S(message) } //如果执行代码中出现异常，抛出异常
 #define GETLN(type) \
 	int lineNo;\
 	if(true) {\
@@ -215,7 +215,7 @@ namespace stamon::c {
 		public:
 
 			int ParsingLineNo = 1;	//当前正在分析的行号
-			bool ImportFlag = false;	//表示是否支持引用代码
+			bool ImportFlag = config::isSupportImport;	//表示是否支持引用代码
 			STMException* ex = NULL;
 			String ParsingFileName;
 
@@ -553,7 +553,7 @@ namespace stamon::c {
 
 				ArrayList<ast::AstNode*>* args = new ArrayList<ast::AstNode*>();
 
-				if(check(TokenLBR)) {
+				if(check(TokenLRB)) {
 					//有参数列表
 					_pop;	//弹出左括号
 
@@ -585,8 +585,8 @@ namespace stamon::c {
 						CE
 					}
 
-					if(match(TokenRBR)==NULL) {
-						THROW_S(err::ParenthesesNotClosed());
+					if(match(TokenRRB)==NULL) {
+						THROW_S(err::RoundBracketNotClosed());
 					}
 				}
 
@@ -620,7 +620,7 @@ namespace stamon::c {
 
 				ArrayList<ast::AstNode*>* args = new ArrayList<ast::AstNode*>();
 
-				if(check(TokenLBR)) {
+				if(check(TokenLRB)) {
 					//有参数列表
 					_pop;	//弹出左括号
 
@@ -652,8 +652,8 @@ namespace stamon::c {
 						CE
 					}
 
-					if(match(TokenRBR)==NULL) {
-						THROW_S(err::ParenthesesNotClosed())
+					if(match(TokenRRB)==NULL) {
+						THROW_S(err::RoundBracketNotClosed())
 					}
 				}
 
@@ -1024,7 +1024,6 @@ namespace stamon::c {
 					           left->lineNo, left, ass_type, right
 					       );
 				} else {
-					//单纯的右值表达式
 					return Ast<ast::AstExpression>(val->lineNo, val);
 				}
 			}
@@ -1161,7 +1160,7 @@ namespace stamon::c {
 				ArrayList<ast::AstNode*>* postfixs
 				    = new ArrayList<ast::AstNode*>();
 				while(
-				    check(TokenLBR)
+				    check(TokenLRB)
 				    ||check(TokenLSB)
 				    ||check(TokenMember)
 				) {
@@ -1173,7 +1172,7 @@ namespace stamon::c {
 			}
 
 			ast::AstPostfix* postfix() {
-				if(check(TokenLBR)) {
+				if(check(TokenLRB)) {
 					//调用函数后缀
 					ast::AstArguments* rst = arguments();
 					CE
@@ -1204,7 +1203,7 @@ namespace stamon::c {
 					if(check(TokenNew)) {
 						match(TokenNew);
 						//特性支持：如果新建对象的构造函数无参数，可以省略括号
-						if(check(TokenLBR)==false) {
+						if(check(TokenLRB)==false) {
 							return Ast<ast::AstPostfix> (
 							           line,
 							           ast::PostfixNewType,
@@ -1227,7 +1226,7 @@ namespace stamon::c {
 
 					//正常的访问成员
 					IdenToken* iden_tok = (IdenToken*)match(TokenIden);
-					CTH("the member name must be an identifier");
+					CTH(err::WrongMemberFormat());
 					CE;
 					ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
 					                                   iden_tok->lineNo,
@@ -1244,14 +1243,14 @@ namespace stamon::c {
 			ast::AstArguments* arguments() {
 				ArrayList<ast::AstNode*>* exprs
 				    = new ArrayList<ast::AstNode*>();
-				int line = match(TokenLBR)->lineNo;
+				int line = match(TokenLRB)->lineNo;
 				CE
-				if(check(TokenRBR)==false) {
+				if(check(TokenRRB)==false) {
 					//左括号后没有紧跟着右括号，代表有传参数
 					exprs->add(expression());
 					CE
 				}
-				while(check(TokenRBR)==false) {
+				while(check(TokenRRB)==false) {
 					//只要没有匹配到右括号
 					match(TokenCmm);
 					CE
@@ -1285,12 +1284,12 @@ namespace stamon::c {
 				if(check(TokenLSB)) {
 					return array_literal();
 				}
-				if(check(TokenLBR)) {
+				if(check(TokenLRB)) {
 					_pop;
 					ast::AstExpression* expr = expression();
 					CE
-					match(TokenRBR);
-					CTH("the parentheses are not closed")
+					match(TokenRRB);
+					CTH(err::RoundBracketNotClosed())
 					return expr;
 				}
 				if(check(TokenFunc)) {
@@ -1379,7 +1378,7 @@ namespace stamon::c {
 				                                expression()
 				                            );
 				match(TokenRSB);
-				CTH("the square parentheses are not closed")
+				CTH(err::SquareBracketNotClosed())
 				return rst;
 			}
 
@@ -1406,7 +1405,7 @@ namespace stamon::c {
 				    = Ast<ast::AstListLiteral>(t->lineNo, exprs);
 
 				match(TokenRBC);
-				CTH("the parentheses are not closed")
+				CTH(err::BraceNotClosed())
 				return rst;
 			}
 	};
@@ -1415,6 +1414,7 @@ namespace stamon::c {
 #undef check
 #undef pop
 #undef CE
+#undef CTH
 
 #undef unary_check
 #undef GETLN

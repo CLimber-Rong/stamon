@@ -99,12 +99,12 @@ namespace stamon::c {   //编译器命名空间
 	    KEYWORDS_MAX,   //关键词个数
 	    TokenAssign,//赋值
 	    TokenSemi,  //分号
-	    TokenLBC,   //左花括号
-	    TokenRBC,   //右花括号
-	    TokenLBR,   //左括号
-	    TokenRBR,   //右括号
-	    TokenLSB,   //左方括号
-	    TokenRSB,   //右方括号
+	    TokenLBC,   //左花括号（Left BraCe）
+	    TokenRBC,   //右花括号（Right BraCe）
+	    TokenLRB,   //左括号（Left Round Bracket）
+	    TokenRRB,   //右括号（Right Round Bracket）
+	    TokenLSB,   //左方括号（Left Square Bracket）
+	    TokenRSB,   //右方括号（RightSquare Bracket）
 	    TokenCmm,   //逗号
 	    TokenColon,	//冒号
 	    TokenMember,//小数点
@@ -540,8 +540,8 @@ namespace stamon::c {   //编译器命名空间
 						CHECK_OPERATOR(';', TokenSemi)
 						CHECK_OPERATOR('{', TokenLBC)
 						CHECK_OPERATOR('}', TokenRBC)
-						CHECK_OPERATOR('(', TokenLBR)
-						CHECK_OPERATOR(')', TokenRBR)
+						CHECK_OPERATOR('(', TokenLRB)
+						CHECK_OPERATOR(')', TokenRRB)
 						CHECK_OPERATOR('[', TokenLSB)
 						CHECK_OPERATOR(']', TokenRSB)
 						CHECK_OPERATOR(',', TokenCmm)
