@@ -15,6 +15,7 @@
 
 #include"Lexer.cpp"
 #include"CompilerExceptionMessage.cpp"
+#include"CompilerConfig.hpp"
 
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
