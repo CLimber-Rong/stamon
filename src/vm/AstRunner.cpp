@@ -174,7 +174,7 @@ namespace stamon::vm {
 			}
 
 			String getDataTypeName(int type);
-			String getExcutePosition();
+			String getExecutePosition();
 			void ThrowTypeError(int type);
 			void ThrowPostfixError();
 			void ThrowIndexError();
@@ -203,7 +203,7 @@ namespace stamon::vm {
 			 * \return 程序的执行状态
 			 */
 
-			RetStatus excute(
+			RetStatus execute(
 			    ast::AstNode* main_node, bool isGC, int vm_mem_limit,
 			    ArrayList<datatype::DataType*> tableConst,
 			    ArrayList<String> args, int pool_cache_size, STMException* e
@@ -294,7 +294,9 @@ namespace stamon::vm {
 						return NULL;
 					}
 
-					rst = initObject((datatype::ClassType*)(father_class->data));
+					rst = initObject(
+						(datatype::ClassType*)(father_class->data)
+					);
 					CATCH {
 						return NULL;
 					}
@@ -313,7 +315,7 @@ namespace stamon::vm {
 				OPND_PUSH(rst);
 
 				/*接着继续初始化*/
-				manager->PushScope(ObjectScope(membertab));
+				manager->PushMemberTabScope(ObjectScope(membertab));
 				//将membertab注入到新的作用域当中
 				//这样所有的操作都会直接通过membertab反馈到rst
 
@@ -341,7 +343,7 @@ namespace stamon::vm {
 
 				/*收尾*/
 				OPND_POP	//弹出rst
-				manager->PopScope();
+				manager->PopMemberTabScope();
 
 				return rst;
 			}
@@ -440,7 +442,8 @@ namespace stamon::vm {
 				}
 				//无返回值，返回rst（即null）
 				return RetStatus(RetStatusNor, RightVariablePtr(
-												manager->getNullConst()
+												manager->MallocObject
+														 <datatype::NullType>()
 											   )
 								);
 			}
@@ -532,28 +535,29 @@ namespace stamon::vm {
 
 			RetStatus runAnonClass(ast::AstNode* node) {
 				auto ancl_node = (ast::AstAnonClass*)node;
+				auto rst = manager
+						   ->MallocObject<datatype::ClassType>
+						   (ancl_node);
+				CE;
+
 				return RetStatus(
 				           RetStatusNor,
-				           RightVariablePtr(
-				               manager
-				               ->MallocObject<datatype::ClassType>(
-				                   ancl_node
-				               )
-				           )
+				           RightVariablePtr(rst)
 				       );
 			}
 
 			RetStatus runAnonFunc(ast::AstNode* node) {
 				auto anfc_node = (ast::AstAnonFunc*)node;
+				auto rst = manager
+						   ->MallocObject<datatype::MethodType>
+						   (
+						   		-1, anfc_node, (datatype::ObjectType*)NULL
+						   );
+				CE;
+
 				return RetStatus(
 				           RetStatusNor,
-				           RightVariablePtr(
-				               manager
-				               ->MallocObject<datatype::MethodType>(
-				                   -1, anfc_node, (datatype::ObjectType*)NULL
-				               )
-				           )
-
+				           RightVariablePtr(rst)
 				       );
 			}
 
@@ -1127,7 +1131,7 @@ namespace stamon::vm {
 				) {
 					((datatype::SequenceType*)rst_var->data)->sequence[i]
 					    = new Variable(
-					    manager->getNullConst()
+					    manager->MallocObject<datatype::NullType>()
 					);
 				}
 
@@ -1219,7 +1223,7 @@ namespace stamon::vm {
 				return RetStatus(
 				           RetStatusNor,
 				           RightVariablePtr(
-				               manager->getNullConst()
+				               manager->MallocObject<datatype::NullType>()
 				           )
 				       );
 			}

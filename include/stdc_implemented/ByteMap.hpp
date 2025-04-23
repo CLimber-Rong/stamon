@@ -63,13 +63,13 @@ public:
 
 		stack.push(map.get());
 
-		while (stack.empty()) {
+		while (stack.empty()==0) {
 			STRIE *temp = stack.pop();
 			if (temp != NULL) {
 				for (int i = 0; i < 256; i++) {
 					stack.push(temp->child[i]);
 				}
-				if (map.get()->isexist == 1) {
+				if (temp->isexist == 1) {
 					result.add(cast_class(list_T, temp->data));
 				}
 			}

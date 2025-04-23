@@ -21,7 +21,7 @@ template<typename T> class ArrayList {
 	 * 我们规定：当实际占用的容量小于缓冲区容量的二分之一时，将缓冲区缩小为原来的一半
 	 * 这样，我们将ArrayList的分配次数从线性级将为对数级
 	 */
-
+	
 	T *cache = NULL;
 	int cache_length = 0;
 	int length = 0;
@@ -36,7 +36,7 @@ template<typename T> class ArrayList {
 				// 尽可能地复制
 			}
 
-			this->~ArrayList(); // 销毁原来的cache
+			destroy_cache(); // 销毁原来的cache
 
 			cache = temp;
 			cache_length = cache_length / 2;
@@ -48,12 +48,18 @@ template<typename T> class ArrayList {
 				temp[i] = cache[i];
 			}
 
-			this->~ArrayList(); // 销毁原来的cache
+			destroy_cache(); // 销毁原来的cache
 
 			cache = temp;
 			cache_length = cache_length * 2;
 		}
 		// 如果不满足缩小条件，也不满足扩容条件，就什么都不做
+	}
+
+	void destroy_cache() {
+		if (cache != NULL) {
+			delete[] cache;
+		}
 	}
 
 public:
@@ -98,7 +104,7 @@ public:
 	}
 
 	ArrayList<T> &operator=(const ArrayList<T> &list) {
-		this->~ArrayList();
+		destroy_cache();
 
 		if (list.size() == 0) {
 			// 缓冲区至少要有一个元素
@@ -119,7 +125,7 @@ public:
 	}
 
 	ArrayList<T> &operator=(ArrayList<T> &&list) {
-		this->~ArrayList();
+		destroy_cache();
 
 		cache = list.cache;
 		cache_length = list.cache_length;
@@ -164,7 +170,7 @@ public:
 	} // 判断是否为空
 
 	void clear() {
-		this->~ArrayList(); // 销毁
+		destroy_cache(); // 销毁
 		cache = new T[1]; // 新建缓冲区
 		cache_length = 1;
 		length = 0; // 长度清零
@@ -197,8 +203,6 @@ public:
 	}
 
 	~ArrayList() {
-		if (cache != NULL) {
-			delete[] cache;
-		}
+		destroy_cache();
 	}
 };

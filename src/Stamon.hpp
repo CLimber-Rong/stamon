@@ -163,7 +163,7 @@ namespace stamon {
 
 				vm::AstRunner runner;
 
-				runner.excute(
+				runner.execute(
 				    running_node, isGC, MemLimit, converter.tableConst,
 				    ArrayList<String>(), PoolCacheSize ,ex
 				);

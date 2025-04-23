@@ -70,10 +70,10 @@ void ThrowUnknownOperatorError();
 void ThrowUnknownMemberError(int id);
 ```
 
-2. 利用excute方法执行Running-Ast，它的函数原型是：
+2. 利用execute方法执行Running-Ast，它的函数原型是：
 
 ```C++
-RetStatus excute(
+RetStatus execute(
     AstNode* main_node, bool isGC, int vm_mem_limit,
     ArrayList<DataType*> tableConst, ArrayList<String> args,
     STMException* e
