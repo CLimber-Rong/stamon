@@ -1,5 +1,5 @@
 /*
-        Name: Ast
+        Name: Ast.hpp
         Copyright: Apache 2.0
         Author: CLimber-Rong
         Date: 28/07/23 16:44
@@ -47,7 +47,7 @@ namespace stamon {
 		    AstNullType,
 		    AstArrayLiteralType,
 		    AstListLiteralType,
-			AstLeafType,	//见AstIR.cpp
+			AstLeafType,	//见AstIr.cpp
 		    AstTypeNum // Ast总数
 		};
 

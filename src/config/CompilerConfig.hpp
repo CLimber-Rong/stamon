@@ -1,5 +1,5 @@
 /*
-	Name: CompilerConfig.cpp
+	Name: CompilerConfig.hpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 18:19
