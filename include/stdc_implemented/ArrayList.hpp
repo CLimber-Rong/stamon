@@ -1,5 +1,5 @@
 /*
-	Name: ArrayList
+	Name: ArrayList.hpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 28/07/23 17:10

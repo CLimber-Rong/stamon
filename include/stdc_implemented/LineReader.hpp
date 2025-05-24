@@ -1,5 +1,5 @@
 /*
-	Name: LineReader.cpp
+	Name: LineReader.hpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 03/02/24 16:07

@@ -1,5 +1,5 @@
 /*
-	Name: String.hpp
+	Name: TypeDef.hpp
 	Copyright: Apache2.0
 	Author: GusemFowage, CLimber-Rong
 	Date: 29/07/23 12:59

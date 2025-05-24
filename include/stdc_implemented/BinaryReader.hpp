@@ -44,6 +44,10 @@ class BinaryReader {
 			//将文件指针重新置于顶部
 		}
 
+		int getsize() {
+			return size;
+		}
+
 		char* read() {
             if(fread(buffer, 1, size, stream)!=size) {
                 return NULL;
