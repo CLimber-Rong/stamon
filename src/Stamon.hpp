@@ -1,5 +1,5 @@
 /*
-	Name: Stamon.cpp
+	Name: Stamon.hpp
 	Copyright: Apache 2.0
 	Author: CLimber-Rong
 	Date: 24/12/23 11:23
@@ -16,7 +16,7 @@
 #include"Ast.hpp"
 #include"AstIrReader.cpp"
 #include"AstIrWriter.cpp"
-#include"AstIR.cpp"
+#include"AstIr.cpp"
 #include"Compiler.hpp"
 #include"Exception.hpp"
 #include"BinaryReader.hpp"
@@ -85,9 +85,9 @@ namespace stamon {
 
 				//编译为IR
 
-				ir::AstIRConverter converter;
+				ir::AstIrConverter converter;
 
-				ArrayList<ir::AstIR> ir_list = converter.ast2ir(node);
+				ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
 
 				delete node;	//删除AST
 
@@ -96,12 +96,22 @@ namespace stamon {
 				ArrayList<datatype::DataType*>
 				ir_tableconst = converter.tableConst;
 
-				ir::AstIrWriter writer(ex);
+				action::AstIrWriter writer(ex, dst);
+
+				CATCH {
+					ErrorMsg.add(ex->getError());
+					return;
+				}
 
 				writer.write(
-					ir_list, ir_tableconst, dst, isStrip,
+					ir_list, ir_tableconst, isStrip,
 					VerX, VerY, VerZ
 				);
+
+				CATCH {
+					ErrorMsg.add(ex->getError());
+					return;
+				}
 
 				converter.destroyConst(converter.tableConst);
 
@@ -117,16 +127,14 @@ namespace stamon {
 
 				//实现流程：文件读取器->字节码读取器->IR读取器->虚拟机
 
-				ArrayList<ir::AstIR> ir_list;
-
-				BinaryReader reader(ex, src);	//打开文件
+				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
 					ErrorMsg.add(ex->getError());
 					return;
 				}
 
-				ir::AstIrReader ir_reader(reader.read(), reader.size, ex);
+				action::AstIrReader ir_reader(ex, src);
 				//初始化字节码读取器
 
 				CATCH {
@@ -147,14 +155,14 @@ namespace stamon {
 					return;
 				}
 
-				reader.close();	//关闭文件
+				ir_reader.close();
 
 				//复制版本号
 				VerX = ir_reader.VerX;
 				VerY = ir_reader.VerY;
 				VerZ = ir_reader.VerZ;
 
-				ir::AstIRConverter converter;	//初始化转换器
+				ir::AstIrConverter converter;	//初始化转换器
 
 				converter.tableConst = ir_reader.tableConst;
 				//复制常量表到转换器
@@ -186,16 +194,14 @@ namespace stamon {
 				//剥夺调试信息
 				//这些代码直接改编自run方法和compile方法
 
-				ArrayList<ir::AstIR> ir_list;
-
-				BinaryReader reader(ex, src);	//打开文件
+				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
 					ErrorMsg.add(ex->getError());
 					return;
 				}
 
-				ir::AstIrReader ir_reader(reader.read(), reader.size, ex);
+				action::AstIrReader ir_reader(ex, src);
 				//初始化字节码读取器
 
 				CATCH {
@@ -216,21 +222,21 @@ namespace stamon {
 					return;
 				}
 
-				reader.close();	//关闭文件
+				ir_reader.close();	//关闭文件
 
 				ArrayList<datatype::DataType*>
 				ir_tableconst = ir_reader.tableConst;
 
 				//写入魔数
 				
-				ir::AstIrWriter writer(ex);
+				action::AstIrWriter writer(ex, src);
 
 				writer.write(
-					ir_list, ir_tableconst, src, true,
+					ir_list, ir_tableconst, true,
 					VerX, VerY, VerZ
 				);
 
-				ir::AstIRConverter converter;
+				ir::AstIrConverter converter;
 				//利用转换器来销毁常量表
 				converter.destroyConst(ir_tableconst);
 

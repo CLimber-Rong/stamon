@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "AstIR.cpp"
+#include "AstIr.cpp"
 #include "DataType.hpp"
 
 namespace stamon::vm {
@@ -70,8 +70,8 @@ inline void AstRunner::ThrowContinueError() {
 // 参数传递错误
 inline void AstRunner::ThrowArgumentsError(int form_args, int actual_args) {
 	THROW_S(String("Arguments Error: ") + getExecutePosition() + String("takes ")
-			+ toString(form_args) + String(" form arguments but ") + toString(actual_args)
-			+ String(" was given"))
+			+ toString(form_args) + String(" form arguments but ")
+			+ toString(actual_args) + String(" was given"))
 }
 
 // 返回语句在函数外
@@ -82,7 +82,8 @@ inline void AstRunner::ThrowReturnError() {
 
 // 未知运算符
 inline void AstRunner::ThrowUnknownOperatorError() {
-	THROW_S(String("Operator Error: ") + getExecutePosition() + String("unknown operator"))
+	THROW_S(String("Operator Error: ") + getExecutePosition()
+			+ String("unknown operator"))
 }
 
 // 未知成员

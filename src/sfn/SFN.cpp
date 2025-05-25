@@ -92,7 +92,8 @@ String DataType2String(STMException *ex, stamon::datatype::DataType *dt) {
 		return toString(((stamon::datatype::DoubleType *) dt)->getVal());
 
 	case stamon::datatype::StringTypeID:
-		return String((char *) "\"") + ((stamon::datatype::StringType *) dt)->getVal()
+		return String((char *) "\"")
+			 + ((stamon::datatype::StringType *) dt)->getVal()
 			 + String((char *) "\"");
 
 	case stamon::datatype::NullTypeID:
@@ -150,18 +151,24 @@ void sfn_int(SFN_PARA_LIST) {
 	STMException *ex = sfn.ex;
 	stamon::datatype::DataType *val = arg->data;
 
-	if (val->getType() == stamon::datatype::IntegerTypeID) {
+	switch (val->getType()) {
+	case stamon::datatype::IntegerTypeID: {
 		return;
+	}
 
-	} else if (val->getType() == stamon::datatype::FloatTypeID) {
+	case stamon::datatype::FloatTypeID: {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
 				(int) (((stamon::datatype::FloatType *) val)->getVal()));
+		break;
+	}
 
-	} else if (val->getType() == stamon::datatype::DoubleTypeID) {
+	case stamon::datatype::DoubleTypeID: {
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(
 				(int) (((stamon::datatype::DoubleType *) val)->getVal()));
+		break;
+	}
 
-	} else if (val->getType() == stamon::datatype::StringTypeID) {
+	case stamon::datatype::StringTypeID: {
 		String src = ((stamon::datatype::StringType *) val)->getVal();
 		int dst = 0;
 
@@ -176,9 +183,12 @@ void sfn_int(SFN_PARA_LIST) {
 		}
 
 		arg->data = manager->MallocObject<stamon::datatype::IntegerType>(dst);
+		break;
+	}
 
-	} else {
-		THROW("bad type in\'int\'")
+	default: {
+		THROW("bad type in\'int\'");
+	}
 	}
 
 	return;
@@ -193,8 +203,7 @@ void sfn_str(SFN_PARA_LIST) {
 	}
 
 	arg->data = manager->MallocObject<stamon::datatype::StringType>(
-			DataType2String(ex, val)
-	);
+			DataType2String(ex, val));
 
 	return;
 }
@@ -262,7 +271,8 @@ void sfn_throw(SFN_PARA_LIST) {
 
 void sfn_system(SFN_PARA_LIST) {
 	STMException *ex = sfn.ex;
-	int status = platform_system(((stamon::datatype::StringType *) arg->data)->getVal());
+	int status = platform_system(
+			((stamon::datatype::StringType *) arg->data)->getVal());
 	arg->data = manager->MallocObject<stamon::datatype::IntegerType>(status);
 	return;
 }
@@ -278,3 +288,6 @@ void sfn_version(SFN_PARA_LIST) {
 			+ toString(stamon::STAMON_VER_Z));
 	return;
 }
+
+#undef SFN_PARA_LIST
+#undef CHECK_DATA_TYPE_ID

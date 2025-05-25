@@ -44,7 +44,8 @@ String VariableDeclaredRepeatedly(String iden) {
 
 // 错误的sfn语法
 String WrongSfnSyntax() {
-	return String("the port or argument of the SFN statement must be an identifier");
+	return String(
+			"the port or argument of the SFN statement must be an identifier");
 }
 
 // continue语句在循环外
@@ -57,7 +58,7 @@ String BreakOutsideLoop() {
 	return String("\'break\' outside loop");
 }
 
-//成员不是标识符
+// 成员不是标识符
 String WrongMemberFormat() {
 	return String("the member name must be an identifier");
 }
@@ -104,8 +105,6 @@ String UndefinedVariable(String iden) {
 }
 
 } // namespace stamon::c::err
-
-
 
 namespace stamon::c::warning {
 // 这里存放着编译端的警告信息生成函数

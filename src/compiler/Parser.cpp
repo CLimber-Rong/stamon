@@ -1420,3 +1420,4 @@ namespace stamon::c {
 #undef unary_check
 #undef GETLN
 #undef pushscope
+#undef popscope

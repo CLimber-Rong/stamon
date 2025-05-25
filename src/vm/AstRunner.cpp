@@ -16,7 +16,7 @@
 #include"DataType.hpp"
 #include"TypeCalculator.cpp"
 #include"ObjectManager.cpp"
-#include"AstIR.cpp"
+#include"AstIr.cpp"
 #include"SFN.cpp"
 #include"Parser.cpp"
 
@@ -1249,19 +1249,14 @@ inline String stamon::vm::AstRunner::getDataTypeName(int type) {
 	}
 }
 
-#include"AstRunnerExceptionMessage.cpp"
-
 #undef CDT
 #undef OPND_PUSH
 #undef OPND_POP
 #undef RUN
 #undef GETDT
+#undef CE
 #undef CTH
 #undef CTH_S
-#undef OPERATE_BINARY
-#undef ASMD_OPERATE
-#undef DIV_ERRCHECK
-#undef MATH_OPERATE
 #undef BIND
-#undef CHECK_ASS
-#undef CHECK_INT_ASS
+
+#include"AstRunnerExceptionMessage.cpp"

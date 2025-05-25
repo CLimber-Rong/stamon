@@ -13,99 +13,103 @@
 #include "Lexer.cpp"
 #include "String.hpp"
 
-//为了节约篇幅，定义了一些宏用于简写
-//这些宏只用于此文件
-#define CE CATCH { return; }
+// 为了节约篇幅，定义了一些宏用于简写
+// 这些宏只用于此文件
+
+#define WRITE(b) \
+	WRITE(b); \
+	CATCH { \
+		return; \
+	}
+
+#define WRITE_I(n) \
+	WRITE_I(n); \
+	CATCH { \
+		return; \
+	}
 
 namespace stamon::action {
-    class TokenFileWriter {
-        
-            STMException* ex;
-            BinaryWriter writer;
-        public:
+class TokenFileWriter {
+	BinaryWriter writer;
 
-            TokenFileWriter() {}
+public:
+	STMException *ex;
 
-            TokenFileWriter(STMException* e, String filename) {
-                ex = e;
-                writer = BinaryWriter(ex, filename);
-                writer.write(0xAB);
-                writer.write(0xDC);
-            }
+	TokenFileWriter() {
+	}
 
-            void writeToken(c::Token* tok) {
-                int id = tok->type;
+	TokenFileWriter(STMException *e, String filename) {
+		ex = e;
+		writer = BinaryWriter(ex, filename);
+		WRITE(0xAB);
+		WRITE(0xDC);
+	}
 
-                writer.write(id);
-                CE;
+	void writeToken(c::Token *tok) {
+		int id = tok->type;
 
-                //接着特判带有词法单元数据的词法单元
-                if(id==c::TokenInt) {
-                    //特判整数token
-                    writer.write_i( ((c::IntToken*)tok)->val );
-                    CE;
-                }
+		WRITE(id);
 
-                if(id==c::TokenDouble) {
-                    //特判浮点token
-                    double val = ((c::DoubleToken*)tok)->val;
+		// 接着特判带有词法单元数据的词法单元
+		if (id == c::TokenInt) {
+			// 特判整数token
+			WRITE_I(((c::IntToken *) tok)->val);
+		}
 
-                    char* ptr = (char*)&val;
+		if (id == c::TokenDouble) {
+			// 特判浮点token
+			double val = ((c::DoubleToken *) tok)->val;
 
-                    writer.write_i( *((int*)ptr) );
-                    CE;
-                    writer.write_i( *((int*)(ptr+4)) );
-                    CE;
-                }
+			char *ptr = (char *) &val;
 
-                if(id==c::TokenString) {
-                    String val = ((c::StringToken*)tok)->val;
+			WRITE_I(*((int *) ptr));
+			WRITE_I(*((int *) (ptr + 4)));
+		}
 
-                    writer.write_i(val.length());
-                    CE;
+		if (id == c::TokenString) {
+			String val = ((c::StringToken *) tok)->val;
 
-                    for(int index=0;index<val.length();index++) {
-                        writer.write(val[index]);
-                        CE;
-                    }
-                }
+			WRITE_I(val.length());
 
-                if(id==c::TokenIden) {
-                    //特判标识符token，其实现与字符串token类似
+			for (int index = 0; index < val.length(); index++) {
+				WRITE(val[index]);
+			}
+		}
 
-                    String iden = ((c::IdenToken*)tok)->iden;
+		if (id == c::TokenIden) {
+			// 特判标识符token，其实现与字符串token类似
 
-                    writer.write_i(iden.length());
-                    CE;
+			String iden = ((c::IdenToken *) tok)->iden;
 
-                    for(int index=0;index<iden.length();index++) {
-                        writer.write(iden[index]);
-                        CE;
-                    }
-                }
-            }
+			WRITE_I(iden.length());
 
+			for (int index = 0; index < iden.length(); index++) {
+				WRITE(iden[index]);
+			}
+		}
+	}
 
-            void writeLineTokens(ArrayList<c::Token*> tokens) {
-                //写入一行的Tokens
+	void writeLineTokens(ArrayList<c::Token *> tokens) {
+		// 写入一行的Tokens
 
-                for(int i=0,len=tokens.size();i<len;i++) {
-                    writeToken(tokens[i]);
-                    CE;
-                }
+		for (int i = 0, len = tokens.size(); i < len; i++) {
+			writeToken(tokens[i]);
+			CE;
+		}
 
-                writer.write(-1);   //写入EOL
-                CE;
-                return;
-            }
+		WRITE(-1); // 写入EOL
 
-            void close() {
+		return;
+	}
 
-                writer.write(c::TokenEOF);
-                CE;
+	void close() {
+		WRITE(c::TokenEOF);
 
-                writer.close();
-                return;
-            }
-    };
+		writer.close();
+		return;
+	}
+};
 } // namespace stamon::action
+
+#undef WRITE
+#undef WRITE_I

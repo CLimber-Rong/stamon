@@ -576,3 +576,4 @@ namespace stamon::c {   //编译器命名空间
 #undef CHECK_OPERATOR
 #undef CHECK_LONG_OPERATOR
 #undef CHECK_LONG_LONG_OPERATOR
+#undef CHECK_ESCAPE_CHAR

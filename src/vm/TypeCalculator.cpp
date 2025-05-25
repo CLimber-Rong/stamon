@@ -543,6 +543,7 @@ namespace stamon::vm {
     };
 }
 
+#undef DTT
 #undef INT
 #undef FLT
 #undef DBL
@@ -558,5 +559,10 @@ namespace stamon::vm {
 #undef IDSEQ
 
 #undef ISNUM
+
 #undef TYPEERR
+
 #undef NEWDT
+
+#undef BIND_UN
+#undef BIND_BIN
