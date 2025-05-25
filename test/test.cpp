@@ -21,7 +21,7 @@ using namespace stamon::sfn;
 using namespace std;
 
 void DebugAST(AstNode* node, int layer);
-void DebugIR(ArrayList<AstIR> ir);
+void DebugIR(ArrayList<AstIr> ir);
 
 int main() {
 	//在这里编写调试代码，调试方法见文档
@@ -90,7 +90,7 @@ void DebugAST(AstNode* node, int layer) {
 	return;
 }
 
-void DebugIR(ArrayList<AstIR> ir) {
+void DebugIR(ArrayList<AstIr> ir) {
 	for(int i=0,len=ir.size(); i<len; i++) {
 		printf("TYPE: %d\n", ir[i].type);
 	}
