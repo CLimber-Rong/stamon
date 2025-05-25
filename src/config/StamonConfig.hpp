@@ -1,6 +1,6 @@
 /*
 	Name: StamonConfig.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 18:21
 	Description: 用于存储stamon的公共配置

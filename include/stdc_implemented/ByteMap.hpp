@@ -1,6 +1,6 @@
 /*
 	Name: ByteMap.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 10/02/24 13:38
 	Description: 字节串map

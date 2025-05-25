@@ -1,6 +1,6 @@
 /*
 	Name: Main.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 24/02/24 11:59
 	Description:

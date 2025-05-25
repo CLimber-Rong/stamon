@@ -1,6 +1,6 @@
 /*
 	Name: EasySmartPtr.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 30/03/25 12:52
 	Description: 一个简单的智能指针

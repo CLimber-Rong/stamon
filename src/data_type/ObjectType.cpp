@@ -1,6 +1,6 @@
 /*
 	Name: ObjectType.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 17/08/23 11:49
 	Description:

@@ -1,6 +1,6 @@
 /*
 	Name: BinaryWriter.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 22/02/24 21:52
 	Description: 二进制写入器

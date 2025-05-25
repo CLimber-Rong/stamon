@@ -1,6 +1,6 @@
 /*
 	Name: SequenceType.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: Climber-Rong
 	Date: 14/08/23 10:19
 	Description: 数列数据类型的定义

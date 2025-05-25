@@ -1,6 +1,6 @@
 /*
         Name: Ast.hpp
-        Copyright: Apache 2.0
+        License: Apache 2.0
         Author: CLimber-Rong
         Date: 28/07/23 16:44
         Description:

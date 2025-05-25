@@ -1,6 +1,6 @@
 /*
 	Name: AstIr.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/02/24 08:48
 	Description: ast::Ast-IR生成器

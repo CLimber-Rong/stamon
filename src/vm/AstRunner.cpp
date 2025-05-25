@@ -1,6 +1,6 @@
 /*
 	Name: ast::AstRunner.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 11/02/24 14:16
 	Description: 语法树的运行器

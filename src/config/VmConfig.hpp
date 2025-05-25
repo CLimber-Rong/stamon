@@ -1,6 +1,6 @@
 /*
 	Name: VmConfig.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 18:35
 	Description: 此文件用于存储虚拟机的相关配置信息

@@ -1,6 +1,6 @@
 /*
 	Name: TypeCalculator.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 04/01/25 16:46
 	Description: 类型计算器

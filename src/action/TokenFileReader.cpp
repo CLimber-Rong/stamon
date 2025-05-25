@@ -1,6 +1,6 @@
 /*
 	Name: TokenFileReader.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 14/12/24 23:22
 	Description: 词法单元文件阅读器

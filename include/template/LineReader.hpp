@@ -1,6 +1,6 @@
 /*
 	Name: LineReader.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 03/02/24 16:07
 	Description: 行阅读器

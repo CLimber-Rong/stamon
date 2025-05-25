@@ -1,6 +1,6 @@
 /*
 	Name: NumberMap.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 23/08/23 14:20
 	Description: 整数map

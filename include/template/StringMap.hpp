@@ -1,6 +1,6 @@
 /*
 	Name: StringMap.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: 瞿相荣
 	Date: 18/01/23 19:14
 	Description: 字符串map

@@ -1,6 +1,6 @@
 /*
 	Name: DataType.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 14/08/23 10:08
 	Description:

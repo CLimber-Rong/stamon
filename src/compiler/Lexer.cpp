@@ -1,6 +1,6 @@
 /*
 	Name: Lexer.cpp
-	Copyright: Apache2.0
+	License: Apache2.0
 	Author: CLimber-Rong
 	Date: 24/12/23 12:00
 	Description: 词法分析器

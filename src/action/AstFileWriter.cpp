@@ -1,6 +1,6 @@
 /*
 	Name: AstFileWriter.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 25/04/25 18:56
 	Description: AST编码文件写入器

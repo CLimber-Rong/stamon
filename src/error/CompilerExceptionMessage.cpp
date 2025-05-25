@@ -1,6 +1,6 @@
 /*
 	Name: CompilerExceptionMessage.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 12:46
 	Description: 此文件用于存放编译器异常信息的生成函数

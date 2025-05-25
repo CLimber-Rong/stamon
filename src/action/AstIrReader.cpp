@@ -1,6 +1,6 @@
 /*
 	Name: AstIrReader.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/12/23 17:34
 	Description: IR读取器

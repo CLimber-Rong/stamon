@@ -1,6 +1,6 @@
 /*
 	Name: strie.h
-	Copyright: Apache 2.0 License
+	License: Apache 2.0 License
 	Author: 瞿相荣
 	Date: 25/10/22 08:22
 	Description: C语言字典树库（仅支持普通ASCII码存储），版本1.0.0.0

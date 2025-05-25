@@ -1,6 +1,6 @@
 /*
 	Name: Exception.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 24/08/23 18:09
 	Description: 异常处理的实现

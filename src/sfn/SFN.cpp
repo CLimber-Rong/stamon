@@ -1,6 +1,6 @@
 /*
 	Name: SFN.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 20/02/24 15:39
 	Description: Stamon For Native，即本地库的实现

@@ -1,6 +1,6 @@
 /*
 	Name: ObjectManager.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 29/09/23 16:56
 	Description: 对象管理器

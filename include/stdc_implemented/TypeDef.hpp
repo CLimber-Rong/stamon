@@ -1,6 +1,6 @@
 /*
 	Name: TypeDef.hpp
-	Copyright: Apache2.0
+	License: Apache2.0
 	Author: Gusem Fowage, CLimber-Rong
 	Date: 29/07/23 12:59
 	Description: 跨平台数据类型定义库

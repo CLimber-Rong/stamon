@@ -1,6 +1,6 @@
 /*
 	Name: TokenFileWriter.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 28/12/24 17:01
 	Description: 词法单元编码文件写入器
