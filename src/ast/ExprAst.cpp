@@ -1,6 +1,6 @@
 /*
 	Name: ExprAst.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 28/07/23 15:48
 	Description: 在这里定义与表达式有关的Ast节点

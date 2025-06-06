@@ -1,6 +1,6 @@
 /*
 	Name: strie.h
-	Copyright: Apache 2.0 License
+	License: Apache 2.0 License
 	Author: 瞿相荣
 	Date: 25/10/22 08:22
 	Description: C语言字典树库（仅支持普通ASCII码存储），版本1.0.0.0
@@ -160,13 +160,12 @@ int ClearTrie(STRIE* trie) {
 	}
 	PushStack(stack, trie);
 	while(StackEmpty(stack)==0) {
-		STRIE* tmp = (STRIE*)PopStack(stack);
-		STRIE** tmp2 = tmp->child;
-		if(tmp!=NULL) {
+		STRIE* node = (STRIE*)PopStack(stack);
+		if(node!=NULL) {
 			for(int i=0; i<256; i++) {
-				PushStack(stack, tmp2[i]);
+				PushStack(stack,node->child[i]);
 			}
-			if(tmp!=trie) 	free(tmp);
+			if(node!=trie)	free(node);
 		}
 	}
 	DestroyStack(stack);
@@ -177,9 +176,9 @@ int DestroyTrie(STRIE* trie) {
 	if(trie==NULL) {
 		return 0;
 	}
-	ClearTrie(trie);
+	int status = ClearTrie(trie);
 	free(trie);
-	return 1;
+	return status;
 }
 
 int TrieEmpty(STRIE* trie) {

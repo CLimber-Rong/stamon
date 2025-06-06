@@ -1,6 +1,6 @@
 /*
 	Name: FileMap.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 05/02/24 20:50
 	Description: 以文件为键的map

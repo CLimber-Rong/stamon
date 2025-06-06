@@ -1,6 +1,6 @@
 /*
-        Name: Ast
-        Copyright: Apache 2.0
+        Name: Ast.hpp
+        License: Apache 2.0
         Author: CLimber-Rong
         Date: 28/07/23 16:44
         Description:
@@ -47,7 +47,7 @@ namespace stamon {
 		    AstNullType,
 		    AstArrayLiteralType,
 		    AstListLiteralType,
-			AstLeafType,	//见AstIR.cpp
+			AstLeafType,	//见AstIr.cpp
 		    AstTypeNum // Ast总数
 		};
 
@@ -99,11 +99,6 @@ namespace stamon {
 					lineNo = line;
 				}
 
-				virtual int ChildrenNum() {
-					//子节点数量
-					return children->size();
-				}
-
 				virtual ArrayList<AstNode*> *Children() {
 					//获得子节点列表
 					return children;
@@ -114,7 +109,13 @@ namespace stamon {
 					return AstNodeType;
 				}
 
-				virtual ~AstNode() = default;
+				virtual ~AstNode() {
+					//删除该节点及其所有字节点
+					for(int i=0;i<children->size();i++) {
+						delete children->at(i);
+					}
+					delete children;
+				}
 		};
 	}
 }

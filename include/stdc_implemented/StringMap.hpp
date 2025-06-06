@@ -1,6 +1,6 @@
 /*
-	Name: StringMap.cpp
-	Copyright: Apache 2.0
+	Name: StringMap.hpp
+	License: Apache 2.0
 	Author: 瞿相荣
 	Date: 18/01/23 19:14
 	Description: 字符串map
@@ -39,26 +39,6 @@ public:
 	}
 
 	template<typename list_T> ArrayList<list_T> getValList() {
-		ArrayList<list_T> result;
-
-		/*将所有值汇总成一个指定类型的列表*/
-
-		Stack<STRIE> stack;
-
-		stack.push(map.getStrie());
-
-		while (stack.empty()) {
-			STRIE *temp = stack.pop();
-			if (temp != NULL) {
-				for (int i = 0; i < 256; i++) {
-					stack.push(temp->child[i]);
-				}
-				if (map->isExist == 1) {
-					result.add(cast_class(list_T, temp->data));
-				}
-			}
-		}
-
-		return result;
+		return map.template getValList<list_T>();
 	}
 };

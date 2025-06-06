@@ -1,13 +1,10 @@
 /*
-	Name: clib.h
-	Copyright: Apache 2.0
+	Name: stmlib.hpp
+	License: Apache 2.0
 	Author: CLimber-Rong, GusemFowage
 	Date: 12/08/23 23:24
 	Description: 一些杂糅的库定义
 */
-
-//这个库原本叫做clib.h
-//由于需要引入c++代码，所以后缀改为hpp，顺便把文件名改为stmlib
 
 #pragma once
 
@@ -49,9 +46,9 @@ String toString(bool x);
 	} \
 	while (0)
 
-//以下宏需要手动填写
+//以下函数需要自行实现
 
-#define platform_exit 
-#define platform_system 
-#define platform_scanf 
-#define platform_printf 
+void platform_exit(int code);
+int platform_system(String cmd);
+String platform_input();
+int platform_print(String s);

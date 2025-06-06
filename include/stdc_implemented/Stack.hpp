@@ -1,6 +1,6 @@
 /*
-	Name: Stack.cpp
-	Copyright: Apache 2.0
+	Name: Stack.hpp
+	License: Apache 2.0
 	Author: 瞿相荣
 	Date: 17/01/23 18:06
 	Description: 栈库，基于stack.h

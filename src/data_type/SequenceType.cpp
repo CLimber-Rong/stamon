@@ -1,6 +1,6 @@
 /*
 	Name: SequenceType.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: Climber-Rong
 	Date: 14/08/23 10:19
 	Description: 数列数据类型的定义
@@ -29,6 +29,10 @@ namespace stamon::datatype {
 			virtual ArrayList<Variable*> getVal() const {
 				return sequence;
 			}
-			virtual ~SequenceType() = default;
+			virtual ~SequenceType() {
+				for(int i=0;i<sequence.size();i++) {
+					delete sequence[i];
+				}
+			}
 	};
 } //namespace stamon::datatype

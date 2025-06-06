@@ -1,6 +1,6 @@
 /*
 	Name: stack.h
-	Copyright: Apache License 2.0
+	License: Apache License 2.0
 	Author: 瞿相荣
 	Date: 23/10/22 21:44
 	Description: C语言栈库，版本1.0.0.0

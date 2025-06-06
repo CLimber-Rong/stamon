@@ -1,6 +1,6 @@
 /*
 	Name: MemoryPool.hpp
-	Copyright: Apache2.0
+	License: Apache2.0
 	Author: CLimber-Rong, copi143
 	Date: 10/08/24 23:38
 	Description: 内存池实现

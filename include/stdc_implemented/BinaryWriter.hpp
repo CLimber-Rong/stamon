@@ -1,6 +1,6 @@
 /*
 	Name: BinaryWriter.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 22/02/24 21:52
 	Description: 二进制写入器
@@ -31,7 +31,13 @@ class BinaryWriter {
         }
 
         void write_i(int n) {
-            if(!fwrite(&n, 4, 1, fstream)) FILE_ERROR
+            //按大端写入
+            for(int i=3;i>=0;i--) {
+                write( (n>>(i*8)) & 0xff);
+                CATCH {
+                    return;
+                }
+            }
         }
 
         void close() {

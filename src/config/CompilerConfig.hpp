@@ -1,6 +1,6 @@
 /*
-	Name: CompilerConfig.cpp
-	Copyright: Apache 2.0
+	Name: CompilerConfig.hpp
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 18:19
 	Description: 此文件用于存储编译器的相关配置信息

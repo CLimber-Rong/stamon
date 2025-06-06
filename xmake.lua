@@ -1,6 +1,6 @@
 --[[
 Name: xmake.lua
-Copyright: Apache 2.0
+License: Apache 2.0
 Author: CLimber-Rong
 Date: 03/11/24 19:15
 Description: Stamon的XMake构建文件

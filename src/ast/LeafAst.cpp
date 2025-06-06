@@ -1,6 +1,6 @@
 /*
 	Name: LeafAst.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 29/07/23 20:14
 	Description: 语法树叶子节点的定义

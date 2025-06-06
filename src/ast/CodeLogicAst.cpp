@@ -1,6 +1,6 @@
 /*
     Name: CodeLogicAst.cpp
-    Copyright: Apache 2.0
+    License: Apache 2.0
     Author: CLimber-Rong
     Date: 28/07/23 15:45
     Description: 在这里写代码逻辑（如函数、流程控制等）节点的定义

@@ -1,6 +1,6 @@
 /*
 	Name: Lexer.cpp
-	Copyright: Apache2.0
+	License: Apache2.0
 	Author: CLimber-Rong
 	Date: 24/12/23 12:00
 	Description: 词法分析器
@@ -99,12 +99,12 @@ namespace stamon::c {   //编译器命名空间
 	    KEYWORDS_MAX,   //关键词个数
 	    TokenAssign,//赋值
 	    TokenSemi,  //分号
-	    TokenLBC,   //左花括号
-	    TokenRBC,   //右花括号
-	    TokenLBR,   //左括号
-	    TokenRBR,   //右括号
-	    TokenLSB,   //左方括号
-	    TokenRSB,   //右方括号
+	    TokenLBC,   //左花括号（Left BraCe）
+	    TokenRBC,   //右花括号（Right BraCe）
+	    TokenLRB,   //左括号（Left Round Bracket）
+	    TokenRRB,   //右括号（Right Round Bracket）
+	    TokenLSB,   //左方括号（Left Square Bracket）
+	    TokenRSB,   //右方括号（RightSquare Bracket）
 	    TokenCmm,   //逗号
 	    TokenColon,	//冒号
 	    TokenMember,//小数点
@@ -144,7 +144,8 @@ namespace stamon::c {   //编译器命名空间
 	    TokenString,    //字符串
 	    TokenTrue,		//布尔真值
 	    TokenFalse,		//布尔假值
-	    TokenEOF
+	    TokenEOF,
+		TokenNum
 	};
 
 	class Token {
@@ -157,45 +158,46 @@ namespace stamon::c {   //编译器命名空间
 			int lineNo;
 	};
 
+	String PreprocessStringToken(String content) {
+		//预处理content字符串，进行例如转义等操作
+		String tmp = content.substring(1,content.length()-1);
+		String val;
+		//去除前后的引号
+		int i=0;
+		while(i<tmp.length()) {
+			if(tmp[i]=='\\') {
+				//碰到转义字符
+				i++;
+				CHECK_ESCAPE_CHAR('\"', "\"")
+				CHECK_ESCAPE_CHAR('\\', "\\")
+				CHECK_ESCAPE_CHAR('0', "\0")
+				CHECK_ESCAPE_CHAR('n', "\n")
+				CHECK_ESCAPE_CHAR('t', "\t")
+				if(tmp[i]=='x') {
+					i++;
+					String data = tmp.substring(i, i+2);
+					char* c = new char[1];
+					*c = data.toIntX();
+					val += String(c);
+					delete[] c;
+					i+=2;
+				}
+			} else {
+				val += tmp.substring(i, i+1);	//把tmp[i]拼到val里
+				i++;
+			}
+		}
+		return val;
+	}
+
 	class StringToken : public Token {
 		public:
-			String content;
-			//这个字符串存储着token文本
-			//（token文本并没有去掉字符串前后的引号，以及转义字符）
 			String val;
-			//这个字符串由content处理而来
 			StringToken(int line, const String& s)
 				: Token(line, TokenString) {
 
-				content = s;
+				val = s;
 
-				//开始处理content，并存储到s
-				String tmp = content.substring(1,content.length()-1);
-				//去除前后的引号
-				int i=0;
-				while(i<tmp.length()) {
-					if(tmp[i]=='\\') {
-						//碰到转义字符
-						i++;
-						CHECK_ESCAPE_CHAR('\"', "\"")
-						CHECK_ESCAPE_CHAR('\\', "\\")
-						CHECK_ESCAPE_CHAR('0', "\0")
-						CHECK_ESCAPE_CHAR('n', "\n")
-						CHECK_ESCAPE_CHAR('t', "\t")
-						if(tmp[i]=='x') {
-							i++;
-							String data = tmp.substring(i, i+2);
-							char* c = new char[1];
-							*c = data.toIntX();
-							val += String(c);
-							delete[] c;
-							i+=2;
-						}
-					} else {
-						val += tmp.substring(i, i+1);	//把tmp[i]拼到val里
-						i++;
-					}
-				}
 			}
 	};
 
@@ -455,7 +457,9 @@ namespace stamon::c {   //编译器命名空间
 								is_str_closed = true;
 
 								String s = text.substring(st,ed);
-								StringToken* rst = new StringToken(line, s);
+								StringToken* rst = new StringToken(
+												line, PreprocessStringToken(s)
+											);
 								tokens.add((Token*)rst);
 								st = ed;
 
@@ -540,8 +544,8 @@ namespace stamon::c {   //编译器命名空间
 						CHECK_OPERATOR(';', TokenSemi)
 						CHECK_OPERATOR('{', TokenLBC)
 						CHECK_OPERATOR('}', TokenRBC)
-						CHECK_OPERATOR('(', TokenLBR)
-						CHECK_OPERATOR(')', TokenRBR)
+						CHECK_OPERATOR('(', TokenLRB)
+						CHECK_OPERATOR(')', TokenRRB)
 						CHECK_OPERATOR('[', TokenLSB)
 						CHECK_OPERATOR(']', TokenRSB)
 						CHECK_OPERATOR(',', TokenCmm)
@@ -576,3 +580,4 @@ namespace stamon::c {   //编译器命名空间
 #undef CHECK_OPERATOR
 #undef CHECK_LONG_OPERATOR
 #undef CHECK_LONG_LONG_OPERATOR
+#undef CHECK_ESCAPE_CHAR

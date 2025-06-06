@@ -1,6 +1,6 @@
 /*
-	Name: ArrayList
-	Copyright: Apache 2.0
+	Name: ArrayList.hpp
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 28/07/23 17:10
 	Description: 动态数组

@@ -1,6 +1,6 @@
 /*
 	Name: ByteMap.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 10/02/24 13:38
 	Description: 字节串map
@@ -9,14 +9,27 @@
 #pragma once
 
 #include "ArrayList.hpp"
-#include "SmartStrie.hpp"
+#include "EasySmartPtr.hpp"
 #include "Stack.hpp"
+#include "strie.h"
+
+void __SMARTSTRIE_DESTROY_FUNCTION__(EasySmartPtr<STRIE>* p) {
+	DestroyTrie(p->ptr);
+}
+
+class SmartStrie : public EasySmartPtr<STRIE> {
+public:
+	SmartStrie()
+		: EasySmartPtr<STRIE>(InitTrie(), __SMARTSTRIE_DESTROY_FUNCTION__) {
+	}
+};
 
 template<typename T> class ByteMap {
 	SmartStrie map;
 
 public:
-	ByteMap() {}
+	ByteMap() {
+	}
 
 	int put(char *s, int size, T *data) { // 设置键值
 		return SetTrieKeyVal(map.get(), (unsigned char *) s, size, (void *) data);
@@ -50,13 +63,13 @@ public:
 
 		stack.push(map.get());
 
-		while (stack.empty()) {
+		while (stack.empty()==0) {
 			STRIE *temp = stack.pop();
 			if (temp != NULL) {
 				for (int i = 0; i < 256; i++) {
 					stack.push(temp->child[i]);
 				}
-				if (map.get()->isexist == 1) {
+				if (temp->isexist == 1) {
 					result.add(cast_class(list_T, temp->data));
 				}
 			}

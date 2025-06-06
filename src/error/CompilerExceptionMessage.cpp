@@ -1,6 +1,6 @@
 /*
 	Name: CompilerExceptionMessage.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 08/03/25 12:46
 	Description: 此文件用于存放编译器异常信息的生成函数
@@ -39,12 +39,13 @@ String InvalidSyntax() {
 
 // 变量被重复定义
 String VariableDeclaredRepeatedly(String iden) {
-	return String("variable \"") + iden + String("are declared repeatedly");
+	return String("variable \"") + iden + String("\" are declared repeatedly");
 }
 
 // 错误的sfn语法
 String WrongSfnSyntax() {
-	return String("the port of the SFN statement must be an identifier");
+	return String(
+			"the port or argument of the SFN statement must be an identifier");
 }
 
 // continue语句在循环外
@@ -57,19 +58,34 @@ String BreakOutsideLoop() {
 	return String("\'break\' outside loop");
 }
 
-// 变量名不是运算符
+// 成员不是标识符
+String WrongMemberFormat() {
+	return String("the member name must be an identifier");
+}
+
+// 变量名不是标识符
 String WrongVariableFormat() {
 	return String("the name of the variable must be an identifier");
 }
 
+// 花括号未闭合
+String BraceNotClosed() {
+	return String("the brace are not closed");
+}
+
+// 方括号未闭合
+String SquareBracketNotClosed() {
+	return String("the square bracket are not closed");
+}
+
 // 圆括号未闭合
-String ParenthesesNotClosed() {
-	return String("the parentheses are not closed");
+String RoundBracketNotClosed() {
+	return String("the round bracket are not closed");
 }
 
 // 类定义中出现异常的成员定义
 String WrongClassDefined() {
-	return String("only functions, classes, and variables "
+	return String("only functions, classes and variables "
 				  "can be defined in a class");
 }
 
@@ -89,8 +105,6 @@ String UndefinedVariable(String iden) {
 }
 
 } // namespace stamon::c::err
-
-
 
 namespace stamon::c::warning {
 // 这里存放着编译端的警告信息生成函数

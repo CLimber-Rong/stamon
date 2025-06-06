@@ -1,6 +1,6 @@
 /*
 	Name: ObjectManager.cpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 29/09/23 16:56
 	Description: 对象管理器
@@ -12,59 +12,72 @@
 
 #define FREE_OBJECT(obj, type, typeID)\
 	if(obj->getType()==typeID) {\
-		type* p = cast_class(type*, obj);\
+		type* p = (type*)obj;\
 		Pool.DeleteObject(p);\
 		MemConsumeSize -= sizeof(type);\
 	} else
-//这个宏用来简便FreeScopeTrash方法的开发
+//这个宏用来简便FreeObject方法的开发
 //这个宏只能在ObjectManager.cpp当中使用
 
 #include"DataType.hpp"
 #include"MemoryPool.hpp"
 #include"ArrayList.hpp"
 #include"Stack.hpp"
-#include"stack.h"
 #include"NumberMap.hpp"
 #include"Exception.hpp"
 #include"stmlib.hpp"
-#include"strie.h"
 
 namespace stamon::vm {
+	typedef datatype::Variable Variable;
+
 	class ObjectScope {		//单个对象作用域
-			NumberMap<datatype::Variable> scope; //实际上存储的是DataType指针
+			NumberMap<Variable> scope; //实际上存储的是DataType指针
 		public:
-			bool isDestroy = true;
+
 			ObjectScope() {}
-			ObjectScope(NumberMap<datatype::Variable> s) {
+			ObjectScope(NumberMap<Variable> s) {
 				scope = s;
-				isDestroy = false;	//说明scope另有他用，不能销毁
 			}
 
 			bool exist(int key) {	//是否存在该标识符
 				return scope.containsKey(key);
 			}
-			datatype::Variable* get(int key) {
+
+			Variable* get(int key) {
 				//除非你能保证要获取的变量一定存在，否则你最好先用exist函数检查
 				return scope.get(key);
 			}
-			void put(int key, datatype::Variable* object) {	//存储一个标识符
+
+			void put(int key, Variable* object) {	//存储一个标识符
 				scope.put(key, object);
 				return;
 			}
-			NumberMap<datatype::Variable> getScope() {
+
+			NumberMap<Variable> getScope() {
 				return scope;
 			}
+
 			ArrayList<datatype::DataType*> getObjects() {
-				ArrayList<datatype::Variable*> var;
+				ArrayList<Variable*> var;
 				ArrayList<datatype::DataType*> obj;
 
-				var = getScope().getValList<datatype::Variable*>();
-
+				var = getScope().getValList<Variable*>();
+				
 				for(int i=0,len=var.size(); i<len; i++) {
 					obj.add(var.at(i)->data);
 				}
 
 				return obj;
+			}
+			
+			void destroyScope() {
+				ArrayList<Variable*> var;
+
+				var = getScope().getValList<Variable*>();
+
+				for(int i=0;i<var.size();i++) {
+					delete var[i];
+				}
 			}
 	};
 
@@ -77,9 +90,22 @@ namespace stamon::vm {
 			//最新的作用域在列表末尾，全局作用域在列表开头
 
 			datatype::NullType NullConst;
-			//在新建左值变量的时候，会给变量赋null
-			//此时的null来自于这里
-			//这个null值不参与gc
+
+			/*
+			 * 在新建左值变量的时候，会给变量赋null
+			 * 此时的null来自于这里
+			 * 这个null值不参与gc
+			 */
+
+			datatype::IntegerType* InterningIntegerConst[5+1+256] = {NULL};
+			//先全部初始化为0
+			/*
+			 * 虚拟机在运行过程当中通常需要频繁申请一些小整数
+			 * 通过把小整数放到栈的方式，可以减小内存分配次数，从而优化性能
+			 * 这里我规定小整数的范围是-5~256
+			 * 这种机制通常被称为小整数池，我更喜欢叫做整数复用池
+			 */
+
 
 		public:
 
@@ -96,13 +122,21 @@ namespace stamon::vm {
 				//构造函数，mem_limit表示最大内存限制，按字节计
 				MemConsumeSize = 0;
 				MemLimit = mem_limit;
-				NullConst.gc_flag = true;	//这个值不参与gc
+
+				//初始化一些常量对象
+				NullConst.gc_flag = true;	//初始化NullConst，它不参与gc
+				for(int i=0;i<5+1+256;i++) {
+					InterningIntegerConst[i] = new datatype::IntegerType(i-5);
+					InterningIntegerConst[i]->gc_flag = true;
+					//初始化范围是-5~256，它们不参与gc
+				}
+
 				is_gc = isGC;
 				ex = e;
 			}
 
-			datatype::DataType* getNullConst() {
-				return (datatype::DataType*)(&NullConst);
+			datatype::NullType* getNullConst() {
+				return &NullConst;
 			}
 
 			template<class T>
@@ -127,6 +161,8 @@ namespace stamon::vm {
 				return false;
 			}
 
+
+
 			/*
 			 * 开发者应该用MallocObject函数创建对象
 			 * 这个函数的用法是MallocObject<对象类型>()
@@ -141,6 +177,20 @@ namespace stamon::vm {
 
 			template<class T, typename...Types>
 			T* MallocObject(Types&& ...args) {
+				//这个代码比较难懂，涉及到形参模板和右值引用
+				return _malloc_object<T>(args...);
+			}
+
+
+
+			/*
+			 * _malloc_object是对象管理器对于分配对象的主体实现部分
+			 * 开发者不应该直接调用此接口
+			 */
+
+			template<class T, typename...Types>
+			T* _malloc_object(Types&& ...args) {
+
 				//这个代码比较难懂，涉及到形参模板和右值引用
 				T* result;      //要返回的对象
 
@@ -175,41 +225,33 @@ namespace stamon::vm {
 				 * 注意：一定要在GC后才能添加到列表，否则刚申请的对象可能会被GC掉
 				*/
 
+				result->gc_flag = false;
 
 				Objects.add(result);    //添加对象到列表
 
 				return result;  //返回对象
 			}
 
-			datatype::Variable* NewVariable(int id) {
-				datatype::Variable* result = new datatype::Variable();
+			/*
+			 * 对于对象申请的优化，我利用了模板特化，对整数申请和空值申请进行了特化
+			 * 由于编译器要求，我把代码实现放到了末尾
+			 */
+
+			Variable* NewVariable(int id) {
+				Variable* result = new Variable();
 				result->data = &NullConst;
 				Scopes.at(Scopes.size()-1).put(id, result);
 				return result;
 			}
 
-			datatype::Variable* NewVariable(int id, datatype::DataType* val) {
-				datatype::Variable* result = new datatype::Variable();
+			Variable* NewVariable(int id, datatype::DataType* val) {
+				Variable* result = new Variable();
 				result->data = val;
 				Scopes.at(Scopes.size()-1).put(id, result);
 				return result;
 			}
 
-			datatype::Variable* GetLeftVariable(int id) {
-				//获取变量，如果该变量不存在，就创建它
-				for(int i=Scopes.size()-1; i>=0; i--) {
-					if(Scopes.at(i).exist(id) == true) {
-						return Scopes.at(i).get(id);
-					}
-				}
-				//执行到这里，意味着该变量不存在
-				datatype::Variable* result = new datatype::Variable();
-				result->data = &NullConst;
-				Scopes.at(Scopes.size()-1).put(id, result);
-				return result;
-			}
-
-			datatype::Variable* GetVariable(int id) {
+			Variable* GetVariable(int id) {
 				//从最新的作用域到全局作用域逐个查找
 				for(int i=Scopes.size()-1; i>=0; i--) {
 					if(Scopes.at(i).exist(id) == true) {
@@ -220,16 +262,32 @@ namespace stamon::vm {
 				return NULL;
 			}
 
+			//正常的作用域操作
+
 			void PushScope() {
 				ObjectScope scope;
 				Scopes.add(scope);
 			}
 
-			void PushScope(ObjectScope s) {
+			void PopScope() {
+				Scopes[Scopes.size()-1].destroyScope();
+				Scopes.erase(Scopes.size()-1);
+			}
+
+			/*
+			 * 特别的，在初始化类对象时，会将类对象地成员表作为一个作用域进行入栈
+			 * 于是，初始化语句中的定义变量、函数、类就会存入这个作用域
+			 * 在初始化结束后再弹出该作用域
+			 * 这种方法可以优雅地把成员定义存入到类对象中
+			 */
+
+			void PushMemberTabScope(ObjectScope s) {
+				//将成员表作为作用域入栈
 				Scopes.add(s);
 			}
 
-			void PopScope() {
+			void PopMemberTabScope() {
+				//将成员表作用域弹出栈，不destroyScope
 				Scopes.erase(Scopes.size()-1);
 			}
 
@@ -290,18 +348,11 @@ namespace stamon::vm {
 
 					if(o->getType()==datatype::SequenceTypeID) {
 						//扫描列表当中的对象
-						datatype::SequenceType* list;
-						list = cast_class(datatype::SequenceType*, o);
-						//把Variable里的DataType*提取出来
-						ArrayList<datatype::Variable*> referVariables;
-						referVariables = list->getVal();
-						ArrayList<datatype::DataType*> referObjects;
-						for(int i=0,len=referVariables.size(); i<len; i++) {
-							referObjects.add(referVariables.at(i)->data);
-						}
+						datatype::SequenceType* list 
+												= (datatype::SequenceType*)o;
 
-						for(int i=0,len=referObjects.size(); i<len; i++) {
-							datatype::DataType* p = referObjects.at(i);
+						for(int i=0,len=list->getVal().size();i<len;i++) {
+							auto p = list->getVal()[i]->data;
 							if(p->gc_flag==false) {
 								/*
 								 * 如果这个对象还没有被扫描过
@@ -316,23 +367,16 @@ namespace stamon::vm {
 
 					if(o->getType()==datatype::ObjectTypeID) {
 						//扫描类对象引用的对象
-						datatype::ObjectType* obj
-						    = cast_class(datatype::ObjectType*, o);
-						NumberMap<datatype::Variable> map = obj->getVal();
-						//获得对象表
+						auto obj = (datatype::ObjectType*)o;
 
-						//把Variable里的DataType*提取出来
-						ArrayList<datatype::Variable*> referVaiables;
-						ArrayList<datatype::DataType*> referObjects;
-						//引用的对象的列表
+						ArrayList<Variable*> referVars = 
+											 obj
+											 ->getVal()
+											 .getValList<Variable*>();
+						//获取引用对象的列表
 
-						referVaiables = map.getValList<datatype::Variable*>();
-						for(int i=0,len=referVaiables.size(); i<len; i++) {
-							referObjects.add(referVaiables.at(i)->data);
-						}
-
-						for(int i=0,len=referObjects.size(); i<len; i++) {
-							datatype::DataType* p = referObjects.at(i);
+						for(int i=0,len=referVars.size();i<len;i++) {
+							auto p = referVars[i]->data;
 							if(p->gc_flag==false) {
 								/*如果这个对象还没有被扫描过，
 								那么标记，并放到unscanned中*/
@@ -344,9 +388,12 @@ namespace stamon::vm {
 					}
 
 					if(o->getType()==datatype::MethodTypeID) {
-						datatype::MethodType* func
-						    = cast_class(datatype::MethodType*, o);
+						//扫描类方法的容器
+						auto func = (datatype::MethodType*)o;
+						
 						datatype::ObjectType* obj = func->getContainer();
+						//获取容器
+
 						if(obj!=NULL) {
 							//有容器，容器也要扫描
 							if(obj->gc_flag==false) {
@@ -378,7 +425,6 @@ namespace stamon::vm {
 			}
 
 			void FreeObject(datatype::DataType* o) {
-				//释放对象
 				FREE_OBJECT(o, datatype::NullType, datatype::NullTypeID)
 				FREE_OBJECT(o, datatype::IntegerType, datatype::IntegerTypeID)
 				FREE_OBJECT(o, datatype::FloatType, datatype::FloatTypeID)
@@ -388,7 +434,7 @@ namespace stamon::vm {
 				FREE_OBJECT(o, datatype::ClassType, datatype::ClassTypeID)
 				FREE_OBJECT(o, datatype::MethodType, datatype::MethodTypeID)
 				FREE_OBJECT(o, datatype::ObjectType, datatype::ObjectTypeID)
-				THROW("unknown data type")
+				THROW("unknown object");
 			}
 
 			~ObjectManager() {
@@ -396,8 +442,46 @@ namespace stamon::vm {
 				for(int i=0,len=Objects.size(); i<len; i++) {
 					FreeObject(Objects[i]);
 				}
+				//释放整数复用池
+				for(int i=0;i<5+1+256;i++) {
+					FreeObject(InterningIntegerConst[i]);
+				}
+				//释放内存池的剩余内存
+				Pool.ClearAllFreeMem();
 			}
 	};
+
+
+	/*
+	* 此处运用到了模板特化，代码相对来说需要更长时间去理解
+	* 利用模板特化，我们可以在编译期就直接判断代码调用的模板类型，从而进行优化
+	* 例如，对于一个template<T>的函数f而言
+	* 我们可以特别定义一个template<int>的函数f，然后进行一些更细节的处理
+	* 这里我们特别优化了：
+		* NullType的申请：
+			* 直接返回null常量而不申请对象
+		* IntegerType的申请：
+			* 对于-5~256的整数，直接返回常量而不申请对象
+			* 这种机制通常被称为小整数池，我喜欢叫做整数复用池
+	*/
+
+	template<>
+	datatype::NullType*
+	ObjectManager::MallocObject<datatype::NullType> () {
+		//特别优化NullType
+		return getNullConst();
+	}
+
+	template<>
+	datatype::IntegerType*
+	ObjectManager::MallocObject<datatype::IntegerType> (int&& val) {
+		//利用整数复用池，来特别优化整数分配
+		if(-5<=val && val<=256) {
+			return InterningIntegerConst[val+5];
+		}
+		return _malloc_object<datatype::IntegerType>(val);
+	}
+
 } //namespace stamon::vm
 
 #undef FREE_OBJECT

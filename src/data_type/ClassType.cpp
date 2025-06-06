@@ -1,6 +1,6 @@
 /*
-	Name: ClassType.hpp
-	Copyright: Apache 2.0
+	Name: ClassType.cpp
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 14/08/23 11:54
 	Description:

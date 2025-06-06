@@ -1,6 +1,6 @@
 /*
-	Name: ASTBytecode.cpp
-	Copyright: Apache 2.0
+	Name: AstIr.cpp
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 09/02/24 08:48
 	Description: ast::Ast-IR生成器
@@ -42,7 +42,7 @@
 
 namespace stamon::ir {
 
-	class AstIR {
+	class AstIr {
 		public:
 			int type;
 			/*
@@ -85,9 +85,10 @@ namespace stamon::ir {
 			virtual int getType() {
 				return ast::AstLeafType;
 			}
+			virtual ~AstLeaf() = default;
 	};
 
-	class AstIRGenerator {
+	class AstIrConverter {
 		public:
 
 			ArrayList<datatype::DataType*> tableConst;
@@ -236,10 +237,10 @@ namespace stamon::ir {
 				return -1;
 			}
 
-			ArrayList<AstIR> gen(ast::AstNode* program) {
+			ArrayList<AstIr> ast2ir(ast::AstNode* program) {
 
 				Stack<ast::AstNode> stack;
-				ArrayList<AstIR> list;
+				ArrayList<AstIr> list;
 
 				if(program==NULL) {
 					return list;
@@ -251,11 +252,11 @@ namespace stamon::ir {
 
 				stack.push(program);
 
-				//迭代遍历语法树，编译成AstIR
+				//迭代遍历语法树，编译成AstIr
 
 				while(stack.empty()==false) {
 					bool isLeafNode = false;
-					AstIR rst;
+					AstIr rst;
 					ast::AstNode* top = stack.pop();	//弹出栈顶
 
 					rst.type = top->getType();
@@ -391,9 +392,9 @@ namespace stamon::ir {
 				return list;
 			}
 
-			ast::AstNode* read(ArrayList<AstIR> ir) {
+			ast::AstNode* ir2ast(ArrayList<AstIr> ir) {
 				/*
-				 * AstIR转ast::Ast
+				 * AstIr转Ast
 				 * 如果ir不正确，程序会运行时错误
 				 * 所以请在运行该函数前检查ir
 				 */
@@ -459,8 +460,17 @@ namespace stamon::ir {
 
 				return rst;
 			}
+
+			void destroyConst(ArrayList<datatype::DataType*> tabconst) {
+				//销毁指定的常量表
+				for(int i=0;i<tabconst.size();i++) {
+					delete tabconst[i];
+				}
+			}
 	};
 } //namespace stamon::ir
 
 
 #undef CHECK_SPECIAL_AST
+#undef CHECK_IR
+#undef CHECK_SPECIAL_IR

@@ -1,6 +1,6 @@
 /*
 	Name: BinaryWriter.hpp
-	Copyright: Apache 2.0
+	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 22/02/24 21:52
 	Description: 二进制写入器
@@ -44,6 +44,10 @@ class BinaryReader {
 			//将文件指针重新置于顶部
 		}
 
+		int getsize() {
+			return size;
+		}
+
 		char* read() {
             if(fread(buffer, 1, size, stream)!=size) {
                 return NULL;
@@ -52,6 +56,7 @@ class BinaryReader {
         }
 
 		void close() {
+			free(buffer);
 			fclose(stream);
 		}
 };
