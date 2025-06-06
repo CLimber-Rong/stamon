@@ -99,11 +99,6 @@ namespace stamon {
 					lineNo = line;
 				}
 
-				virtual int ChildrenNum() {
-					//子节点数量
-					return children->size();
-				}
-
 				virtual ArrayList<AstNode*> *Children() {
 					//获得子节点列表
 					return children;

@@ -17,13 +17,13 @@
 // 这些宏只用于此文件
 
 #define WRITE(b) \
-	WRITE(b); \
+	writer.write(b); \
 	CATCH { \
 		return; \
 	}
 
 #define WRITE_I(n) \
-	WRITE_I(n); \
+	writer.write_i(n); \
 	CATCH { \
 		return; \
 	}
@@ -94,7 +94,9 @@ public:
 
 		for (int i = 0, len = tokens.size(); i < len; i++) {
 			writeToken(tokens[i]);
-			CE;
+			CATCH {
+				return;
+			}
 		}
 
 		WRITE(-1); // 写入EOL

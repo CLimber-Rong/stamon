@@ -144,7 +144,8 @@ namespace stamon::c {   //编译器命名空间
 	    TokenString,    //字符串
 	    TokenTrue,		//布尔真值
 	    TokenFalse,		//布尔假值
-	    TokenEOF
+	    TokenEOF,
+		TokenNum
 	};
 
 	class Token {
@@ -157,45 +158,46 @@ namespace stamon::c {   //编译器命名空间
 			int lineNo;
 	};
 
+	String PreprocessStringToken(String content) {
+		//预处理content字符串，进行例如转义等操作
+		String tmp = content.substring(1,content.length()-1);
+		String val;
+		//去除前后的引号
+		int i=0;
+		while(i<tmp.length()) {
+			if(tmp[i]=='\\') {
+				//碰到转义字符
+				i++;
+				CHECK_ESCAPE_CHAR('\"', "\"")
+				CHECK_ESCAPE_CHAR('\\', "\\")
+				CHECK_ESCAPE_CHAR('0', "\0")
+				CHECK_ESCAPE_CHAR('n', "\n")
+				CHECK_ESCAPE_CHAR('t', "\t")
+				if(tmp[i]=='x') {
+					i++;
+					String data = tmp.substring(i, i+2);
+					char* c = new char[1];
+					*c = data.toIntX();
+					val += String(c);
+					delete[] c;
+					i+=2;
+				}
+			} else {
+				val += tmp.substring(i, i+1);	//把tmp[i]拼到val里
+				i++;
+			}
+		}
+		return val;
+	}
+
 	class StringToken : public Token {
 		public:
-			String content;
-			//这个字符串存储着token文本
-			//（token文本并没有去掉字符串前后的引号，以及转义字符）
 			String val;
-			//这个字符串由content处理而来
 			StringToken(int line, const String& s)
 				: Token(line, TokenString) {
 
-				content = s;
+				val = s;
 
-				//开始处理content，并存储到s
-				String tmp = content.substring(1,content.length()-1);
-				//去除前后的引号
-				int i=0;
-				while(i<tmp.length()) {
-					if(tmp[i]=='\\') {
-						//碰到转义字符
-						i++;
-						CHECK_ESCAPE_CHAR('\"', "\"")
-						CHECK_ESCAPE_CHAR('\\', "\\")
-						CHECK_ESCAPE_CHAR('0', "\0")
-						CHECK_ESCAPE_CHAR('n', "\n")
-						CHECK_ESCAPE_CHAR('t', "\t")
-						if(tmp[i]=='x') {
-							i++;
-							String data = tmp.substring(i, i+2);
-							char* c = new char[1];
-							*c = data.toIntX();
-							val += String(c);
-							delete[] c;
-							i+=2;
-						}
-					} else {
-						val += tmp.substring(i, i+1);	//把tmp[i]拼到val里
-						i++;
-					}
-				}
 			}
 	};
 
@@ -455,7 +457,9 @@ namespace stamon::c {   //编译器命名空间
 								is_str_closed = true;
 
 								String s = text.substring(st,ed);
-								StringToken* rst = new StringToken(line, s);
+								StringToken* rst = new StringToken(
+												line, PreprocessStringToken(s)
+											);
 								tokens.add((Token*)rst);
 								st = ed;
 

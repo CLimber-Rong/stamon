@@ -26,10 +26,9 @@
 
 #define CHECK_SPECIAL_AST(ast_type, special_member) \
 	if (type == ast_type##Type) { \
-		int data = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8) \
-				 + (readbyte()); \
-		n n = new ast_type(); \
-		n->special_member = data; \
+		int data = readint(); \
+		n = new ast_type(); \
+		((ast_type *) n)->special_member = data; \
 	}
 
 namespace stamon::action {
@@ -42,10 +41,10 @@ class AstFileReader {
 public:
 	STMException *ex;
 
-	AstReader() {
+	AstFileReader() {
 	}
 
-	AstReader(STMException *e, String filename) {
+	AstFileReader(STMException *e, String filename) {
 		ex = e;
 		reader = BinaryReader(e, filename);
 		CATCH {
@@ -56,12 +55,16 @@ public:
 		pos = 0;
 		buffer_size = reader.getsize();
 
-		if (buffer_size < 2 || buffer[0] != 0xAB || buffer[1] != 0xDC) {
+		if (buffer_size < 2 || buffer[0] != (char) 0xAB
+				|| buffer[1] != (char) 0xDD) {
 			// 如果文件过小或魔数异常则报错
 			THROW_S(String("non-standardized ast-file"));
 			return;
 		}
-		buffer += 2; // 从buffer[2]开始读
+
+		// 从buffer[2]开始读
+		readbyte();
+		readbyte();
 	}
 
 	char readbyte() {
@@ -74,10 +77,16 @@ public:
 		return rst;
 	}
 
+	unsigned int readint() {
+		return (((unsigned char) readbyte()) << 24)
+			 + (((unsigned char) readbyte()) << 16)
+			 + (((unsigned char) readbyte()) << 8)
+			 + (((unsigned char) readbyte()));
+	}
+
 	int updateLineNo() {
 		// 更新行号
-		int rst = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-				+ (readbyte());
+		int rst = readint();
 		CATCH {
 			return -1;
 		}
@@ -85,8 +94,7 @@ public:
 	}
 
 	String updateFileName() {
-		int slen = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-				 + (readbyte());
+		int slen = readint();
 
 		CATCH {
 			return String();
@@ -95,7 +103,7 @@ public:
 		char *c_arr = new char[slen];
 
 		for (int i = 0; i < slen; i++) {
-			c_arr[i] = buffer[pos + i];
+			c_arr[i] = readbyte();
 		}
 
 		String filename = String(c_arr);
@@ -105,8 +113,14 @@ public:
 		return filename;
 	}
 
-	AstNode *readNode(int type) {
+	ast::AstNode *readNode(int type) {
 		ast::AstNode *n = NULL;
+
+		if (type == -1) {
+			return NULL;
+			// 返回结尾单元
+		}
+
 		CHECK_AST(ast::AstProgram);
 		CHECK_AST(ast::AstDefClass);
 		CHECK_AST(ast::AstDefFunc);
@@ -127,10 +141,10 @@ public:
 		CHECK_AST(ast::AstListLiteral);
 
 		// 对有ast数据的节点进行特判
-		if (ast::AstIdentifierType) {
+		switch (type) {
+		case ast::AstIdentifierType: {
 			// 标识符
-			int len = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-					+ (readbyte());
+			int len = readint();
 			CE;
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
@@ -141,9 +155,10 @@ public:
 			String iden(cstr, len);
 			delete cstr; // 释放内存
 			n = new ast::AstIdentifierName(iden);
+			break;
 		}
 
-		if (ast::AstNumberType) {
+		case ast::AstNumberType: {
 			// 数字
 			int numtype = readbyte();
 			CE;
@@ -151,8 +166,7 @@ public:
 			switch (numtype) {
 			case ast::IntNumberType: {
 				// 整数
-				int val = (readbyte() << 24) + (readbyte() << 16)
-						+ (readbyte() << 8) + (readbyte());
+				int val = readint();
 				CE;
 				n = new ast::AstIntNumber(val);
 				break;
@@ -192,13 +206,13 @@ public:
 				break;
 			}
 			}
+			break;
 		}
 
-		if (ast::AstStringType) {
+		case ast::AstStringType: {
 			// 字符串
 			// 先读取出字符串长度
-			int len = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-					+ (readbyte());
+			int len = readint();
 			CE;
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
@@ -209,15 +223,18 @@ public:
 			String val(cstr, len);
 			delete cstr; // 释放内存
 			n = new ast::AstString(val);
+			break;
 		}
 
-		if (ast::AstAnonClassType) {
+		case ast::AstAnonClassType: {
 			// 匿名类
 			char isHaveFather = readbyte();
 			CE;
 
 			n = new ast::AstAnonClass();
 			((ast::AstAnonClass *) n)->isHaveFather = isHaveFather;
+			break;
+		}
 		}
 
 		CHECK_SPECIAL_AST(ast::AstExpression, ass_type);
@@ -225,13 +242,19 @@ public:
 		CHECK_SPECIAL_AST(ast::AstBinary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstUnary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);
+
+		if (n == NULL) {
+			THROW_S(String("unknown ast-node"));
+		}
+
+		return n;
 	}
 
 	ast::AstNode *read() {
 		ArrayList<ast::AstNode *> flatAstNode;
 		// 平面的节点（包括结尾单元）
 
-		int lineno = 0;
+		int lineno = -1;
 		String filename;
 
 		while (pos < buffer_size) {
@@ -249,26 +272,38 @@ public:
 				CE;
 			}
 
-			ast::AstNode *node = readNode();
-			node->lineNo = lineno;
-			node->filename = filename;
+			ast::AstNode *node = readNode(type);
+
+			CATCH {
+				return NULL;
+			}
+			if (node != NULL) {
+				// 非结尾单元需指定行号和文件名
+				node->lineNo = lineno;
+				node->filename = filename;
+			}
 
 			flatAstNode.add(node);
 		}
 
 		Stack<ast::AstNode> stack;
-		for (int i = 0; i < flatAstNode.size(); i++) {
+		stack.push(flatAstNode[0]); // 压入根节点
+
+		for (int i = 1; i < flatAstNode.size(); i++) {
 			ast::AstNode *node = flatAstNode[i];
-			if (node->getType() == -1) {
+			if (node == NULL) {
 				stack.pop();
 			} else {
-				stack.peek()->Children->add(node);
+				stack.peek()->Children()->add(node);
+				stack.push(node);
 			}
 		}
 
-		ast::AstNode *rst = stack.pop();
+		return flatAstNode[0];
+	}
 
-		return rst;
+	void close() {
+		reader.close();
 	}
 };
 } // namespace stamon::action

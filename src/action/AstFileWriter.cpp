@@ -17,13 +17,13 @@
 // 这些宏只用于此文件
 
 #define WRITE(b) \
-	WRITE(b); \
+	writer.write(b); \
 	CATCH { \
 		return; \
 	}
 
 #define WRITE_I(n) \
-	WRITE_I(n); \
+	writer.write_i(n); \
 	CATCH { \
 		return; \
 	}
@@ -36,12 +36,12 @@ class AstFileWriter {
 public:
 	STMException *ex;
 
-	AstWriter() {
+	AstFileWriter() {
 	}
 
-	AstWriter(STMException *e, String filename) {
+	AstFileWriter(STMException *e, String filename) {
 		ex = e;
-		writer = BinaryWriter(filename);
+		writer = BinaryWriter(ex, filename);
 
 		CATCH {
 			return;
@@ -53,13 +53,19 @@ public:
 
 	void write(ast::AstNode *node, bool isstrip) {
 		String filename;
-		int lineno = 0;
+		int lineno = -1;
 
-		Stack<ast::AstNode *> stack;
+		Stack<ast::AstNode> stack;
 		stack.push(node);
 
 		while (stack.empty() == false) {
-			ast::AstNode *top = stack.peek();
+			ast::AstNode *top = stack.pop();
+
+			if(top==NULL) {
+				//结束符
+				WRITE(-1);
+				continue;
+			}
 
 			if (isstrip == false) {
 				// 需要输出调试信息
@@ -86,6 +92,13 @@ public:
 
 			writeNode(top);
 
+			stack.push(NULL);	//压入结束符
+
+			for(int i=top->Children()->size()-1; i>=0; i--) {
+				stack.push(top->Children()->at(i));
+			
+			}
+
 			CATCH {
 				return;
 			}
@@ -99,7 +112,7 @@ public:
 		// 对有ast数据的节点进行特判
 		case ast::AstIdentifierType: {
 			// 标识符
-			String iden = ((ast::AstIdentifierName *) top)->getName;
+			String iden = ((ast::AstIdentifierName *) top)->getName();
 			WRITE_I(iden.length());
 			for (int i = 0; i < iden.length(); i++) {
 				WRITE(iden[i]);
@@ -154,9 +167,9 @@ public:
 			// 字符串
 			String text = ((ast::AstString *) top)->getVal();
 
-			WRITE_I(iden.length());
-			for (int i = 0; i < iden.length(); i++) {
-				WRITE(iden[i]);
+			WRITE_I(text.length());
+			for (int i = 0; i < text.length(); i++) {
+				WRITE(text[i]);
 			}
 			break;
 		}
@@ -197,8 +210,6 @@ public:
 			break;
 		}
 		}
-
-		WRITE(-1); // 写入结尾单元
 	}
 
 	void close() {

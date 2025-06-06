@@ -45,7 +45,8 @@ public:
 		lineno = 1; // 当前读取到第lineno行
 		buffer_size = reader.getsize();
 
-		if (buffer_size < 2 || buffer[0] != 0xAB || buffer[1] != 0xDC) {
+		if (buffer_size < 2 || buffer[0] != (char) 0xAB
+				|| buffer[1] != (char) 0xDC) {
 			// 如果文件过小或魔数异常则报错
 			THROW_S(String("non-standardized token-file"));
 			return;
@@ -67,16 +68,27 @@ public:
 		// 获取一个Token
 		int id = readbyte();
 
+		if(id<0 || id>c::TokenNum) {
+			THROW_S(String("unknown token"));
+			return NULL;
+		}
+
 		if (id == -1) {
 			// 换行
 			lineno++;
-			return NULL;
 		}
 
 		if (id == c::TokenInt) {
 			// 特判整数token
-			int val = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-					+ (readbyte());
+			int val;
+
+			char *ptr = (char *) &val;
+
+			ptr[0] = readbyte();
+			ptr[1] = readbyte();
+			ptr[2] = readbyte();
+			ptr[3] = readbyte();
+
 			CE;
 			return (c::Token *) (new c::IntToken(lineno, val));
 		}
@@ -133,7 +145,7 @@ public:
 			delete cstr; // 释放内存
 			return (c::Token *) (new c::IdenToken(lineno, val));
 		}
-		
+
 		// 返回正常的Token
 		return (c::Token *) (new c::Token(lineno, id));
 	}
@@ -143,16 +155,25 @@ public:
 		 * 获取一行的Token
 		 * 在调用此方法之前，请先调用isMore()来确保还有剩余的Token
 		 */
-		c::Token *token = readToken();
+
 		ArrayList<c::Token *> result;
 
-		while (token->type == -1 || token->type == c::TokenEOF) {
+		c::Token *token = readToken();
+
+		CATCH {
+			return result;
+		}
+
+		while (token->type != -1 && token->type != c::TokenEOF) {
 			result.add(token);
+			token = readToken();
 		}
 
 		if (token->type == c::TokenEOF) {
 			ismore = false;
 		}
+
+		return result;
 	}
 
 	bool isMore() {

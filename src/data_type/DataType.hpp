@@ -24,7 +24,7 @@ namespace stamon::datatype {
 	    ClassTypeID,
 	    MethodTypeID,
 	    ObjectTypeID,
-		DataTypeCount
+		DataTypeIDNum
 	};
 
 	class DataType;
