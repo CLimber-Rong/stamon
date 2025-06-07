@@ -238,7 +238,6 @@ public:
 		}
 
 		CHECK_SPECIAL_AST(ast::AstExpression, ass_type);
-		CHECK_SPECIAL_AST(ast::AstLeftPostfix, postfix_type);
 		CHECK_SPECIAL_AST(ast::AstBinary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstUnary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);

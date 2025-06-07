@@ -15,13 +15,10 @@ namespace stamon::ast {
 	class AstIdentifier : public AstNode {
 			unsigned long long id;
 		public:
-			AstIdentifier(unsigned long long iden_id) : AstNode() {
+			AstIdentifier(unsigned long long iden_id) : AstNode(AstIdentifierType) {
 				id = iden_id;
 			}
-			virtual int getType() {
-				return AstIdentifierType;
-			}
-			virtual unsigned long long getID() {
+			unsigned long long getID() {
 				return id;
 			}
 			virtual ~AstIdentifier() = default;
@@ -40,11 +37,8 @@ namespace stamon::ast {
 			AstIdentifierName(const String& id) : AstIdentifier(-1) {
 				name = id;
 			}
-			virtual int getType() {
-				return AstIdentifierType;
-			}
-			virtual String getName() {
-				return name.getstr();
+			String getName() {
+				return name;
 			}
 			virtual ~AstIdentifierName() = default;
 	};
@@ -65,10 +59,8 @@ namespace stamon::ast {
 		protected:
 			int number_type;
 		public:
-			virtual int getType() {
-				return AstNumberType;
-			}
-			virtual int getNumberType() {
+			AstNumber() : AstNode(AstNumberType) {}
+			int getNumberType() {
 				return number_type;
 			}
 			virtual ~AstNumber() = default;
@@ -81,7 +73,7 @@ namespace stamon::ast {
 				number_type = IntNumberType;
 				value = val;
 			}
-			virtual int getVal() {
+			int getVal() {
 				return value;
 			}
 			virtual ~AstIntNumber() = default;
@@ -94,7 +86,7 @@ namespace stamon::ast {
 				number_type = FloatNumberType;
 				value = val;
 			}
-			virtual float getVal() {
+			float getVal() {
 				return value;
 			}
 			virtual ~AstFloatNumber() = default;
@@ -107,7 +99,7 @@ namespace stamon::ast {
 				number_type = DoubleNumberType;
 				value = val;
 			}
-			virtual double getVal() {
+			double getVal() {
 				return value;
 			}
 			virtual ~AstDoubleNumber() = default;
@@ -117,13 +109,10 @@ namespace stamon::ast {
 	class AstString : public AstNode {
 			String val;
 		public:
-			AstString(const String& str) : AstNode() {
+			AstString(const String& str) : AstNode(AstStringType) {
 				val = str;
 			}
-			virtual int getType() {
-				return AstStringType;
-			}
-			virtual String getVal() {
+			String getVal() {
 				return val;
 			}
 			virtual ~AstString() = default;
@@ -131,24 +120,16 @@ namespace stamon::ast {
 
 	class AstNull : public AstNode {
 		public:
-			virtual int getType() {
-				return AstNullType;
-			}
+			AstNull() : AstNode(AstNullType) {}
 	};
 
 	class AstBreak : public AstNode {
 		public:
-			AstBreak() : AstNode() {};
-			virtual int getType() {
-				return AstBreakType;
-			}
+			AstBreak() : AstNode(AstBreakType) {}
 	};
 
 	class AstContinue : public AstNode {
 		public:
-			AstContinue() : AstNode() {};
-			virtual int getType() {
-				return AstContinueType;
-			}
+			AstContinue() : AstNode(AstContinueType) {}
 	};
 }

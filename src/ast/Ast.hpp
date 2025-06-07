@@ -36,7 +36,6 @@ namespace stamon {
 		    AstSFNType,
 		    AstExpressionType,
 		    AstLeftValueType,
-		    AstLeftPostfixType,
 		    AstBinaryType,
 		    AstUnaryType,
 		    AstPostfixType,
@@ -68,7 +67,6 @@ namespace stamon {
 		class AstSFN;
 		class AstExpression;
 		class AstLeftValue;
-		class AstLeftPostfix;
 		class AstBinary;
 		class AstUnary;
 		class AstPostfix;
@@ -85,18 +83,18 @@ namespace stamon {
 				ArrayList<AstNode*>* children;
 
 			public:
+				int id;				//语法树的节点类型
 				int lineNo;			//语法分析时用于显示行号
 				String filename;	//语义分析时用于显示文件名
 
 				AstNode() {
-					//构造函数
+					id = AstNodeType;
 					children = new ArrayList<AstNode*>();
 				}
 
-				AstNode(int line) {
-					//构造函数
+				AstNode(int type_id) {
+					id = type_id;
 					children = new ArrayList<AstNode*>();
-					lineNo = line;
 				}
 
 				virtual ArrayList<AstNode*> *Children() {
@@ -106,7 +104,7 @@ namespace stamon {
 
 				virtual int getType() {
 					//获得节点类型
-					return AstNodeType;
+					return id;
 				}
 
 				virtual ~AstNode() {

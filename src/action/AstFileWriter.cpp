@@ -186,12 +186,6 @@ public:
 			break;
 		}
 
-		case ast::AstLeftPostfixType: {
-			// 匿名类
-			WRITE_I(((ast::AstLeftPostfix *) top)->postfix_type);
-			break;
-		}
-
 		case ast::AstBinaryType: {
 			// 匿名类
 			WRITE_I(((ast::AstBinary *) top)->operator_type);

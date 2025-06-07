@@ -76,14 +76,11 @@ namespace stamon::ir {
 	class AstLeaf : public ast::AstNode {
 			int index;	//常量表下标
 		public:
-			AstLeaf(int data) : AstNode() {
+			AstLeaf(int data) : AstNode(ast::AstLeafType) {
 				index = data;
 			}
 			virtual int getVal() const {
 				return index;
-			}
-			virtual int getType() {
-				return ast::AstLeafType;
 			}
 			virtual ~AstLeaf() = default;
 	};
@@ -268,7 +265,6 @@ namespace stamon::ir {
 					//先特判一些节点
 					CHECK_SPECIAL_AST(ast::AstAnonClass, isHaveFather)
 					CHECK_SPECIAL_AST(ast::AstExpression, ass_type)
-					CHECK_SPECIAL_AST(ast::AstLeftPostfix, getPostfixType())
 					CHECK_SPECIAL_AST(ast::AstBinary, getOperatorType())
 					CHECK_SPECIAL_AST(ast::AstUnary, getOperatorType())
 					CHECK_SPECIAL_AST(ast::AstPostfix, getPostfixType())
@@ -378,7 +374,10 @@ namespace stamon::ir {
 
 					if(isLeafNode==false) {
 						//压入终结符
-						stack.push(new ast::AstNode(rst.lineNo));
+						ast::AstNode* end = new ast::AstNode();
+						end->lineNo = rst.lineNo;
+
+						stack.push(end);
 
 						//接着遍历子节点
 						for(int i=top->Children()->size()-1; i>=0; i--) {
@@ -442,7 +441,6 @@ namespace stamon::ir {
 
 					CHECK_SPECIAL_IR(ast::AstAnonClass, isHaveFather)
 					CHECK_SPECIAL_IR(ast::AstExpression, ass_type)
-					CHECK_SPECIAL_IR(ast::AstLeftPostfix, postfix_type)
 					CHECK_SPECIAL_IR(ast::AstBinary, operator_type)
 					CHECK_SPECIAL_IR(ast::AstUnary, operator_type)
 					CHECK_SPECIAL_IR(ast::AstPostfix, postfix_type)

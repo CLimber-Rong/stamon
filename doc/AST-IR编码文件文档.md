@@ -38,7 +38,6 @@ AST-IR（以下简称``AstIr``）是一种将抽象语法树（以下简称``Ast
 |:-|:-|
 |ast::AstAnonClass|isHaveFather|
 |ast::AstExpression|ass_type|
-|ast::AstLeftPostfix|getPostfixType()|
 |ast::AstBinary|getOperatorType()|
 |ast::AstUnary|getOperatorType()|
 |ast::AstPostfix|getPostfixType()|

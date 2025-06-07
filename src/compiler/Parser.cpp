@@ -1085,7 +1085,7 @@ namespace stamon::c {
 					}
 
 
-					ast::AstLeftPostfix* tmp = Ast<ast::AstLeftPostfix>(
+					ast::AstPostfix* tmp = Ast<ast::AstPostfix>(
 					                               p->lineNo,
 					                               p->getPostfixType(),
 					                               p->Children()->at(0)
