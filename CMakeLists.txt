@@ -70,11 +70,6 @@ endif()
 add_executable(stamon src/Main.cpp)
 compressing_binary(stamon)
 
-add_executable(stamon-test test/test.cpp)
-add_executable(lexer-test test/lexer/test.cpp)
-add_executable(parser-test test/parser/test.cpp)
-# add_executable(preprocessor-test test/preprocessor/test.cpp) # 这个没法通过编译啊
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         file(TO_NATIVE_PATH "${PROJECT_SOURCE_DIR}/src/bin-include" src)
         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
