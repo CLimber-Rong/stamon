@@ -46,7 +46,7 @@ namespace stamon {
 		    AstNullType,
 		    AstArrayLiteralType,
 		    AstListLiteralType,
-			AstLeafType,	//见AstIr.cpp
+			AstLeafType,	//用于存储常量表下标的叶子节点
 		    AstTypeNum // Ast总数
 		};
 
@@ -77,6 +77,7 @@ namespace stamon {
 		class AstNull;
 		class AstArrayLiteral;
 		class AstListLiteral;
+		class AstLeaf;
 
 		class AstNode {
 			protected:

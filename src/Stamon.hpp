@@ -85,9 +85,14 @@ namespace stamon {
 
 				//编译为IR
 
-				ir::AstIrConverter converter;
+				ir::AstIrConverter converter(ex);
 
 				ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
+
+				CATCH {
+					ErrorMsg.add(ex->getError());
+					return;
+				}
 
 				delete node;	//删除AST
 
@@ -162,12 +167,17 @@ namespace stamon {
 				VerY = ir_reader.VerY;
 				VerZ = ir_reader.VerZ;
 
-				ir::AstIrConverter converter;	//初始化转换器
+				ir::AstIrConverter converter(ex);
 
 				converter.tableConst = ir_reader.tableConst;
 				//复制常量表到转换器
 
 				ast::AstNode* running_node = converter.ir2ast(ir_list);
+
+				CATCH {
+					ErrorMsg.add(ex->getError());
+					return;
+				}
 
 				vm::AstRunner runner;
 
@@ -236,7 +246,8 @@ namespace stamon {
 					VerX, VerY, VerZ
 				);
 
-				ir::AstIrConverter converter;
+				ir::AstIrConverter converter(ex);
+
 				//利用转换器来销毁常量表
 				converter.destroyConst(ir_tableconst);
 

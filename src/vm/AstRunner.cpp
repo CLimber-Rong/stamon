@@ -1181,7 +1181,7 @@ namespace stamon::vm {
 			}
 
 			RetStatus runIden(ast::AstNode* node) {
-				int index = ((ir::AstLeaf*)node)->getVal();
+				int index = ((ast::AstLeaf*)node)->getVal();
 
 				if(index>=tabconst.size()) {
 					ThrowConstantsError();
@@ -1196,7 +1196,7 @@ namespace stamon::vm {
 			}
 
 			RetStatus runLeaf(ast::AstNode* node) {
-				int index = ((ir::AstLeaf*)node)->getVal();
+				int index = ((ast::AstLeaf*)node)->getVal();
 				if(index>=tabconst.size()) {
 					ThrowConstantsError();
 					return RetStatus(RetStatusErr, NullVariablePtr());

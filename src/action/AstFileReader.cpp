@@ -285,20 +285,63 @@ public:
 			flatAstNode.add(node);
 		}
 
-		Stack<ast::AstNode> stack;
-		stack.push(flatAstNode[0]); // 压入根节点
+		//将平面的节点复原成树状结构
 
-		for (int i = 1; i < flatAstNode.size(); i++) {
-			ast::AstNode *node = flatAstNode[i];
-			if (node == NULL) {
-				stack.pop();
-			} else {
-				stack.peek()->Children()->add(node);
-				stack.push(node);
-			}
+		Stack<ast::AstNode> stack;
+
+		ast::AstNode *root = NULL;
+
+		if (flatAstNode.size() == 0) {
+			THROW_S(String("expect ast root node"));
+			return root;
 		}
 
-		return flatAstNode[0];
+		for (int i = 0, len = ir.size(); i < len; i++) {
+			if (flatAstNode[i] == NULL) {
+				// 特判结束符
+
+				if (stack.empty()) {
+					// 多余的终结符
+					THROW_S(String("redundant ast end node"));
+					return root;
+				}
+
+				stack.pop();
+				continue;
+			}
+
+			// 创建一个节点
+			ast::AstNode *n = flatAstNode[i];
+
+			if (stack.empty()) {
+				// 该节点是根节点
+
+				if (root != NULL) {
+					// 已经出现根节点了，因此是重复的根节点
+					THROW_S(String("redundant ast root node"));
+					return root;
+				}
+
+				root = n;
+
+			} else {
+				// 该节点并不是根节点，加入到父节点中
+				ast::AstNode *parent = stack.peek();
+				parent->Children()->add(n);
+			}
+
+			stack.push(n);
+
+		}
+
+		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失
+		if (stack.empty() == false) {
+			THROW_S(String("expect ast end node"));
+			return root;
+		}
+
+		return root;
+		
 	}
 
 	void close() {
