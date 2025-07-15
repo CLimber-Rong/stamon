@@ -97,7 +97,7 @@ int main() {
 
 	LineReader reader(String((char*)"code.st"), ex);	//初始化阅读器
 
-	Lexer lexer(ex);	//初始化词法分析器
+	Lexer lexer(ex, "code.st");	//初始化词法分析器
 
 	int lineNo = 1;
 	while(reader.isMore()) {

@@ -23,14 +23,6 @@ public:
 	Compiler() {
 	}
 
-	Compiler(Compiler &right) {
-		filemap = right.filemap;
-		global_scope = right.global_scope;
-		src = right.src;
-		ex = right.ex;
-		ErrorMsg = right.ErrorMsg;
-	}
-
 	Compiler(STMException *e, ArrayList<String> *error_msg,
 			 ArrayList<String> *warning_msg)
 		: filemap(e)
@@ -52,7 +44,7 @@ public:
 		}
 
 		int lineNo = 1;
-		Lexer lexer(ex);
+		Lexer lexer(ex, filename);
 
 		while (reader.isMore()) {
 			String text = reader.getLine();
@@ -64,29 +56,14 @@ public:
 			int index = lexer.getLineTok(lineNo, text);
 
 			CATCH {
-				THROW_S(
-					String((char *) "Error: at \"") 
-					+ filename
-					+ String((char *) "\": ") 
-					+ toString(lineNo) + String((char *) ":")
-					+ toString(index) + String((char *) " : ") 
-					+ ex->getError()
-				)
-				ErrorMsg->add(ex->getError());
-
+				ErrorMsg->add(ex->getError().toString());
 				ex->isError = false;
 			}
 
-			CATCH_WARNING {
-				for (int i = 0, len = WARNING.size(); i < len; i++) {
-					String warning_msg = WARNING[i];
-					WarningMsg->add(
-						String((char *) "Warning: at \"") 
-						+ filename
-						+ String((char *) "\": ") 
-						+ toString(lineNo)
-						+ String((char *) ": ") + warning_msg
-					);
+			if(ISWARNING) {
+				for (int i = 0, len = ex->Warning.size(); i < len; i++) {
+					auto warning = ex->Warning[i];
+					WarningMsg->add(warning.toString());
 				}
 				ex->isWarning = false;
 			}
@@ -102,16 +79,7 @@ public:
 		ast::AstNode *node = parser->Parse(); // 语法分析
 
 		CATCH {
-			THROW_S(
-				String((char *) "Syntax Error: at \"") 
-				+ filename
-				+ String((char *) "\": ") 
-				+ toString(parser->ParsingLineNo)
-				+ String((char *) ": ") 
-				+ ex->getError()
-			)
-			ErrorMsg->add(ex->getError());
-
+			ErrorMsg->add(ex->getError().toString());
 			ex->isError = false;
 		}
 

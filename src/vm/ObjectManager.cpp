@@ -24,7 +24,7 @@
 #include"ArrayList.hpp"
 #include"Stack.hpp"
 #include"NumberMap.hpp"
-#include"Exception.hpp"
+#include"ObjectManagerException.cpp"
 #include"stmlib.hpp"
 
 namespace stamon::vm {
@@ -211,13 +211,19 @@ namespace stamon::vm {
 
 				if(MemConsumeSize>MemLimit) {
 					//如果GC后内存还是不够，就报错
-					THROW("out of memory")
+					THROW(
+						exception::objectmanager::MemoryError("_malloc_object()")
+					);
 					return NULL;
 				}
 
 				if(result==NULL) {
 					//如果物理内存不足，就报错
-					THROW("out of physical memory")
+					THROW(
+						exception
+						::objectmanager
+						::PhysicalMemoryError("_malloc_object()")
+					);
 					return NULL;
 				}
 
@@ -258,7 +264,9 @@ namespace stamon::vm {
 						return Scopes.at(i).get(id);
 					}
 				}
-				THROW("undefined identifier")	//未定义标识符
+				THROW(
+					exception::objectmanager::IdentifierError("GetVariable()")
+				);	//未定义标识符
 				return NULL;
 			}
 
@@ -434,7 +442,7 @@ namespace stamon::vm {
 				FREE_OBJECT(o, datatype::ClassType, datatype::ClassTypeID)
 				FREE_OBJECT(o, datatype::MethodType, datatype::MethodTypeID)
 				FREE_OBJECT(o, datatype::ObjectType, datatype::ObjectTypeID)
-				THROW("unknown object");
+				THROW(exception::objectmanager::ObjectError("FreeObject()"));
 			}
 
 			~ObjectManager() {

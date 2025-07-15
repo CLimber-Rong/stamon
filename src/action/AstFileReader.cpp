@@ -9,8 +9,8 @@
 #pragma once
 
 #include "Ast.hpp"
+#include "AstFileReaderException.cpp"
 #include "BinaryReader.hpp"
-#include "Exception.hpp"
 #include "Stack.hpp"
 #include "String.hpp"
 
@@ -58,7 +58,7 @@ public:
 		if (buffer_size < 2 || buffer[0] != (char) 0xAB
 				|| buffer[1] != (char) 0xDD) {
 			// 如果文件过小或魔数异常则报错
-			THROW_S(String("non-standardized ast-file"));
+			THROW(exception::astfilereader::FormatError("start"));
 			return;
 		}
 
@@ -69,7 +69,7 @@ public:
 
 	char readbyte() {
 		if (pos >= buffer_size) {
-			THROW_S(String("non-standardized ast-file"));
+			THROW_S(exception::astfilereader::FormatError("readbyte()"));
 			return 0;
 		}
 		char rst = buffer[pos];
@@ -243,7 +243,7 @@ public:
 		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);
 
 		if (n == NULL) {
-			THROW_S(String("unknown ast-node"));
+			THROW(exception::astfilereader::NodeError("readNode()"));
 		}
 
 		return n;
@@ -285,14 +285,14 @@ public:
 			flatAstNode.add(node);
 		}
 
-		//将平面的节点复原成树状结构
+		// 将平面的节点复原成树状结构
 
 		Stack<ast::AstNode> stack;
 
 		ast::AstNode *root = NULL;
 
 		if (flatAstNode.size() == 0) {
-			THROW_S(String("expect ast root node"));
+			THROW(exception::astfilereader::RootNodeError("read()"));
 			return root;
 		}
 
@@ -302,7 +302,8 @@ public:
 
 				if (stack.empty()) {
 					// 多余的终结符
-					THROW_S(String("redundant ast end node"));
+					THROW(exception::astfilereader::RedundantRootNodeError(
+							"read()"));
 					return root;
 				}
 
@@ -318,7 +319,7 @@ public:
 
 				if (root != NULL) {
 					// 已经出现根节点了，因此是重复的根节点
-					THROW_S(String("redundant ast root node"));
+					THROW(exception::astfilereader::RedundantRootNode("read()"));
 					return root;
 				}
 
@@ -331,17 +332,15 @@ public:
 			}
 
 			stack.push(n);
-
 		}
 
 		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失
 		if (stack.empty() == false) {
-			THROW_S(String("expect ast end node"));
+			THROW(exception::astfilereader::EndNodeError("read()"));
 			return root;
 		}
 
 		return root;
-		
 	}
 
 	void close() {

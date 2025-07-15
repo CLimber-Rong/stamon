@@ -23,7 +23,7 @@ int main() {
 
 	STMException* ex = new STMException();
 
-	Lexer lexer(ex);
+	Lexer lexer(ex, "");
 	int index;
 
 	index = lexer.getLineTok(1, String((char*)"def a = func { return \"Hello world!\"; }();"));

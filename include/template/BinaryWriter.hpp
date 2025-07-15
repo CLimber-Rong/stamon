@@ -8,8 +8,6 @@
 
 #pragma once
 
-#define FILE_ERROR { THROW("file opening error") return; }
-
 #include"Exception.hpp"
 #include"String.hpp"
 

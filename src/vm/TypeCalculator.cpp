@@ -10,9 +10,7 @@
 
 #include"Lexer.cpp"
 #include"DataType.hpp"
-#include"Exception.hpp"
 #include"ObjectManager.cpp"
-
 
 //为了方便开发，我编写了一系列简写的宏
 #define DTT datatype::DataType
@@ -35,8 +33,6 @@
                     ||(dt->getType()==IDFLT)\
                     ||(dt->getType()==IDDBL)\
                   )
-
-#define TYPEERR(dt) THROW_S(getDataTypeName(dt->getType()))
 
 #define NEWDT(type) manager->MallocObject<type>
 
@@ -559,8 +555,6 @@ namespace stamon::vm {
 #undef IDSEQ
 
 #undef ISNUM
-
-#undef TYPEERR
 
 #undef NEWDT
 

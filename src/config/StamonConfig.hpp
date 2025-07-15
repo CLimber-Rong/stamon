@@ -12,7 +12,7 @@
 namespace stamon {
 constexpr int STAMON_VER_X = 2;
 constexpr int STAMON_VER_Y = 4;
-constexpr int STAMON_VER_Z = 48;
+constexpr int STAMON_VER_Z = 49;
 } // namespace stamon
 
 namespace stamon::config {

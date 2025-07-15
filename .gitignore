@@ -4,3 +4,4 @@ build
 CMakeFiles
 CMakeCache.txt
 .xmake
+.vscode

@@ -9,9 +9,9 @@
 #pragma once
 
 #include "BinaryReader.hpp"
-#include "Exception.hpp"
 #include "Lexer.cpp"
 #include "String.hpp"
+#include "TokenFileReaderException.cpp"
 
 // 为了节约篇幅，定义了一些宏用于简写
 // 这些宏只用于此文件
@@ -48,7 +48,7 @@ public:
 		if (buffer_size < 2 || buffer[0] != (char) 0xAB
 				|| buffer[1] != (char) 0xDC) {
 			// 如果文件过小或魔数异常则报错
-			THROW_S(String("non-standardized token-file"));
+			THROW(exception::tokenfilereader::FormatError("TokenFileReader()"));
 			return;
 		}
 		buffer += 2; // 从buffer[2]开始读
@@ -56,7 +56,7 @@ public:
 
 	char readbyte() {
 		if (index >= buffer_size) {
-			THROW_S(String("non-standardized token-file"));
+			THROW(exception::tokenfilereader::FormatError("TokenFileReader()"));
 			return 0;
 		}
 		char rst = buffer[index];
@@ -68,8 +68,8 @@ public:
 		// 获取一个Token
 		int id = readbyte();
 
-		if(id<0 || id>c::TokenNum) {
-			THROW_S(String("unknown token"));
+		if (id < 0 || id > c::TokenNum) {
+			THROW(exception::tokenfilereader::TokenError("readToken()"));
 			return NULL;
 		}
 

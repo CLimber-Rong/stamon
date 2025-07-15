@@ -11,8 +11,7 @@
 #include"String.hpp"
 #include"ArrayList.hpp"
 #include"stmlib.hpp"
-#include"Exception.hpp"
-#include"CompilerExceptionMessage.cpp"
+#include"CompilerException.cpp"
 
 #define CHECK_KEYWORD(keyword, TokType) \
 	if(iden==String((char*)keyword)) {\
@@ -23,9 +22,13 @@
 	}
 //为了方便判断关键字，我编写了这个宏
 
+#define POSITION \
+	filename + String(":") + toString(line) + String(":") + toString(ed)
+//为了方便获取当前分析的位置，我编写了这个宏
+
 #define STR_EX(len) \
 	if(text_len-ed<(len-1)) {\
-		THROW_S(err::WrongStringFormat());\
+		THROW(exception::compiler::StringError(POSITION));\
 		return;\
 	}
 //为了方便判断字符串token是否错误，我编写了这个宏（全名应该叫做CHECK_STRING_EXCEPTION）
@@ -246,13 +249,16 @@ namespace stamon::c {   //编译器命名空间
 
 			STMException* ex;
 
+			String filename;
+
 			Lexer() {}
 
-			Lexer(STMException* e) {
+			Lexer(STMException* e, String Filename) {
 				ex = e;
+				filename = Filename;
 			}
 
-			int StrToInt(int line, String s) {
+			int StrToInt(int line, int ed, String s) {
 				//词法分析器需要特判整数过大引起溢出的情况，所以不能直接使用String的toInt
 				bool warnflag = false;
 				int rst = 0;
@@ -260,14 +266,14 @@ namespace stamon::c {   //编译器命名空间
 					rst *= 10;
 					rst += s[i] - '0';
 					if(rst<0 && warnflag==false) {
-						WARN_S(warning::TooLargeInteger());
+						WARN(exception::compiler::LargeIntegerWarning(POSITION));
 						warnflag = true;
 					}
 				}
 				return rst;
 			}
 
-			double StrToDouble(int line, String s) {
+			double StrToDouble(int line, int ed, String s) {
 				//词法分析器需要特判小数过大引起溢出的情况
 				bool warnflag = false;
 				int integer = 0;
@@ -279,7 +285,7 @@ namespace stamon::c {   //编译器命名空间
 					integer *= 10;
 					integer += s[i] - '0';
 					if(integer<0 && warnflag==false) {
-						WARN_S(warning::TooLargeFloat());
+						WARN(exception::compiler::LargeFloatWarning(POSITION));
 						warnflag = true;
 					}
 					i++;
@@ -292,7 +298,7 @@ namespace stamon::c {   //编译器命名空间
 					decimal /= 10;
 					decimal += (double)(s[i]-'0');
 					if(decimal<0 && warnflag==false) {
-						WARN_S(warning::TooLargeFloat());
+						WARN(exception::compiler::LargeFloatWarning(POSITION));
 						warnflag = true;
 					}
 					i++;
@@ -364,17 +370,17 @@ namespace stamon::c {   //编译器命名空间
 					}
 					
 					if(is_has_decimal_part==false) {
-						THROW_S(err::WrongFloatFormat());
+						THROW(exception::compiler::FloatError(POSITION));
 						return;
 					}
 				} //分析小数
 
 				if(isInt==true) {
-					int value = StrToInt(line, text.substring(st, ed));
+					int value = StrToInt(line, ed, text.substring(st, ed));
 					IntToken* rst = new IntToken(line, value);
 					tokens.add((Token*)rst);
 				} else {
-					double value = StrToDouble(line 
+					double value = StrToDouble(line, ed
 										,text.substring(st, ed));
 					DoubleToken* rst = new DoubleToken(line, value);
 					tokens.add((Token*)rst);
@@ -622,7 +628,11 @@ namespace stamon::c {   //编译器命名空间
 							==false
 						) {
 							//不是上述的任意一种Token，就说明碰到了未知字符
-							THROW_S(err::UnknownToken(text.substring(ed, ed+1)));
+							THROW(
+								exception
+								::compiler
+								::TokenError(POSITION, text.substring(ed, ed+1))
+							);
 							return st;
 						}
 					}
@@ -633,6 +643,7 @@ namespace stamon::c {   //编译器命名空间
 }
 
 #undef CHECK_KEYWORD
+#undef POSITION
 #undef STR_EX
 #undef CHECK_OPERATOR
 #undef CHECK_LONG_OPERATOR

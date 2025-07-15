@@ -9,7 +9,7 @@
 #pragma once
 
 #include"ArrayList.hpp"
-#include"Exception.hpp"
+#include"AstRunnerException.cpp"
 #include"String.hpp"
 #include"stmlib.hpp"
 #include"Ast.hpp"
@@ -22,7 +22,11 @@
 
 #define CDT(dt, type) \
 	if(dt->getType()!=type##ID) {\
-		ThrowTypeError(dt->getType());\
+		THROW(\
+			exception::astrunner::TypeError(\
+				POSITION, getDataTypeName(dt->getType())\
+			)\
+		);\
 	}\
 	CE
 
@@ -40,12 +44,12 @@
 //Get datatype::DataType，想要安全的获取datatype::DataType，应该使用这个宏
 
 #define CE			CATCH { return RetStatus(RetStatusErr, NullVariablePtr()); }
-//如果执行代码中出现异常，直接返回
+//如果执行代码中出现异常，则抛出新的异常并覆盖原本的异常
 #define CTH(message)	CATCH { THROW(message) }
-//如果执行代码中出现异常，抛出异常
-#define CTH_S(message)	CATCH { THROW_S(message) }
 //用于绑定函数指针
 #define BIND(name) RunAstFunc[ast::Ast##name##Type] = &AstRunner::run##name;
+
+#define POSITION getExecutePosition()
 
 namespace stamon::vm {
 
@@ -175,19 +179,6 @@ namespace stamon::vm {
 
 			String getDataTypeName(int type);
 			String getExecutePosition();
-			void ThrowTypeError(int type);
-			void ThrowPostfixError();
-			void ThrowIndexError();
-			void ThrowConstantsError();
-			void ThrowDivZeroError();
-			void ThrowBreakError();
-			void ThrowContinueError();
-			void ThrowArgumentsError(int form_args, int actual_args);
-			void ThrowReturnError();
-			void ThrowUnknownOperatorError();
-			void ThrowUnknownMemberError(int id);
-			void ThrowLengthError();
-			void ThrowNegativeShiftError();
 
 			/**
 			 * \brief 执行程序
@@ -253,11 +244,13 @@ namespace stamon::vm {
 					auto st = RUN(node->Children()->at(i));
 					if(st.status!=RetStatusNor) {
 						if(st.status==RetStatusRet) {
-							ThrowReturnError();
+							THROW(exception::astrunner::ReturnError(POSITION));
 						} else if(st.status==RetStatusBrk) {
-							ThrowBreakError();
+							THROW(exception::astrunner::BreakError(POSITION));
 						} else if(st.status==RetStatusCon) {
-							ThrowContinueError();
+							THROW(
+								exception::astrunner::ContinueError(POSITION)
+							);
 						}
 						CE
 					}
@@ -290,7 +283,14 @@ namespace stamon::vm {
 						return NULL;
 					}
 					if(father_class->data->getType()!=datatype::ClassTypeID) {
-						ThrowTypeError(father_class->data->getType());
+						THROW(
+							exception
+							::astrunner
+							::TypeError(
+								POSITION,
+								getDataTypeName(father_class->data->getType())
+							)
+						);
 						return NULL;
 					}
 
@@ -386,7 +386,15 @@ namespace stamon::vm {
 				/*然后对比形参和实参的个数*/
 				if(FormArg.size()!=args_val.size()) {
 					//形式参数个数要等于实际参数个数
-					ThrowArgumentsError(FormArg.size(), args_val.size());
+					THROW(
+						exception
+						::astrunner
+						::ArgumentsError(
+							POSITION,
+							toString(FormArg.size()),
+							toString(args_val.size())
+						)
+					);
 					CE
 				}
 
@@ -684,12 +692,12 @@ namespace stamon::vm {
 				}
 
 				if(st.status==RetStatusBrk) {
-					ThrowBreakError();
+					THROW(exception::astrunner::BreakError(POSITION));
 					CE
 				}
 
 				if(st.status==RetStatusCon) {
-					ThrowContinueError();
+					THROW(exception::astrunner::ContinueError(POSITION));
 					CE
 				}
 
@@ -775,7 +783,7 @@ namespace stamon::vm {
 					&& typecalculator.toBool(right_value->data)==false
 				) {
 					//除数为0
-					ThrowDivZeroError();
+					THROW(exception::astrunner::ZeroDivisionError(POSITION));
 					CE;
 				}
 
@@ -785,7 +793,7 @@ namespace stamon::vm {
 				
 				if(optype==-1) {
 					//符号有误
-					ThrowUnknownOperatorError();
+					THROW(exception::astrunner::UnknownOperatorError(POSITION));
 					CE;
 				}
 
@@ -795,7 +803,14 @@ namespace stamon::vm {
 					==false
 				) {
 					//运算类型有误
-					ThrowTypeError(left_value->data->getType());
+					THROW(
+						exception
+						::astrunner
+						::TypeError(
+							POSITION,
+							toString(left_value->data->getType())
+						)
+					);
 					CE;
 				}
 
@@ -867,7 +882,7 @@ namespace stamon::vm {
 
 				//先特判运算符和运算类型是否合法
 				if(typecalculator.CheckBinaryOperator(optype)==false) {
-					ThrowUnknownOperatorError();
+					THROW(exception::astrunner::UnknownOperatorError(POSITION));
 					CE;
 				}
 				
@@ -877,7 +892,14 @@ namespace stamon::vm {
 								  )
 					== false
 				) {
-					ThrowTypeError(left->getType());
+					THROW(
+						exception
+						::astrunner
+						::TypeError(
+							POSITION,
+							toString(left->getType())
+						)
+					);
 					CE;
 				}
 
@@ -891,7 +913,7 @@ namespace stamon::vm {
 					&& typecalculator.toInt(right) < 0
 				) {
 					//位移数不能为负
-					ThrowNegativeShiftError();
+					THROW(exception::astrunner::NegativeShiftError(POSITION));
 					CE;
 				}
 
@@ -904,7 +926,7 @@ namespace stamon::vm {
 				) {
 					//除数不能为0
 					//将b转为布尔值，如果b是0，则一定为false
-					ThrowDivZeroError();
+					THROW(exception::astrunner::ZeroDivisionError(POSITION));
 					CE;
 				}
 				
@@ -954,14 +976,21 @@ namespace stamon::vm {
 
 				//特判运算符和运算类型是否合法
 				if(typecalculator.CheckUnaryOperator(optype)==false) {
-					ThrowUnknownOperatorError();
+					THROW(exception::astrunner::UnknownOperatorError(POSITION));
 					CE;
 				}
 				
 				if(
 					typecalculator.CheckUnaryOperandType(src, optype) == false
 				) {
-					ThrowTypeError(src->getType());
+					THROW(
+						exception
+						::astrunner
+						::TypeError(
+							POSITION,
+							toString(src->getType())
+						)
+					);
 					CE;
 				}
 
@@ -994,7 +1023,9 @@ namespace stamon::vm {
 					    .containsKey(member_id)==false
 					) {
 						//未知成员
-						ThrowUnknownMemberError(member_id);
+						THROW(exception::astrunner::UnknownMemberError(
+							POSITION, toString(member_id))
+						);
 						CE
 					}
 
@@ -1028,7 +1059,7 @@ namespace stamon::vm {
 					int index = ((datatype::IntegerType*)index_dt)->getVal();
 
 					if(index<0 ||index>=list.size()) {
-						ThrowIndexError();
+						THROW(exception::astrunner::IndexError(POSITION));
 						return RetStatus(RetStatusErr, NullVariablePtr());
 					}
 
@@ -1095,7 +1126,7 @@ namespace stamon::vm {
 					return st;
 				}
 
-				ThrowPostfixError();
+				THROW(exception::astrunner::PostfixError(POSITION));
 				return RetStatus(RetStatusErr, NullVariablePtr());
 			}
 
@@ -1110,7 +1141,7 @@ namespace stamon::vm {
 
 				if(((datatype::IntegerType*)length)->getVal()<0) {
 					//错误的数列长度
-					ThrowLengthError();
+					THROW(exception::astrunner::LengthError(POSITION));
 					CE;
 				}
 
@@ -1184,7 +1215,7 @@ namespace stamon::vm {
 				int index = ((ast::AstLeaf*)node)->getVal();
 
 				if(index>=tabconst.size()) {
-					ThrowConstantsError();
+					THROW(exception::astrunner::ConstantsError(POSITION));
 					return RetStatus(RetStatusErr, NullVariablePtr());
 				}
 
@@ -1198,7 +1229,7 @@ namespace stamon::vm {
 			RetStatus runLeaf(ast::AstNode* node) {
 				int index = ((ast::AstLeaf*)node)->getVal();
 				if(index>=tabconst.size()) {
-					ThrowConstantsError();
+					THROW(exception::astrunner::ConstantsError(POSITION));
 					return RetStatus(RetStatusErr, NullVariablePtr());
 				}
 
@@ -1249,6 +1280,16 @@ inline String stamon::vm::AstRunner::getDataTypeName(int type) {
 	}
 }
 
+inline String stamon::vm::AstRunner::getExecutePosition() {
+	if (RunningFileName.equals("") && RunningLineNo == -1) {
+		// 字节码中被没有调试信息，即被字节码被strip过
+		return String("");
+	} else {
+		return String("at \"") + RunningFileName + String("\": ")
+			 + toString(RunningLineNo) + String(": ");
+	}
+}
+
 #undef CDT
 #undef OPND_PUSH
 #undef OPND_POP
@@ -1256,7 +1297,5 @@ inline String stamon::vm::AstRunner::getDataTypeName(int type) {
 #undef GETDT
 #undef CE
 #undef CTH
-#undef CTH_S
 #undef BIND
-
-#include"AstRunnerExceptionMessage.cpp"
+#undef POSITION

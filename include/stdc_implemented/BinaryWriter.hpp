@@ -8,7 +8,16 @@
 
 #pragma once
 
-#define FILE_ERROR { THROW("file opening error") return; }
+#define FILE_ERR(position) { \
+		THROW(\
+			STMInfo(\
+				"BinaryWriter",\
+				"FileError",\
+				String("an error has occured in ") + String(position),\
+				"BinaryWriter()"\
+			)\
+		);\
+	}
 
 #include"Exception.hpp"
 #include"String.hpp"
@@ -23,11 +32,11 @@ class BinaryWriter {
         BinaryWriter(STMException* e, String filename) {
             ex = e;
             fstream = fopen(filename.getstr(), "wb");
-            if(fstream==NULL) FILE_ERROR
+            if(fstream==NULL) FILE_ERR("fopen()");
         }
 
         void write(char b) {
-            if(!fwrite(&b, 1, 1, fstream)) FILE_ERROR
+            if(!fwrite(&b, 1, 1, fstream)) FILE_ERR("fwrite()");
         }
 
         void write_i(int n) {
@@ -45,4 +54,4 @@ class BinaryWriter {
         }
 };
 
-#undef FILE_ERROR
+#undef FILE_ERR

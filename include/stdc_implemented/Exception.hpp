@@ -7,12 +7,10 @@
 */
 #pragma once
 
-#include"stmlib.hpp"
-#include"String.hpp"
-#include"ArrayList.hpp"
-//该库不依赖平台，无需移植
-
-char* ExceptionMessage;
+#include "ArrayList.hpp"
+#include "String.hpp"
+#include "stmlib.hpp"
+// 该库不额外依赖平台，实现上述库即可
 
 /*
 	CATCH的使用方法：
@@ -22,52 +20,64 @@ char* ExceptionMessage;
 	THROW(message)用于抛出异常，异常信息为message
 	THROW_S的作用与THROW相近，通常用于抛出“运行时才能决定异常信息”的异常
 	ERROR是异常信息
-*/ 
-
-/*
- * 这里了经过改装
- * 开发者只需要在当前代码所在的作用域中定义STMException* ex
- * 即可使用以下的宏
- * 之前的异常实现是全局性的
- * 但是考虑到今后要尝试多线程运行，所以我将异常实现变成面向对象的
 */
 
-#define THROW(message) ex->Throw(String((char*)message));
-//THROW当中的message是char*
-#define THROW_S(message_s) ex->Throw(message_s);
-//THROW_S当中的message_s是String
-#define CATCH if(ex->isError)
-#define ERROR (ex->getError())
+/*
+ * 开发者只需要在当前代码所在的作用域中定义STMException* ex
+ * 即可使用以下的宏
+ */
 
-#define WARN(message) ex->Warn(String(message));
-#define WARN_S(message_s) ex->Warn(message_s);
-#define CATCH_WARNING if(ex->isWarning)
-#define IS_WARNING (ex->getError())
-#define WARNING (ex->getWarning())
+#define THROW(info) ex->Throw(info);
+#define CATCH if (ex->isError)
+
+#define WARN(info) ex->Warn(info);
+#define ISWARNING (ex->isWarning)
+
+class STMInfo {
+	// 一个信息的组成，通常用于异常和日志系统
+public:
+	String sender; // 信息发送者
+	String type; // 信息类型
+	String message; // 信息内容
+	String position; // 信息位置
+	STMInfo() {
+	}
+	STMInfo(const String &Sender, const String &Type, const String &Message,
+			const String &Position)
+		: sender(Sender)
+		, type(Type)
+		, message(Message)
+		, position(Position) {
+	}
+	String toString() {
+		return type + String(": from ") + sender + String(": at ") + position
+			 + String(": ") + message;
+	}
+};
 
 class STMException {
-		String ExceptionMessage;
-		ArrayList<String> WarningMessages;
-	public:
-		bool isError = false;
-		bool isWarning = false;
+public:
+	STMInfo Exception;	//异常
+	ArrayList<STMInfo> Warning;	//一系列的警告
+	bool isError = false;
+	bool isWarning = false;
 
-		void Throw(String msg) {
-			ExceptionMessage = msg;
-			isError = true;
-		}
+	void Throw(STMInfo info) {
+		Exception = info;
+		isError = true;
+	}
 
-		void Warn(String msg) {
-			WarningMessages.add(msg);
-			isWarning = true;
-		}
+	void Warn(STMInfo info) {
+		Warning.add(info);
+		isWarning = true;
+	}
 
-		String getError() {
-			return ExceptionMessage;
-		}
+	STMInfo getError() {
+		return Exception;
+	}
 
-		ArrayList<String> getWarning() {
-			return WarningMessages;
-		}
+	ArrayList<STMInfo> getWarning() {
+		return Warning;
+	}
 
 };

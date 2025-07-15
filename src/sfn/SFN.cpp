@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "SFNException.cpp"
 #include "Stamon.hpp"
 #include "StamonConfig.hpp"
 
@@ -69,12 +70,9 @@ public:
 	}
 	void call(String port, datatype::Variable *arg) {
 		if (sfn_functions.containsKey(port) == 0) {
-			THROW("undefined sfn port")
+			THROW(exception::sfn::SFNError("call()", "undefined sfn port"));
 		} else {
 			sfn_functions.get(port)(*this, arg, manager);
-		}
-		CATCH {
-			THROW_S(String((char *) "SFN Error: ") + ex->getError())
 		}
 	}
 };
@@ -130,7 +128,8 @@ String DataType2String(STMException *ex, stamon::datatype::DataType *dt) {
 		return String((char *) "<object>");
 
 	default: {
-		THROW("unknown type")
+		THROW(stamon::exception::sfn::SFNError(
+				"DataType2String()", "unknown data-type"));
 		return String((char *) "");
 	}
 	}
@@ -140,7 +139,8 @@ void sfn_print(SFN_PARA_LIST) {
 	STMException *ex = sfn.ex;
 	stamon::datatype::DataType *val = arg->data;
 	if (val->getType() != stamon::datatype::StringTypeID) {
-		THROW("bad type in print")
+		THROW(stamon::exception::sfn::SFNError(
+				"sfn_print()", "invalid type"));
 		return;
 	}
 	platform_print(((stamon::datatype::StringType *) val)->getVal());
@@ -177,7 +177,8 @@ void sfn_int(SFN_PARA_LIST) {
 				dst *= 10;
 				dst += src[i] - '0';
 			} else {
-				THROW("bad integer format");
+				THROW(stamon::exception::sfn::SFNError(
+						"sfn_int()", "invalid integer format"));
 				return;
 			}
 		}
@@ -187,7 +188,7 @@ void sfn_int(SFN_PARA_LIST) {
 	}
 
 	default: {
-		THROW("bad type in\'int\'");
+		THROW(stamon::exception::sfn::SFNError("sfn_int()", "invalid type"));
 	}
 	}
 
@@ -221,7 +222,7 @@ void sfn_len(SFN_PARA_LIST) {
 				((stamon::datatype::StringType *) val)->getVal().length());
 
 	} else {
-		THROW("bad type in\'len\'")
+		THROW(stamon::exception::sfn::SFNError("sfn_int()", "invalid type"));
 	}
 
 	return;
@@ -265,7 +266,8 @@ void sfn_typeof(SFN_PARA_LIST) {
 
 void sfn_throw(SFN_PARA_LIST) {
 	STMException *ex = sfn.ex;
-	THROW_S(((stamon::datatype::StringType *) arg->data)->getVal())
+	String err_msg = ((stamon::datatype::StringType *) arg->data)->getVal();
+	THROW(stamon::exception::sfn::SFNError("sfn_throw()", err_msg));
 	return;
 }
 

@@ -9,9 +9,9 @@
 #pragma once
 
 #include "AstIr.cpp"
+#include "AstIrReaderException.cpp"
 #include "BinaryReader.hpp"
 #include "DataType.hpp"
-#include "Exception.hpp"
 #include "NumberMap.hpp"
 #include "String.hpp"
 
@@ -40,7 +40,7 @@ public:
 
 		if (buffer_size < 8) {
 			// 字节码太少了
-			THROW("The code size is too small")
+			THROW(exception::astirreader::CodeSizeError("ReadHeader()"));
 			return false;
 		}
 
@@ -50,7 +50,7 @@ public:
 			// 通过魔数查看该字节码是否为STVC
 			NextPos(2);
 		} else {
-			THROW("Not STVC")
+			THROW(exception::astirreader::FormatError("ReadHeader()"));
 			return false;
 		}
 		// 版本计算方法：X、Y、Z共占两个字节
@@ -173,7 +173,8 @@ public:
 			}
 
 			default: {
-				THROW("Unknown constants");
+				THROW(exception::astirreader::ConstantsError(
+						"ReadTableConst()"));
 			}
 			}
 
@@ -253,7 +254,7 @@ public:
 			 * 我在pos越界后，抛出异常并把pos调整至非越界范围
 			 */
 			pos = 0; // 调整至非越界范围
-			THROW("The code size is too small")
+			THROW(exception::astirreader::CodeSizeError("NextPos"));
 		} else {
 			pos += x;
 		}

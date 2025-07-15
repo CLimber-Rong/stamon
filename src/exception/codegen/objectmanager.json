@@ -1,0 +1,30 @@
+{
+  "name": "ObjectManagerException.cpp",
+  "error": [
+    {
+      "type": "MemoryError",
+      "arg": [],
+      "msg": ["out of memory"],
+      "doc": "GC后占用内存仍然超出限制，请调整内存大小限制或优化代码。"
+    },
+    {
+      "type": "PhysicalMemoryError",
+      "arg": [],
+      "msg": ["out of physical memory"],
+      "doc": "物理内存不足，请调整内存大小限制或优化代码。"
+    },
+    {
+      "type": "IdentifierError",
+      "arg": [],
+      "msg": ["undefined identifier"],
+      "doc": "访问了未定义的标识符，通常情况下，标识符的定义问题会在编译期报告，因此需仔细检查字节码文件是否被损坏或是否存在其他内部异常。"
+    },
+    {
+      "type": "ObjectError",
+      "arg": [],
+      "msg": ["unknown object"],
+      "doc": "发现了未知类型的对象，通常情况下，对象由虚拟机生成，也可能由SFN等外部接入的代码产生，因此请仔细检查虚拟机是否存在内部异常或外部接入的代码是否存在异常。"
+    }
+  ],
+  "warning": []
+}

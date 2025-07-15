@@ -19,7 +19,6 @@
 #include"AstIr.cpp"
 #include"Compiler.hpp"
 #include"Exception.hpp"
-#include"BinaryReader.hpp"
 #include"StamonConfig.hpp"
 
 namespace stamon {
@@ -90,7 +89,7 @@ namespace stamon {
 				ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -104,7 +103,7 @@ namespace stamon {
 				action::AstIrWriter writer(ex, dst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -114,14 +113,14 @@ namespace stamon {
 				);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				converter.destroyConst(converter.tableConst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -135,7 +134,7 @@ namespace stamon {
 				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -143,20 +142,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				if(ir_reader.ReadHeader()==false) {
 					//读取文件头
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				ir_list = ir_reader.ReadIR();
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -175,7 +174,7 @@ namespace stamon {
 				ast::AstNode* running_node = converter.ir2ast(ir_list);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -191,11 +190,15 @@ namespace stamon {
 				converter.destroyConst(converter.tableConst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				WarningMsg = runner.ex->getWarning();
+				ArrayList<STMInfo> runner_warning = runner.ex->getWarning();
+
+				for(int i=0,len=runner_warning.size(); i<len; i++) {
+					WarningMsg.add(runner_warning[i].toString());
+				}
 
 				return;
 			}
@@ -207,7 +210,7 @@ namespace stamon {
 				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -215,20 +218,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				if(ir_reader.ReadHeader()==false) {
 					//读取文件头
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				ir_list = ir_reader.ReadIR();
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -252,11 +255,13 @@ namespace stamon {
 				converter.destroyConst(ir_tableconst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				WarningMsg = ex->getWarning();
+				for(int i=0,len=ex->getWarning().size(); i<len; i++) {
+					WarningMsg.add(ex->getWarning().at(i).toString());
+				}
 
 				return;
 			}

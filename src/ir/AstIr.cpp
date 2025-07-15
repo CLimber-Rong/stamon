@@ -12,7 +12,7 @@
 #include "Ast.hpp"
 #include "ByteMap.hpp"
 #include "DataType.hpp"
-#include "Exception.hpp"
+#include "AstIrException.cpp"
 #include "NumberMap.hpp"
 #include "Stack.hpp"
 #include "String.hpp"
@@ -376,7 +376,7 @@ public:
 		ast::AstNode *root = NULL;
 
 		if (ir.size() == 0) {
-			THROW_S(String("expect ast-ir root node"));
+			THROW(exception::astir::RootNodeError("ir2ast()"));
 			return root;
 		}
 
@@ -386,7 +386,7 @@ public:
 
 				if (stack.empty()) {
 					// 多余的终结符
-					THROW_S(String("redundant ast-ir end node"));
+					THROW(exception::astir::RedundantEndNodeError("ir2ast()"));
 					return root;
 				}
 
@@ -418,7 +418,7 @@ public:
 
 				if (root != NULL) {
 					// 已经出现根节点了，因此是重复的根节点
-					THROW_S(String("redundant ast-ir root node"));
+					THROW(exception::astir::RedundantRootNodeError("ir2ast()"));
 					return root;
 				}
 
@@ -439,7 +439,7 @@ public:
 
 		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失
 		if (stack.empty() == false) {
-			THROW_S(String("expect ast-ir end node"));
+			THROW(exception::astir::EndNodeError("ir2ast()"));
 			return root;
 		}
 
