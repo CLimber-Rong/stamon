@@ -61,8 +61,8 @@ public:
 		while (stack.empty() == false) {
 			ast::AstNode *top = stack.pop();
 
-			if(top==NULL) {
-				//结束符
+			if (top == NULL) {
+				// 结束符
 				WRITE(-1);
 				continue;
 			}
@@ -92,11 +92,10 @@ public:
 
 			writeNode(top);
 
-			stack.push(NULL);	//压入结束符
+			stack.push(NULL); // 压入结束符
 
-			for(int i=top->Children()->size()-1; i>=0; i--) {
+			for (int i = top->Children()->size() - 1; i >= 0; i--) {
 				stack.push(top->Children()->at(i));
-			
 			}
 
 			CATCH {

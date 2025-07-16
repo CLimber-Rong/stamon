@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include"Lexer.cpp"
+#include"Token.cpp"
 #include"DataType.hpp"
 #include"ObjectManager.cpp"
 

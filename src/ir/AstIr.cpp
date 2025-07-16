@@ -10,9 +10,9 @@
 
 #include "ArrayList.hpp"
 #include "Ast.hpp"
+#include "AstIrException.cpp"
 #include "ByteMap.hpp"
 #include "DataType.hpp"
-#include "AstIrException.cpp"
 #include "NumberMap.hpp"
 #include "Stack.hpp"
 #include "String.hpp"
@@ -430,11 +430,10 @@ public:
 				parent->Children()->add(n);
 			}
 
-			if(ir[i].type!=ast::AstLeafType) {
-				//叶子节点没有对应的结束单元，不需要压入
+			if (ir[i].type != ast::AstLeafType) {
+				// 叶子节点没有对应的结束单元，不需要压入
 				stack.push(n);
 			}
-
 		}
 
 		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失

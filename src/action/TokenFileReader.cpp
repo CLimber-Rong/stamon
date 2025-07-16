@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BinaryReader.hpp"
-#include "Lexer.cpp"
+#include "Token.cpp"
 #include "String.hpp"
 #include "TokenFileReaderException.cpp"
 
