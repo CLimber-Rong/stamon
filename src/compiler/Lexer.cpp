@@ -293,24 +293,25 @@ namespace stamon::c {   //编译器命名空间
 				String iden = text.substring(st, ed);
 
 				//判断关键字
-				CHECK_KEYWORD("class", TokenClass)
-				CHECK_KEYWORD("def", TokenDef)
-				CHECK_KEYWORD("extends", TokenExtends)
-				CHECK_KEYWORD("func", TokenFunc)
-				CHECK_KEYWORD("break", TokenBreak)
+				CHECK_KEYWORD("class", TokenClass);
+				CHECK_KEYWORD("def", TokenDef);
+				CHECK_KEYWORD("extends", TokenExtends);
+				CHECK_KEYWORD("func", TokenFunc);
+				CHECK_KEYWORD("break", TokenBreak);
 				CHECK_KEYWORD("continue", TokenContinue);
-				CHECK_KEYWORD("if", TokenIf)
-				CHECK_KEYWORD("else", TokenElse)
-				CHECK_KEYWORD("while", TokenWhile)
-				CHECK_KEYWORD("for", TokenFor)
-				CHECK_KEYWORD("in", TokenIn)
-				CHECK_KEYWORD("return", TokenReturn)
-				CHECK_KEYWORD("sfn", TokenSFN)
-				CHECK_KEYWORD("new", TokenNew)
-				CHECK_KEYWORD("null", TokenNull)
-				CHECK_KEYWORD("import", TokenImport)
-				CHECK_KEYWORD("true", TokenTrue)
-				CHECK_KEYWORD("false", TokenFalse)
+				CHECK_KEYWORD("if", TokenIf);
+				CHECK_KEYWORD("else", TokenElse);
+				CHECK_KEYWORD("while", TokenWhile);
+				CHECK_KEYWORD("for", TokenFor);
+				CHECK_KEYWORD("in", TokenIn);
+				CHECK_KEYWORD("return", TokenReturn);
+				CHECK_KEYWORD("sfn", TokenSFN);
+				CHECK_KEYWORD("new", TokenNew);
+				CHECK_KEYWORD("null", TokenNull);
+				CHECK_KEYWORD("import", TokenImport);
+				CHECK_KEYWORD("extern", TokenExtern);
+				CHECK_KEYWORD("true", TokenTrue);
+				CHECK_KEYWORD("false", TokenFalse);
 				//都不是关键字的话，那就是正常的标识符
 
 				st = ed;

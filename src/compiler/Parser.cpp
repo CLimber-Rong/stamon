@@ -119,7 +119,7 @@ namespace stamon::c {
 	class SyntaxScope {	//用于记录每个作用域的变量，防止变量重定义、变量未定义就使用
 		public:
 			//这个类要区分与vm::ObjectScope
-			StringMap<void> scope;
+			StringMap<void> scope;	//SyntaxScope的Map是引用传递的
 			int isWall = 0;
 			/*
 			 * 这里需要详细介绍一下isWall的用法
@@ -439,6 +439,10 @@ namespace stamon::c {
 				} else if(check(TokenImport)) {
 
 					statement_import();
+
+				} else if (check(TokenExtern)) {
+
+					statement_extern();
 
 				} else {
 
@@ -988,6 +992,35 @@ namespace stamon::c {
 
 			}
 
+			ast::AstNode* statement_extern() {
+				//外部强定义标识符
+
+				GETLN(TokenExtern);
+
+				ParsingLineNo = lineNo;
+
+				Token* iden = match(TokenIden);
+				CE;
+
+				scopes[0].mark((IdenToken*)iden, POSITION);
+				CE;
+
+				while(check(TokenCmm)) {
+					match(TokenCmm);
+
+					Token* iden = match(TokenIden);
+					CE;
+
+					scopes[0].mark((IdenToken*)iden, POSITION);
+					CE;
+				}
+
+				match(TokenSemi);
+				CE;
+
+				return NULL;
+			}
+
 			ast::AstExpression* expression() {
 				ast::AstExpression* rst;
 				ast::AstBinary* val = binary_operator();
@@ -1120,12 +1153,17 @@ namespace stamon::c {
 					CE
 					rst = Ast<ast::AstBinary>(
 					          op->lineNo,
-					          op->type-38,
+					          op->type - MATH_OPERATOR_START - 1,
 					          rst,
 					          right
 					      );
-					//其中，op->type-38其实是将token里的运算符映射到ast中的运算符
-					//例如TokenBitOR-38 = 2 = BinaryBitORType
+					/*
+					 * 观察op->type-MATH_OPERATOR_START-1
+					 * 这个表达式其实是将token里的运算符映射到ast中的运算符
+					 * 例如	TokenBitOR-MATH_OPERATOR_START-1 
+					 		= 2 
+							= BinaryBitORType
+					 */
 
 					op = matcher.Peek(0);
 				}

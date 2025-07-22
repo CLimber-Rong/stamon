@@ -28,6 +28,7 @@ enum TOKEN_TYPE {
 	TokenNew,
 	TokenNull, // 空值
 	TokenImport, // 导入
+	TokenExtern,	//外部定义
 	KEYWORDS_MAX, // 关键词个数
 	TokenAssign, // 赋值
 	TokenSemi, // 分号
@@ -50,6 +51,7 @@ enum TOKEN_TYPE {
 	TokenOrAss,
 	TokenLSHAss,
 	TokenRSHAss,
+	MATH_OPERATOR_START,	//数学运算符的起始
 	TokenLogOR, // 逻辑运算符
 	TokenLogAND,
 	TokenBitOR, // 位运算符
