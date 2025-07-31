@@ -141,7 +141,7 @@ namespace stamon::c {   //编译器命名空间
 				filename = Filename;
 			}
 
-			int StrToInt(int line, int ed, String s) {
+			inline int toInt(int line, int ed, String s) {
 				//词法分析器需要特判整数过大引起溢出的情况，所以不能直接使用String的toInt
 				bool warnflag = false;
 				int rst = 0;
@@ -156,7 +156,7 @@ namespace stamon::c {   //编译器命名空间
 				return rst;
 			}
 
-			double StrToDouble(int line, int ed, String s) {
+			inline double toDouble(int line, int ed, String s) {
 				//词法分析器需要特判小数过大引起溢出的情况
 				bool warnflag = false;
 				int integer = 0;
@@ -259,11 +259,11 @@ namespace stamon::c {   //编译器命名空间
 				} //分析小数
 
 				if(isInt==true) {
-					int value = StrToInt(line, ed, text.substring(st, ed));
+					int value = toInt(line, ed, text.substring(st, ed));
 					IntToken* rst = new IntToken(line, value);
 					tokens.add((Token*)rst);
 				} else {
-					double value = StrToDouble(line, ed
+					double value = toDouble(line, ed
 										,text.substring(st, ed));
 					DoubleToken* rst = new DoubleToken(line, value);
 					tokens.add((Token*)rst);
@@ -401,49 +401,49 @@ namespace stamon::c {   //编译器命名空间
 				int& line, int& text_len,
 				int& st, int& ed, String& text
 			) {
-				CHECK_LONG_LONG_OPERATOR("<<=", TokenLSHAss)
-				CHECK_LONG_LONG_OPERATOR(">>=", TokenRSHAss)
+				CHECK_LONG_LONG_OPERATOR("<<=", TokenLSHAss);
+				CHECK_LONG_LONG_OPERATOR(">>=", TokenRSHAss);
 
-				CHECK_LONG_OPERATOR("+=", TokenAddAss)
-				CHECK_LONG_OPERATOR("-=", TokenSubAss)
-				CHECK_LONG_OPERATOR("*=", TokenMulAss)
-				CHECK_LONG_OPERATOR("/=", TokenDivAss)
-				CHECK_LONG_OPERATOR("%=", TokenModAss)
-				CHECK_LONG_OPERATOR("&=", TokenAndAss)
-				CHECK_LONG_OPERATOR("^=", TokenXOrAss)
-				CHECK_LONG_OPERATOR("|=", TokenOrAss)
-				CHECK_LONG_OPERATOR("||", TokenLogOR)
-				CHECK_LONG_OPERATOR("&&", TokenLogAND)
-				CHECK_LONG_OPERATOR("==", TokenEqu)
-				CHECK_LONG_OPERATOR("!=", TokenNotEqu)
-				CHECK_LONG_OPERATOR(">=", TokenBigEqu)
-				CHECK_LONG_OPERATOR("<=", TokenLessEqu)
-				CHECK_LONG_OPERATOR("<<", TokenLSH)
-				CHECK_LONG_OPERATOR(">>", TokenRSH)
+				CHECK_LONG_OPERATOR("+=", TokenAddAss);
+				CHECK_LONG_OPERATOR("-=", TokenSubAss);
+				CHECK_LONG_OPERATOR("*=", TokenMulAss);
+				CHECK_LONG_OPERATOR("/=", TokenDivAss);
+				CHECK_LONG_OPERATOR("%=", TokenModAss);
+				CHECK_LONG_OPERATOR("&=", TokenAndAss);
+				CHECK_LONG_OPERATOR("^=", TokenXOrAss);
+				CHECK_LONG_OPERATOR("|=", TokenOrAss);
+				CHECK_LONG_OPERATOR("||", TokenLogOR);
+				CHECK_LONG_OPERATOR("&&", TokenLogAND);
+				CHECK_LONG_OPERATOR("==", TokenEqu);
+				CHECK_LONG_OPERATOR("!=", TokenNotEqu);
+				CHECK_LONG_OPERATOR(">=", TokenBigEqu);
+				CHECK_LONG_OPERATOR("<=", TokenLessEqu);
+				CHECK_LONG_OPERATOR("<<", TokenLSH);
+				CHECK_LONG_OPERATOR(">>", TokenRSH);
 
-				CHECK_OPERATOR('=', TokenAssign)
-				CHECK_OPERATOR(';', TokenSemi)
-				CHECK_OPERATOR('{', TokenLBC)
-				CHECK_OPERATOR('}', TokenRBC)
-				CHECK_OPERATOR('(', TokenLRB)
-				CHECK_OPERATOR(')', TokenRRB)
-				CHECK_OPERATOR('[', TokenLSB)
-				CHECK_OPERATOR(']', TokenRSB)
-				CHECK_OPERATOR(',', TokenCmm)
-				CHECK_OPERATOR(':', TokenColon)
-				CHECK_OPERATOR('.', TokenMember)
-				CHECK_OPERATOR('|', TokenBitOR)
-				CHECK_OPERATOR('^', TokenBitXOR)
-				CHECK_OPERATOR('&', TokenBitAND)
-				CHECK_OPERATOR('>', TokenBig)
-				CHECK_OPERATOR('<', TokenLess)
-				CHECK_OPERATOR('+', TokenAdd)
-				CHECK_OPERATOR('-', TokenSub)
-				CHECK_OPERATOR('*', TokenMul)
-				CHECK_OPERATOR('/', TokenDiv)
-				CHECK_OPERATOR('%', TokenMod)
-				CHECK_OPERATOR('!', TokenLogNot)
-				CHECK_OPERATOR('~', TokenBitNot)
+				CHECK_OPERATOR('=', TokenAssign);
+				CHECK_OPERATOR(';', TokenSemi);
+				CHECK_OPERATOR('{', TokenLBC);
+				CHECK_OPERATOR('}', TokenRBC);
+				CHECK_OPERATOR('(', TokenLRB);
+				CHECK_OPERATOR(')', TokenRRB);
+				CHECK_OPERATOR('[', TokenLSB);
+				CHECK_OPERATOR(']', TokenRSB);
+				CHECK_OPERATOR(',', TokenCmm);
+				CHECK_OPERATOR(':', TokenColon);
+				CHECK_OPERATOR('.', TokenMember);
+				CHECK_OPERATOR('|', TokenBitOR);
+				CHECK_OPERATOR('^', TokenBitXOR);
+				CHECK_OPERATOR('&', TokenBitAND);
+				CHECK_OPERATOR('>', TokenBig);
+				CHECK_OPERATOR('<', TokenLess);
+				CHECK_OPERATOR('+', TokenAdd);
+				CHECK_OPERATOR('-', TokenSub);
+				CHECK_OPERATOR('*', TokenMul);
+				CHECK_OPERATOR('/', TokenDiv);
+				CHECK_OPERATOR('%', TokenMod);
+				CHECK_OPERATOR('!', TokenLogNot);
+				CHECK_OPERATOR('~', TokenBitNot);
 				return false;
 			}
 

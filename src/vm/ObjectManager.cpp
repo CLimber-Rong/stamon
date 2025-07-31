@@ -257,7 +257,7 @@ namespace stamon::vm {
 				return result;
 			}
 
-			Variable* GetVariable(int id) {
+			Variable* getVariable(int id) {
 				//从最新的作用域到全局作用域逐个查找
 				for(int i=Scopes.size()-1; i>=0; i--) {
 					if(Scopes.at(i).exist(id) == true) {
@@ -265,19 +265,19 @@ namespace stamon::vm {
 					}
 				}
 				THROW(
-					exception::objectmanager::IdentifierError("GetVariable()")
+					exception::objectmanager::IdentifierError("getVariable()")
 				);	//未定义标识符
 				return NULL;
 			}
 
 			//正常的作用域操作
 
-			void PushScope() {
+			void pushScope() {
 				ObjectScope scope;
 				Scopes.add(scope);
 			}
 
-			void PopScope() {
+			void popScope() {
 				Scopes[Scopes.size()-1].destroyScope();
 				Scopes.erase(Scopes.size()-1);
 			}
@@ -289,12 +289,12 @@ namespace stamon::vm {
 			 * 这种方法可以优雅地把成员定义存入到类对象中
 			 */
 
-			void PushMemberTabScope(ObjectScope s) {
+			void pushMemberTabScope(ObjectScope s) {
 				//将成员表作为作用域入栈
 				Scopes.add(s);
 			}
 
-			void PopMemberTabScope() {
+			void popMemberTabScope() {
 				//将成员表作用域弹出栈，不destroyScope
 				Scopes.erase(Scopes.size()-1);
 			}
@@ -314,7 +314,7 @@ namespace stamon::vm {
 				for(int i=0,len=OPND.size(); i<len; i++) {
 					OPND[i]->gc_flag = true;
 				}
-				MarkScopeObject(opnd_unscanned);
+				markScopeObject(opnd_unscanned);
 
 				//再根据GC Root标记非垃圾对象
 				for(int i=0; i<Scopes.size(); i++) {
@@ -323,17 +323,17 @@ namespace stamon::vm {
 					//获取当前作用域的变量表
 					ArrayList<datatype::DataType*> unscanned;
 					//未扫描的对象列表
-					InitUnscannedScope(scope, unscanned);
+					initUnscannedScope(scope, unscanned);
 					//把作用域里的变量（也就是GCRoots）加载到unscanned里
-					MarkScopeObject(unscanned);
+					markScopeObject(unscanned);
 					//遍历该作用域的变量涉及到的全部对象，并且标记他们
 				}
 
 				//清除垃圾对象
-				CleanScopeTrash();
+				cleanScopeTrash();
 			}
 
-			void InitUnscannedScope(
+			void initUnscannedScope(
 			    ObjectScope &scope,
 			    ArrayList<datatype::DataType*> &unscanned
 			) {
@@ -345,7 +345,7 @@ namespace stamon::vm {
 				return;
 			}
 
-			void MarkScopeObject(ArrayList<datatype::DataType*>& unscanned) {
+			void markScopeObject(ArrayList<datatype::DataType*>& unscanned) {
 				//遍历该作用域的变量涉及到的全部对象，并且标记他们
 				while(unscanned.empty()==false) {
 					int len = unscanned.size();
@@ -413,7 +413,7 @@ namespace stamon::vm {
 				}
 			}
 
-			void CleanScopeTrash() {
+			void cleanScopeTrash() {
 				ArrayList<datatype::DataType*> NewObjects;
 				//把清理后有用的对象存储在这个列表里
 

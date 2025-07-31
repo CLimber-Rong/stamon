@@ -19,8 +19,6 @@
 // 用这个宏（SFN Parameter List）可以快速声明SFN函数的参数列表
 
 namespace stamon::sfn {
-constexpr int STAMON_SFN_FUNCTIONS_MAX = 65536;
-// SFN的库函数个数最大值
 class SFN;
 } // namespace stamon::sfn
 

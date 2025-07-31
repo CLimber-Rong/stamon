@@ -38,7 +38,7 @@ namespace stamon {
 
 			Stamon() {}
 
-			void Init() {
+			void init() {
 				ex = new STMException();
 				VerX = STAMON_VER_X;
 				VerY = STAMON_VER_Y;
@@ -146,13 +146,13 @@ namespace stamon {
 					return;
 				}
 
-				if(ir_reader.ReadHeader()==false) {
+				if(ir_reader.readHeader()==false) {
 					//读取文件头
 					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				ir_list = ir_reader.ReadIR();
+				ir_list = ir_reader.readIR();
 
 				CATCH {
 					ErrorMsg.add(ex->getError().toString());
@@ -222,13 +222,13 @@ namespace stamon {
 					return;
 				}
 
-				if(ir_reader.ReadHeader()==false) {
+				if(ir_reader.readHeader()==false) {
 					//读取文件头
 					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				ir_list = ir_reader.ReadIR();
+				ir_list = ir_reader.readIR();
 
 				CATCH {
 					ErrorMsg.add(ex->getError().toString());

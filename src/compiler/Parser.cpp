@@ -87,7 +87,7 @@ namespace stamon::c {
 				return false;
 			}
 
-			Token* Match(int type) {
+			Token* match(int type) {
 				//匹配一个类型为type的token，如果不匹配，就直接报错
 				if(Check(type)) {
 					return lexer.getTok();
@@ -239,30 +239,21 @@ namespace stamon::c {
 			 * 不难发现，如果loop_levels的结尾元素大于0，则当前处于循环当中
 			 */
 
-			Parser(Matcher matcher, STMException* e) {
-				this->matcher = matcher;
-				ex = e;
-				SyntaxScope global_scope(ex);
-				//压入一个空的全局作用域
-				scopes.add(global_scope);
-				ImportFlag = false;
-			}	//这个构造函数用于兼容之前的测试样例
-
 			Parser(
 			    Matcher matcher, STMException* e,
 			    SyntaxScope global_scope, String filename,
 			    ArrayList<SourceSyntax>* src, FileMap map,
-			    ArrayList<String>* msg, bool isSupportImport
+			    ArrayList<String>* error_msg, bool is_support_import
 			) {
 				this->matcher = matcher;
 				ex = e;
 				//压入全局作用域
 				scopes.add(global_scope);
-				ImportFlag = isSupportImport;
+				ImportFlag = is_support_import;
 				ParsingFileName = filename;
 				filemap = map;
 				src_project = src;
-				ErrorMsg = msg;
+				ErrorMsg = error_msg;
 				loop_levels.add(0);
 			}
 
@@ -277,7 +268,7 @@ namespace stamon::c {
 			}
 
 			Token* match(int TokType) {
-				Token* rst = matcher.Match(TokType);
+				Token* rst = matcher.match(TokType);
 
 				CATCH {
 					if(matcher.Peek(0)->type!=TokenEOF) {

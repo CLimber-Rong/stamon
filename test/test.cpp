@@ -18,6 +18,9 @@ using namespace stamon::c;
 using namespace stamon::datatype;
 using namespace stamon::ir;
 using namespace stamon::sfn;
+using namespace stamon::config;
+using namespace stamon::exception;
+using namespace stamon::action;
 using namespace std;
 
 void DebugAST(AstNode* node, int layer);

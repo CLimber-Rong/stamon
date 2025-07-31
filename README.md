@@ -22,11 +22,11 @@
 
 ## 手动编译
 
-见 [编译发行版指南](doc/编译发行版指南.md)
+见 [发行版编译指南](doc/发行版编译指南.md)。
 
 ## 运行方法
 
-见 [发行版使用指南](doc/发行版使用指南.md)
+见 [发行版使用指南](doc/发行版使用指南.md)。
 
 ## 项目文档
 
@@ -47,7 +47,7 @@
 * GusemFowage [Github主页](https://github.com/GusemFowage)
 * min0911_ [Github主页](https://github.com/min0911Y)
 
-## 致谢
+## 特别致谢
 
 * TheFlySong [Github主页](https://github.com/TheFlySong)
 * XIAOYI12 [Github主页](https://github.com/XIAOYI1212)

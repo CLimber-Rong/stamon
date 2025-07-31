@@ -220,7 +220,7 @@ int StamonBuildCommand(ArrayList<String> args) {
 
 	Stamon stamon;
 
-	stamon.Init();
+	stamon.init();
 
 	stamon.compile(src, dst, isSupportImport, isStrip);
 
@@ -316,7 +316,7 @@ int StamonRunCommand(ArrayList<String> args) {
 
 	Stamon stamon;
 
-	stamon.Init();
+	stamon.init();
 
 	stamon.run(src, isGC, MemLimit, PoolCacheSize);
 
@@ -382,7 +382,7 @@ int StamonStripCommand(ArrayList<String> args) {
 
 	Stamon stamon;
 
-	stamon.Init();
+	stamon.init();
 
 	stamon.strip(src);
 

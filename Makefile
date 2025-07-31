@@ -11,7 +11,7 @@ LINK = 	-I include/stdc_implemented \
 		-I src/vm \
 		-I src/ir \
 		-I src/compiler \
-		-I src/sfn  \
+		-I src/sfn \
 		-I src/tac \
 		-I src/action \
 		-I src/exception \
@@ -19,42 +19,8 @@ LINK = 	-I include/stdc_implemented \
 		-I src \
 		-lm
 
-# -static选项让编译的程序更通用，但是程序体积更大，删去可以缩小程序体积
-
-# 以下指令用于兼容先前调试时的编译指令
-
-clean:
-	- $(REMOVE) test.exe
-
-build: clean
-	$(COMPILER) test/test.cpp \
-	-o test.exe \
-	-O0 -g \
-	-std=c++17 \
-	-I include/stdc_implemented \
-	-I src/ast \
-	-I src/data_type \
-	-I src/vm \
-	-I src/ir \
-	-I src/compiler \
-	-I src/sfn \
-	-I src \
-	-lm
-
-zip: test.exe
-	$(STRIP) -s test.exe
-	$(UPX) -9 test.exe
-
-run: test.exe
-	./test.exe
-
-debug: bin/stamon.exe
-	bin/stamon.exe build code.st code.stvc
-
-
-
 # 以下指令用于编译发行版
-
+# -static选项让编译的程序更通用，但是程序体积更大，删去可以缩小程序体积
 
 release:
 # 自定义生成可执行文件名（默认为stamon.exe）
@@ -107,5 +73,11 @@ release_macos:
 
 	$(STRIP) bin/stamon
 
-zip_release:
+zip_release_win:
+	$(UPX) --best --lzma bin/stamon.exe
+
+zip_release_linux:
+	$(UPX) --best --lzma bin/stamon.exe
+
+zip_release_macos:
 	$(UPX) --best --lzma bin/stamon.exe
