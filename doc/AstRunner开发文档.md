@@ -8,13 +8,13 @@
 
 我们来逐步讲解。
 
-首先是二进制文件读取为AstIr，这部分的实现位于``src/vm/AstIrReader.cpp``，AstIrReader类的主要接口有：
+首先是二进制文件读取为AstIr，这部分的实现位于``src/action/AstIrReader.cpp``，AstIrReader类的主要接口有：
 
-* ``AstIrReader(char* vmcode, int code_size, STMException* e)``：构造函数，vmcode为字节码在内存中的地址，code_size指字节码的大小，e为异常类
-* ``bool ReadHeader()``：读取字节码头，读取失败则抛出异常并返回false，否则返回true
+* ``AstIrReader(STMException *e, String filename)``：构造函数，filename为文件名
+* ``bool readHeader()``：读取字节码头，读取失败则抛出异常并返回false，否则返回true
 * ``ArrayList<AstIr> ReadIR()``：读取AstIr，返回由AstIr组成的ArrayList
 
-想要完整的读取一个STVC文件，应该要先创建一个AstIrReader对象，然后先调用``ReadHeader``读取文件头信息，接着调用``ReadIR``来读取AstIr。调用这两个函数之后要分别检查是否有异常抛出。
+想要完整的读取一个STVC文件，应该要先创建一个AstIrReader对象，然后先调用``readHeader``读取文件头信息，接着调用``readIR``来读取AstIr。调用这两个函数之后要分别检查是否有异常抛出。
 
 接着是让AstIrConverter类解析为Running-Ast，这一部分在**写了Ast与AstIr之间的互转工具**部分里已经详细提及过了，故不再赘述。
 
@@ -27,17 +27,16 @@ class RetStatus {	//返回的状态（Return Status）
         //这个类用于运行时
     public:
         int status;	//状态码
-        EasySmartPtr<Variable> retval;	//返回值（Return-Value），无返回值时为NULL
-        RetStatus() {}
-        RetStatus(const RetStatus& right) {
+        VariablePtr retval;	//返回值（Return-Value），无返回值时为NULL
+        RetStatus() : retval(NullVariablePtr()) {}
+        RetStatus(const RetStatus& right) : retval(right.retval) {
             status = right.status;
-            retval = right.retval;
         }
-        RetStatus(int status_code, EasySmartPtr<Variable> retvalue) {
+        RetStatus(int status_code, VariablePtr retvalue) 
+        : retval(retvalue) {
             status = status_code;
-            retval = retvalue;
         }
-    };
+};
 ```
 
 其中的``int status``一行用于存储状态码，状态码有以下几类：
@@ -54,24 +53,6 @@ enum RET_STATUS_CODE {	//返回的状态码集合
 
 AstRunner的主要接口有：
 
-1. 抛出运行时异常，这些异常分别是：
-
-```C++
-void ThrowTypeError(int type);
-void ThrowPostfixError();
-void ThrowIndexError();
-void ThrowConstantsError();
-void ThrowDivZeroError();
-void ThrowBreakError();
-void ThrowContinueError();
-void ThrowArgumentsError(int form_args, int actual_args);
-void ThrowReturnError();
-void ThrowUnknownOperatorError();
-void ThrowUnknownMemberError(int id);
-```
-
-2. 利用execute方法执行Running-Ast，它的函数原型是：
-
 ```C++
 RetStatus execute(
     AstNode* main_node, bool isGC, int vm_mem_limit,
@@ -80,6 +61,4 @@ RetStatus execute(
 );
 ```
 
-虚拟机在执行过程中会向ObjectManager申请对象，来实现GC机制。
-
-> ——摘自``工作日志/20240512.md``
+虚拟机在执行过程中会向ObjectManager申请对象，来实现GC机制。详见``对象管理器文档.md``
