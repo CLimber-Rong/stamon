@@ -1,0 +1,125 @@
+{
+  "name": "CompilerException.cpp",
+  "error": [
+    {
+      "type": "StringError",
+      "arg": [],
+      "msg": ["the string was entered incorrectly"],
+      "doc": "字符串格式有误。例如转义字符输入错误时有可能触发此错误。请检查字符串是否由一对双引号包裹，转义字符是否输入正确。"
+    },
+    {
+      "type": "FloatError",
+      "arg": [],
+      "msg": ["the floating point was entered incorrectly"],
+      "doc": "字符串格式有误。例如转义字符输入错误时有可能触发此错误。请检查字符串是否由一对双引号包裹，转义字符是否输入正确。"
+    },
+    {
+      "type": "TokenError",
+      "arg": ["text"],
+      "msg": ["unknown token \\'", "$text", "\\'"],
+      "doc": "未知的词法单元。当用户输入非法字符（例如英文问号）时会触发此错误，请检查代码中是否包含非法字符。"
+    },
+    {
+      "type": "SyntaxError",
+      "arg": [],
+      "msg": ["invalid syntax"],
+      "doc": "综合语法错误。该报错的触发条件多种多样，在Stamon的语法当中，会出现一些固定的语法搭配，当用户输入的语法搭配与规定的不一致时，会触发此错误，例如语句末尾未加分号。请用户根据编译器报告的错误位置，对照《Stamon语法教程手册》，检查语法搭配是否一致。值得注意的是：有些错误实际需要解决的位置，或许和编译器报告的错误位置并不完全一样，但两者肯定存在对应关系，所以请用户认真检查错误位置所在行及其关联的代码是否有误。"
+    },
+    {
+      "type": "VariableRedeclaredError",
+      "arg": ["iden"],
+      "msg": ["variable '", "$iden", "' are declared repeatedly"],
+      "doc": "变量被重复强定义。对于此类错误，推荐一种解决方案——前置定义设计：先为专门建立一个源码文件（被称为前置定义文件），并使用def关键字来强定义所有全局标识符（即前置定义）；并在其他源文件的开头先引用这个前置定义文件，在其他源文件中，不直接使用def关键字来强定义全局标识符，而是采用直接赋值或弱定义的形式。这种代码设计思路，可以确保所有全局标识符只被强定义一次。对于局部标识符，请确保最多被强定义一次。有关如何使用强定义、弱定义和赋值，也可以参照《Stamon语法教程手册》中的相关内容。值得注意的是：请确保需要用到的全局标识符在def之后有相关的实现，否则在使用被强定义但未赋值的标识符时，会出现对空值进行操作的情况，从而引起运行时错误。"
+    },
+    {
+      "type": "SfnError",
+      "arg": [],
+      "msg": [
+        "the port or argument of the SFN statement must be an identifier"
+      ],
+      "doc": "SFN语句的端口或参数必须是标识符。"
+    },
+    {
+      "type": "BreakError",
+      "arg": [],
+      "msg": ["\\'break\\' outside loop"],
+      "doc": "break语句在循环体外。break语句作为循环流程控制相关的语句，必须在循环语句之内出现。"
+    },
+    {
+      "type": "ContinueError",
+      "arg": [],
+      "msg": ["\\'continue\\' outside loop"],
+      "doc": "continue语句在循环体外。continue语句作为循环流程控制相关的语句，必须在循环语句之内出现。"
+    },
+    {
+      "type": "MemberError",
+      "arg": [],
+      "msg": ["the member name must be an identifier"],
+      "doc": "类成员名必须是标识符。"
+    },
+    {
+      "type": "VariableError",
+      "arg": [],
+      "msg": ["the name of the variable must be an identifier"],
+      "doc": "变量名必须是标识符。"
+    },
+    {
+      "type": "BraceError",
+      "arg": [],
+      "msg": ["the brace are not closed"],
+      "doc": "花括号未闭合，请检查错误位置及其关联位置是否存在未闭合的花括号对。"
+    },
+    {
+      "type": "SquareBracketError",
+      "arg": [],
+      "msg": ["the brace are not closed"],
+      "doc": "方括号未闭合，请检查错误位置及其关联位置是否存在未闭合的方括号对。"
+    },
+    {
+      "type": "RoundBracketError",
+      "arg": [],
+      "msg": ["the round bracket are not closed"],
+      "doc": "圆括号未闭合，请检查错误位置及其关联位置是否存在未闭合的圆括号对。"
+    },
+    {
+      "type": "ClassDefinedError",
+      "arg": [],
+      "msg": [
+        "only functions, classes and variables can be defined in a class"
+      ],
+      "doc": "类定义中，只能定义成员函数、成员类和成员变量。"
+    },
+    {
+      "type": "ImportError",
+      "arg": [],
+      "msg": ["cannot import"],
+      "doc": "不能引用其他源码。只有当编译器被指定为不能引用其他文件的模式，并且源码中调用了其他文件时，才会触发此错误。"
+    },
+    {
+      "type": "AssignmentError",
+      "arg": [],
+      "msg": ["the left operand of an assignment must be an lvalue"],
+      "doc": "表达式的左操作数必须是左值。其中对左值的严格定义是：一个变量取任意次元素和成员的表达式。"
+    },
+    {
+      "type": "UndefinedVariableError",
+      "arg": ["iden"],
+      "msg": ["undefined variable \\'", "$iden", "\\'"],
+      "doc": "未定义变量。请在使用变量前先使用强定义或弱定义的方式定义变量。"
+    }
+  ],
+  "warning": [
+    {
+      "type": "LargeIntegerWarning",
+      "arg": [],
+      "msg": ["the integer is too large"],
+      "doc": "整数过大从而导致溢出。这会导致程序执行时出现数值与代码中数值不同的情况。"
+    },
+    {
+      "type": "LargeFloatWarning",
+      "arg": [],
+      "msg": ["the floating point is too large"],
+      "doc": "浮点数过大从而导致溢出。这会导致程序执行时出现数值与代码中数值不同的情况。"
+    }
+  ]
+}

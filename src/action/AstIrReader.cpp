@@ -9,9 +9,9 @@
 #pragma once
 
 #include "AstIr.cpp"
+#include "AstIrReaderException.cpp"
 #include "BinaryReader.hpp"
 #include "DataType.hpp"
-#include "Exception.hpp"
 #include "NumberMap.hpp"
 #include "String.hpp"
 
@@ -35,12 +35,12 @@ public:
 		buffer = reader.read();
 	}
 
-	bool ReadHeader() {
+	bool readHeader() {
 		// 读取字节码头，读取失败则抛出异常并返回false，否则返回true
 
 		if (buffer_size < 8) {
 			// 字节码太少了
-			THROW("The code size is too small")
+			THROW(exception::astirreader::CodeSizeError("readHeader()"));
 			return false;
 		}
 
@@ -48,9 +48,9 @@ public:
 
 		if (buffer[pos] == (char) 0xAB && buffer[pos + 1] == (char) 0xDB) {
 			// 通过魔数查看该字节码是否为STVC
-			NextPos(2);
+			nextPos(2);
 		} else {
-			THROW("Not STVC")
+			THROW(exception::astirreader::FormatError("readHeader()"));
 			return false;
 		}
 		// 版本计算方法：X、Y、Z共占两个字节
@@ -60,11 +60,11 @@ public:
 		VerY = buffer[pos + 1];
 		VerZ = buffer[pos + 2];
 
-		NextPos(3);
+		nextPos(3);
 		// 获取常量表
-		int tableConstNumber = ReadInt();
+		int tableConstNumber = readInt();
 		// 常量表项数
-		NextPos(4);
+		nextPos(4);
 
 		CATCH {
 			// 如果上述代码当中出现了异常
@@ -76,24 +76,24 @@ public:
 			return false;
 		}
 
-		if (ReadTableConst(tableConstNumber) == false) {
+		if (readTableConst(tableConstNumber) == false) {
 			return false;
 		}
 
 		return true;
 	}
 
-	bool ReadTableConst(int size) {
+	bool readTableConst(int size) {
 		// 读取常量表，size为常量表项数，pos为下一个读取的字节的下标
 		while (size != 0) {
 			int type = (int) buffer[pos];
 
-			NextPos(1);
+			nextPos(1);
 
 			switch (type) {
 			case datatype::IntegerTypeID: {
-				int value = ReadInt();
-				NextPos(4);
+				int value = readInt();
+				nextPos(4);
 				tableConst.add(new datatype::IntegerType(value));
 				break;
 			}
@@ -106,7 +106,7 @@ public:
 				tmp[2] = buffer[pos + 2] << 8;
 				tmp[3] = buffer[pos + 3];
 				// 通过写入字节的方式给value赋值
-				NextPos(4);
+				nextPos(4);
 				tableConst.add(new datatype::FloatType(value));
 				break;
 			}
@@ -124,7 +124,7 @@ public:
 					 * 以此类推，这样可以通过写入字节的方式给value赋值
 					 */
 				}
-				NextPos(8);
+				nextPos(8);
 				tableConst.add(new datatype::DoubleType(value));
 				break;
 			}
@@ -135,8 +135,8 @@ public:
 			}
 
 			case datatype::StringTypeID: {
-				int slen = ReadInt();
-				NextPos(4);
+				int slen = readInt();
+				nextPos(4);
 
 				char *c_arr = new char[slen + 1];
 				c_arr[slen] = '\0';
@@ -144,7 +144,7 @@ public:
 				for (int i = 0; i < slen; i++) {
 					c_arr[i] = buffer[pos + i];
 				}
-				NextPos(slen);
+				nextPos(slen);
 				String s(c_arr);
 
 				delete[] c_arr;
@@ -154,8 +154,8 @@ public:
 			}
 
 			case ir::IdenConstTypeID: {
-				int slen = ReadInt();
-				NextPos(4);
+				int slen = readInt();
+				nextPos(4);
 
 				char *c_arr = new char[slen + 1];
 				c_arr[slen] = '\0';
@@ -164,7 +164,7 @@ public:
 					c_arr[i] = buffer[pos + i];
 				}
 
-				NextPos(slen);
+				nextPos(slen);
 
 				tableConst.add(new ir::IdenConstType(String(c_arr)));
 
@@ -173,7 +173,8 @@ public:
 			}
 
 			default: {
-				THROW("Unknown constants");
+				THROW(exception::astirreader::ConstantsError(
+						"readTableConst()"));
 			}
 			}
 
@@ -186,7 +187,7 @@ public:
 		return true;
 	}
 
-	ArrayList<ir::AstIr> ReadIR() {
+	ArrayList<ir::AstIr> readIR() {
 		ArrayList<ir::AstIr> ir;
 
 		int lineNo = -1;
@@ -194,21 +195,21 @@ public:
 		String filename = String((char *) "");
 
 		while (pos != buffer_size) {
-			int type = ReadInt();
+			int type = readInt();
 
-			NextPos(4);
+			nextPos(4);
 
 			if (type == -2) {
 				// 更新行号
-				lineNo = ReadInt();
+				lineNo = readInt();
 
-				NextPos(4);
+				nextPos(4);
 
 			} else if (type == -3) {
 				// 更新文件名
-				int slen = ReadInt();
+				int slen = readInt();
 
-				NextPos(4);
+				nextPos(4);
 
 				char *c_arr = new char[slen];
 
@@ -216,7 +217,7 @@ public:
 					c_arr[i] = buffer[pos + i];
 				}
 
-				NextPos(slen);
+				nextPos(slen);
 
 				filename = String(c_arr);
 
@@ -226,9 +227,9 @@ public:
 				// 正常的IR
 				ir::AstIr rst;
 
-				rst.data = ReadInt();
+				rst.data = readInt();
 
-				NextPos(4);
+				nextPos(4);
 
 				rst.lineNo = lineNo;
 				rst.filename = filename;
@@ -245,7 +246,7 @@ public:
 		return ir;
 	}
 
-	void NextPos(int x) {
+	void nextPos(int x) {
 		// 这个函数把pos向后移动x位，如果pos超出了buffer_size，那么抛出异常
 		if (pos >= buffer_size) {
 			/*
@@ -253,14 +254,14 @@ public:
 			 * 我在pos越界后，抛出异常并把pos调整至非越界范围
 			 */
 			pos = 0; // 调整至非越界范围
-			THROW("The code size is too small")
+			THROW(exception::astirreader::CodeSizeError("nextPos()"));
 		} else {
 			pos += x;
 		}
 		return;
 	}
 
-	int ReadInt() {
+	int readInt() {
 		// 将buffer[pos]到buffer[pos+3]转换成int
 
 		char arr[4] = { buffer[pos + 3], buffer[pos + 2], buffer[pos + 1],

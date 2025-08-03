@@ -14,7 +14,7 @@ AST-IR（以下简称``AstIr``）是一种将抽象语法树（以下简称``Ast
 
 不难见得，Running-Ast是为了适应AstIr而诞生的结构。
 
-有关AstIr的结构示例，我已经在``编译器开发文档``中提及，因此我将其解释放到了文末的“AST-IR格式附注”中。
+对于AstIr的结构解释和示例，我将其放到了文末的“AST-IR格式附注”中。
 
 ### 格式
 
@@ -38,7 +38,6 @@ AST-IR（以下简称``AstIr``）是一种将抽象语法树（以下简称``Ast
 |:-|:-|
 |ast::AstAnonClass|isHaveFather|
 |ast::AstExpression|ass_type|
-|ast::AstLeftPostfix|getPostfixType()|
 |ast::AstBinary|getOperatorType()|
 |ast::AstUnary|getOperatorType()|
 |ast::AstPostfix|getPostfixType()|
@@ -70,8 +69,6 @@ AstIr的格式和HTML的格式类似：由逻辑单元、数据单元和结束�
 > 这段AstIr和上面的Ast本质上是等价的。这样只需将Ast转为AstIr，就能获得一系列单元，方便存入文件。
 
 逻辑单元本质上就是Ast节点的非叶子节点，数据单元本质上就是Ast节点的叶子节点。
-
-> 摘自``编译器开发文档``，2025年4月26日
 
 ### 常量表附注
 

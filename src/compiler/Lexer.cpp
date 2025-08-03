@@ -11,22 +11,26 @@
 #include"String.hpp"
 #include"ArrayList.hpp"
 #include"stmlib.hpp"
-#include"Exception.hpp"
-#include"CompilerExceptionMessage.cpp"
+#include"CompilerException.cpp"
+#include"Token.cpp"
 
 #define CHECK_KEYWORD(keyword, TokType) \
 	if(iden==String((char*)keyword)) {\
 		st = ed;\
 		Token* rst = new Token(line, TokType);\
 		tokens.add(rst);\
-		continue;\
+		return;\
 	}
 //为了方便判断关键字，我编写了这个宏
 
+#define POSITION \
+	filename + String(":") + toString(line) + String(":") + toString(ed)
+//为了方便获取当前分析的位置，我编写了这个宏
+
 #define STR_EX(len) \
 	if(text_len-ed<(len-1)) {\
-		THROW_S(err::WrongStringFormat());\
-		return st;\
+		THROW(exception::compiler::StringError(POSITION));\
+		return;\
 	}
 //为了方便判断字符串token是否错误，我编写了这个宏（全名应该叫做CHECK_STRING_EXCEPTION）
 //这个宏用于检查文本后还有是否还有len个字符（不包括当前正在扫描的字符）
@@ -37,7 +41,7 @@
 		st = ed;\
 		Token* rst = new Token(line, TokType);\
 		tokens.add(rst);\
-		continue;\
+		return true;\
 	}
 //这个宏用于匹配单个字符的运算符，其中op应是char类型
 
@@ -48,7 +52,7 @@
 			st = ed;\
 			Token* rst = new Token(line, TokType);\
 			tokens.add(rst);\
-			continue;\
+			return true;\
 		}\
 	}
 
@@ -61,7 +65,7 @@
 			st = ed;\
 			Token* rst = new Token(line, TokType);\
 			tokens.add(rst);\
-			continue;\
+			return true;\
 		}\
 	}
 //这个宏用于匹配三个字符的运算符，其中op应是char*类型
@@ -76,157 +80,39 @@
 
 //以上定义的宏，都只能在该文件中使用
 
-
 namespace stamon::c {   //编译器命名空间
 
-	enum TOKEN_TYPE {
-	    TokenClass = 0,
-	    TokenDef,
-	    TokenExtends,
-	    TokenFunc,
-	    TokenBreak,
-	    TokenContinue,
-	    TokenIf,
-	    TokenElse,
-	    TokenWhile,
-	    TokenFor,
-	    TokenIn,
-	    TokenReturn,
-	    TokenSFN,
-	    TokenNew,
-	    TokenNull,      //空值
-	    TokenImport,	//导入
-	    KEYWORDS_MAX,   //关键词个数
-	    TokenAssign,//赋值
-	    TokenSemi,  //分号
-	    TokenLBC,   //左花括号（Left BraCe）
-	    TokenRBC,   //右花括号（Right BraCe）
-	    TokenLRB,   //左括号（Left Round Bracket）
-	    TokenRRB,   //右括号（Right Round Bracket）
-	    TokenLSB,   //左方括号（Left Square Bracket）
-	    TokenRSB,   //右方括号（RightSquare Bracket）
-	    TokenCmm,   //逗号
-	    TokenColon,	//冒号
-	    TokenMember,//小数点
-	    TokenAddAss,    //加等于
-	    TokenSubAss,
-	    TokenMulAss,
-	    TokenDivAss,
-	    TokenModAss,
-	    TokenAndAss,
-	    TokenXOrAss,
-	    TokenOrAss,
-	    TokenLSHAss,
-	    TokenRSHAss,
-	    TokenLogOR, //逻辑运算符
-	    TokenLogAND,
-	    TokenBitOR, //位运算符
-	    TokenBitXOR,
-	    TokenBitAND,
-	    TokenEqu,
-	    TokenNotEqu,
-	    TokenBig,
-	    TokenLess,
-	    TokenBigEqu,
-	    TokenLessEqu,
-	    TokenLSH,   //左移
-	    TokenRSH,   //右移
-	    TokenAdd,
-	    TokenSub,
-	    TokenMul,
-	    TokenDiv,
-	    TokenMod,
-	    TokenLogNot,    //逻辑非
-	    TokenBitNot,    //按位取反
-	    TokenIden,      //标识符
-	    TokenInt,       //整数
-	    TokenDouble,    //浮点数
-	    TokenString,    //字符串
-	    TokenTrue,		//布尔真值
-	    TokenFalse,		//布尔假值
-	    TokenEOF,
-		TokenNum
-	};
-
-	class Token {
-		public:
-			Token(int line, int tok_type) {
-				lineNo = line;
-				type = tok_type;
-			}
-			int type;
-			int lineNo;
-	};
-
 	String PreprocessStringToken(String content) {
-		//预处理content字符串，进行例如转义等操作
-		String tmp = content.substring(1,content.length()-1);
+		// 预处理content字符串，进行例如转义等操作
+		String tmp = content.substring(1, content.length() - 1);
 		String val;
-		//去除前后的引号
-		int i=0;
-		while(i<tmp.length()) {
-			if(tmp[i]=='\\') {
-				//碰到转义字符
+		// 去除前后的引号
+		int i = 0;
+		while (i < tmp.length()) {
+			if (tmp[i] == '\\') {
+				// 碰到转义字符
 				i++;
 				CHECK_ESCAPE_CHAR('\"', "\"")
 				CHECK_ESCAPE_CHAR('\\', "\\")
 				CHECK_ESCAPE_CHAR('0', "\0")
 				CHECK_ESCAPE_CHAR('n', "\n")
 				CHECK_ESCAPE_CHAR('t', "\t")
-				if(tmp[i]=='x') {
+				if (tmp[i] == 'x') {
 					i++;
-					String data = tmp.substring(i, i+2);
-					char* c = new char[1];
+					String data = tmp.substring(i, i + 2);
+					char *c = new char[1];
 					*c = data.toIntX();
 					val += String(c);
 					delete[] c;
-					i+=2;
+					i += 2;
 				}
 			} else {
-				val += tmp.substring(i, i+1);	//把tmp[i]拼到val里
+				val += tmp.substring(i, i + 1); // 把tmp[i]拼到val里
 				i++;
 			}
 		}
 		return val;
 	}
-
-	class StringToken : public Token {
-		public:
-			String val;
-			StringToken(int line, const String& s)
-				: Token(line, TokenString) {
-
-				val = s;
-
-			}
-	};
-
-	class IdenToken : public Token {
-		public:
-			String iden;
-			IdenToken(int line, const String& name)
-				: Token(line, TokenIden) {
-				iden = name;
-			}
-	};
-
-	class IntToken : public Token {
-		public:
-			int val;
-			IntToken(int line, int value) : Token(line, TokenInt) {
-				val = value;
-			}
-	};
-
-	class DoubleToken : public Token {
-		public:
-			double val;
-			DoubleToken(int line, double value) : Token(line, TokenDouble) {
-				val = value;
-			}
-	};
-
-	Token TokEOF(-1, TokenEOF);
 
 	class Lexer {
 			/*
@@ -246,13 +132,16 @@ namespace stamon::c {   //编译器命名空间
 
 			STMException* ex;
 
+			String filename;
+
 			Lexer() {}
 
-			Lexer(STMException* e) {
+			Lexer(STMException* e, String Filename) {
 				ex = e;
+				filename = Filename;
 			}
 
-			int StrToInt(int line, String s) {
+			inline int toInt(int line, int ed, String s) {
 				//词法分析器需要特判整数过大引起溢出的情况，所以不能直接使用String的toInt
 				bool warnflag = false;
 				int rst = 0;
@@ -260,14 +149,14 @@ namespace stamon::c {   //编译器命名空间
 					rst *= 10;
 					rst += s[i] - '0';
 					if(rst<0 && warnflag==false) {
-						WARN_S(warning::TooLargeInteger());
+						WARN(exception::compiler::LargeIntegerWarning(POSITION));
 						warnflag = true;
 					}
 				}
 				return rst;
 			}
 
-			double StrToDouble(int line, String s) {
+			inline double toDouble(int line, int ed, String s) {
 				//词法分析器需要特判小数过大引起溢出的情况
 				bool warnflag = false;
 				int integer = 0;
@@ -279,7 +168,7 @@ namespace stamon::c {   //编译器命名空间
 					integer *= 10;
 					integer += s[i] - '0';
 					if(integer<0 && warnflag==false) {
-						WARN_S(warning::TooLargeFloat());
+						WARN(exception::compiler::LargeFloatWarning(POSITION));
 						warnflag = true;
 					}
 					i++;
@@ -292,7 +181,7 @@ namespace stamon::c {   //编译器命名空间
 					decimal /= 10;
 					decimal += (double)(s[i]-'0');
 					if(decimal<0 && warnflag==false) {
-						WARN_S(warning::TooLargeFloat());
+						WARN(exception::compiler::LargeFloatWarning(POSITION));
 						warnflag = true;
 					}
 					i++;
@@ -325,6 +214,239 @@ namespace stamon::c {   //编译器命名空间
 				return rst;
 			}
 
+
+			inline void filterSpace(int& text_len, int& ed, String& text) {
+				//过滤空白字符
+				while(
+					ed<text_len
+					&&(text[ed]==' '||text[ed]=='\t'
+					||text[ed]=='\n'||text[ed]=='\r')
+				) {
+					ed++;
+				}
+			}
+
+			inline void addNumberToken(
+				int& line, int& text_len,
+				int& st, int& ed, String& text
+			) {
+				/* 
+				 * 添加一个数字Token
+				 */
+				bool isInt = true;  //该token是否是整数
+				ed++;
+				while(ed<text_len
+						&&'0'<=text[ed]
+						&&text[ed]<='9') {
+					ed++;
+				} //分析整数
+
+				if(text[ed]=='.') {
+					isInt = false;  //小数token
+					ed++;
+					bool is_has_decimal_part = false;
+					while(ed<text_len
+							&&'0'<=text[ed]
+							&&text[ed]<='9') {
+						ed++;
+						is_has_decimal_part = true;
+					}
+					
+					if(is_has_decimal_part==false) {
+						THROW(exception::compiler::FloatError(POSITION));
+						return;
+					}
+				} //分析小数
+
+				if(isInt==true) {
+					int value = toInt(line, ed, text.substring(st, ed));
+					IntToken* rst = new IntToken(line, value);
+					tokens.add((Token*)rst);
+				} else {
+					double value = toDouble(line, ed
+										,text.substring(st, ed));
+					DoubleToken* rst = new DoubleToken(line, value);
+					tokens.add((Token*)rst);
+				}
+				st = ed;
+			}
+
+			inline void addIdenToken(
+				int& line, int& text_len,
+				int& st, int& ed, String& text
+			) {
+				/*
+				 * 添加一个标识符Token
+				 */
+				ed++;
+				while(
+					ed<text_len
+					&&(
+						('A'<=text[ed]&&text[ed]<='Z')
+						||('a'<=text[ed]&&text[ed]<='z')
+						||('0'<=text[ed]&&text[ed]<='9')
+						||(text[ed]=='_')
+					)
+				) {
+					ed++;
+				}
+				String iden = text.substring(st, ed);
+
+				//判断关键字
+				CHECK_KEYWORD("class", TokenClass);
+				CHECK_KEYWORD("def", TokenDef);
+				CHECK_KEYWORD("extends", TokenExtends);
+				CHECK_KEYWORD("func", TokenFunc);
+				CHECK_KEYWORD("break", TokenBreak);
+				CHECK_KEYWORD("continue", TokenContinue);
+				CHECK_KEYWORD("if", TokenIf);
+				CHECK_KEYWORD("else", TokenElse);
+				CHECK_KEYWORD("while", TokenWhile);
+				CHECK_KEYWORD("for", TokenFor);
+				CHECK_KEYWORD("in", TokenIn);
+				CHECK_KEYWORD("return", TokenReturn);
+				CHECK_KEYWORD("sfn", TokenSFN);
+				CHECK_KEYWORD("new", TokenNew);
+				CHECK_KEYWORD("null", TokenNull);
+				CHECK_KEYWORD("import", TokenImport);
+				CHECK_KEYWORD("extern", TokenExtern);
+				CHECK_KEYWORD("true", TokenTrue);
+				CHECK_KEYWORD("false", TokenFalse);
+				//都不是关键字的话，那就是正常的标识符
+
+				st = ed;
+				IdenToken* rst = new IdenToken(line, iden);
+				tokens.add((Token*)rst);
+			}
+
+			inline void addStringToken(
+				int& line, int& text_len,
+				int& st, int& ed, String& text
+			) {
+				bool is_str_closed = false;
+				//用于标记字符串的是否有用'\"'结尾
+				//因为循环的退出可能并不是因为读到'\"'，而是文本读完了
+				ed++;
+				while(ed<text_len&&is_str_closed==false) {
+					if(text[ed]=='\"') {
+						//字符串结束
+						ed++;
+						is_str_closed = true;
+
+						String s = text.substring(st,ed);
+						StringToken* rst = new StringToken(
+										line, PreprocessStringToken(s)
+									);
+						tokens.add((Token*)rst);
+						st = ed;
+
+					} else if(text[ed]=='\\') {
+						//碰到转义字符
+						STR_EX(2)	//文本至少还得剩两个字符
+						ed++;
+						if(
+							text[ed]=='\"'
+							||text[ed]=='\\'
+							||text[ed]=='0'
+							||text[ed]=='n'
+							||text[ed]=='t'
+						) {
+							ed++;
+						} else if(text[ed]=='x') {
+							STR_EX(3)	//文本至少还得剩三个字符
+
+							if(
+								(
+									('0'<=text[ed+1]
+										&&text[ed+1]<='9')
+									||('a'<=text[ed+1]
+										&&text[ed+1]<='f')
+									||('A'<=text[ed+1]
+										&&text[ed+1]<='F')
+								)
+								&&(
+									('0'<=text[ed+2]
+										&&text[ed+1]<='9')
+									||('a'<=text[ed+2]
+										&&text[ed+1]<='f')
+									||('A'<=text[ed+2]
+										&&text[ed+1]<='F')
+								)
+							) {
+								//用于判断\xDD转义字符中，DD是否符合标准
+								ed += 2;
+							} else {
+								STR_EX(text_len)
+								//由于字符串永远无法剩下text_len个字符
+								//所以异常必然会被触发
+								//所以STR_EX(text_len)的目的，
+								//就是直接抛出异常
+								//这里运用了取巧的设计
+							}
+
+						}
+					} else {
+						//正常字符
+						ed++;
+					}
+				}
+
+				if(is_str_closed==false) {
+					//如果字符串未关闭
+					STR_EX(text_len);
+				}
+			}
+
+			inline bool addOperatorToken(
+				int& line, int& text_len,
+				int& st, int& ed, String& text
+			) {
+				CHECK_LONG_LONG_OPERATOR("<<=", TokenLSHAss);
+				CHECK_LONG_LONG_OPERATOR(">>=", TokenRSHAss);
+
+				CHECK_LONG_OPERATOR("+=", TokenAddAss);
+				CHECK_LONG_OPERATOR("-=", TokenSubAss);
+				CHECK_LONG_OPERATOR("*=", TokenMulAss);
+				CHECK_LONG_OPERATOR("/=", TokenDivAss);
+				CHECK_LONG_OPERATOR("%=", TokenModAss);
+				CHECK_LONG_OPERATOR("&=", TokenAndAss);
+				CHECK_LONG_OPERATOR("^=", TokenXOrAss);
+				CHECK_LONG_OPERATOR("|=", TokenOrAss);
+				CHECK_LONG_OPERATOR("||", TokenLogOR);
+				CHECK_LONG_OPERATOR("&&", TokenLogAND);
+				CHECK_LONG_OPERATOR("==", TokenEqu);
+				CHECK_LONG_OPERATOR("!=", TokenNotEqu);
+				CHECK_LONG_OPERATOR(">=", TokenBigEqu);
+				CHECK_LONG_OPERATOR("<=", TokenLessEqu);
+				CHECK_LONG_OPERATOR("<<", TokenLSH);
+				CHECK_LONG_OPERATOR(">>", TokenRSH);
+
+				CHECK_OPERATOR('=', TokenAssign);
+				CHECK_OPERATOR(';', TokenSemi);
+				CHECK_OPERATOR('{', TokenLBC);
+				CHECK_OPERATOR('}', TokenRBC);
+				CHECK_OPERATOR('(', TokenLRB);
+				CHECK_OPERATOR(')', TokenRRB);
+				CHECK_OPERATOR('[', TokenLSB);
+				CHECK_OPERATOR(']', TokenRSB);
+				CHECK_OPERATOR(',', TokenCmm);
+				CHECK_OPERATOR(':', TokenColon);
+				CHECK_OPERATOR('.', TokenMember);
+				CHECK_OPERATOR('|', TokenBitOR);
+				CHECK_OPERATOR('^', TokenBitXOR);
+				CHECK_OPERATOR('&', TokenBitAND);
+				CHECK_OPERATOR('>', TokenBig);
+				CHECK_OPERATOR('<', TokenLess);
+				CHECK_OPERATOR('+', TokenAdd);
+				CHECK_OPERATOR('-', TokenSub);
+				CHECK_OPERATOR('*', TokenMul);
+				CHECK_OPERATOR('/', TokenDiv);
+				CHECK_OPERATOR('%', TokenMod);
+				CHECK_OPERATOR('!', TokenLogNot);
+				CHECK_OPERATOR('~', TokenBitNot);
+				return false;
+			}
+
 			int getLineTok(int line, String text) {
 				//分析一行的token，line是行号，text是文本（不包含换行符）
 				//分析后的token添加在tokens的末尾
@@ -338,13 +460,7 @@ namespace stamon::c {   //编译器命名空间
 					int ed = st;
 
 					//先过滤空格
-					while(
-					    ed<text_len
-					    &&(text[ed]==' '||text[ed]=='\t'
-					       ||text[ed]=='\n'||text[ed]=='\r')
-					) {
-						ed++;
-					}
+					filterSpace(text_len, ed, text);
 
 					st = ed;
 
@@ -364,218 +480,54 @@ namespace stamon::c {   //编译器命名空间
 					}
 
 					if('0'<=text[ed]&&text[ed]<='9') {
-						bool isInt = true;  //该token是否是整数
-						ed++;
-						while(ed<text_len
-						        &&'0'<=text[ed]
-						        &&text[ed]<='9') {
-							ed++;
-						} //分析整数
+						//分析数字
+						addNumberToken(line, text_len, st, ed, text);
 
-						if(text[ed]=='.') {
-							isInt = false;  //小数token
-							ed++;
-							bool is_has_decimal_part = false;
-							while(ed<text_len
-							        &&'0'<=text[ed]
-							        &&text[ed]<='9') {
-								ed++;
-								is_has_decimal_part = true;
-							}
-							
-							if(is_has_decimal_part==false) {
-								THROW_S(err::WrongFloatFormat());
-								return st;
-							}
-						} //分析小数
-						if(isInt==true) {
-							int value = StrToInt(line, text.substring(st, ed));
-							IntToken* rst = new IntToken(line, value);
-							tokens.add((Token*)rst);
-						} else {
-							double value = StrToDouble(line 
-												,text.substring(st, ed));
-							DoubleToken* rst = new DoubleToken(line, value);
-							tokens.add((Token*)rst);
+						CATCH {
+							return st;
 						}
-						st = ed;
-						continue;
+
 					} else if(
 					    ('A'<=text[ed]&&text[ed]<='Z')
 					    ||('a'<=text[ed]&&text[ed]<='z')
 					    ||(text[ed]=='_')
-					) {     //标识符
-						ed++;
-						while(
-						    ed<text_len
-						    &&(
-						        ('A'<=text[ed]&&text[ed]<='Z')
-						        ||('a'<=text[ed]&&text[ed]<='z')
-						        ||('0'<=text[ed]&&text[ed]<='9')
-						        ||(text[ed]=='_')
-						    )
-						) {
-							ed++;
-						}
-						String iden = text.substring(st, ed);
+					) {
+						//分析标识符
 
-						//判断关键字
-						CHECK_KEYWORD("class", TokenClass)
-						CHECK_KEYWORD("def", TokenDef)
-						CHECK_KEYWORD("extends", TokenExtends)
-						CHECK_KEYWORD("func", TokenFunc)
-						CHECK_KEYWORD("break", TokenBreak)
-						CHECK_KEYWORD("continue", TokenContinue);
-						CHECK_KEYWORD("if", TokenIf)
-						CHECK_KEYWORD("else", TokenElse)
-						CHECK_KEYWORD("while", TokenWhile)
-						CHECK_KEYWORD("for", TokenFor)
-						CHECK_KEYWORD("in", TokenIn)
-						CHECK_KEYWORD("return", TokenReturn)
-						CHECK_KEYWORD("sfn", TokenSFN)
-						CHECK_KEYWORD("new", TokenNew)
-						CHECK_KEYWORD("null", TokenNull)
-						CHECK_KEYWORD("import", TokenImport)
-						CHECK_KEYWORD("true", TokenTrue)
-						CHECK_KEYWORD("false", TokenFalse)
-						//都不是关键字的话，那就是正常的标识符
+						addIdenToken(line, text_len, st, ed, text);
 
-						st = ed;
-						IdenToken* rst = new IdenToken(line, iden);
-						tokens.add((Token*)rst);
-						continue;
 					} else if(text[ed]=='\"') {
-						//读取字符串
-						bool is_str_closed = false;
-						//用于标记字符串的是否有用'\"'结尾
-						//因为循环的退出可能并不是因为读到'\"'，而是文本读完了
-						ed++;
-						while(ed<text_len&&is_str_closed==false) {
-							if(text[ed]=='\"') {
-								//字符串结束
-								ed++;
-								is_str_closed = true;
+						//分析字符串
 
-								String s = text.substring(st,ed);
-								StringToken* rst = new StringToken(
-												line, PreprocessStringToken(s)
-											);
-								tokens.add((Token*)rst);
-								st = ed;
+						addStringToken(line, text_len, st, ed, text);
 
-							} else if(text[ed]=='\\') {
-								//碰到转义字符
-								STR_EX(2)	//文本至少还得剩两个字符
-								ed++;
-								if(
-								    text[ed]=='\"'
-								    ||text[ed]=='\\'
-								    ||text[ed]=='0'
-								    ||text[ed]=='n'
-								    ||text[ed]=='t'
-								) {
-									ed++;
-								} else if(text[ed]=='x') {
-									STR_EX(3)	//文本至少还得剩三个字符
-
-									if(
-									    (
-									        ('0'<=text[ed+1]
-									         &&text[ed+1]<='9')
-									        ||('a'<=text[ed+1]
-									           &&text[ed+1]<='f')
-									        ||('A'<=text[ed+1]
-									           &&text[ed+1]<='F')
-									    )
-									    &&(
-									        ('0'<=text[ed+2]
-									         &&text[ed+1]<='9')
-									        ||('a'<=text[ed+2]
-									           &&text[ed+1]<='f')
-									        ||('A'<=text[ed+2]
-									           &&text[ed+1]<='F')
-									    )
-									) {
-										//用于判断\xDD转义字符中，DD是否符合标准
-										ed += 2;
-									} else {
-										STR_EX(text_len)
-										//由于字符串永远无法剩下text_len个字符
-										//所以异常必然会被触发
-										//所以STR_EX(text_len)的目的，
-										//就是直接抛出异常
-										//这里运用了取巧的设计
-									}
-
-								}
-							} else {
-								//正常字符
-								ed++;
-							}
-						}
-
-						if(is_str_closed==false) {
-							//如果字符串未关闭
-							STR_EX(text_len);
+						CATCH {
+							return st;
 						}
 
 					} else {
-						CHECK_LONG_LONG_OPERATOR("<<=", TokenLSHAss)
-						CHECK_LONG_LONG_OPERATOR(">>=", TokenRSHAss)
-
-						CHECK_LONG_OPERATOR("+=", TokenAddAss)
-						CHECK_LONG_OPERATOR("-=", TokenSubAss)
-						CHECK_LONG_OPERATOR("*=", TokenMulAss)
-						CHECK_LONG_OPERATOR("/=", TokenDivAss)
-						CHECK_LONG_OPERATOR("%=", TokenModAss)
-						CHECK_LONG_OPERATOR("&=", TokenAndAss)
-						CHECK_LONG_OPERATOR("^=", TokenXOrAss)
-						CHECK_LONG_OPERATOR("|=", TokenOrAss)
-						CHECK_LONG_OPERATOR("||", TokenLogOR)
-						CHECK_LONG_OPERATOR("&&", TokenLogAND)
-						CHECK_LONG_OPERATOR("==", TokenEqu)
-						CHECK_LONG_OPERATOR("!=", TokenNotEqu)
-						CHECK_LONG_OPERATOR(">=", TokenBigEqu)
-						CHECK_LONG_OPERATOR("<=", TokenLessEqu)
-						CHECK_LONG_OPERATOR("<<", TokenLSH)
-						CHECK_LONG_OPERATOR(">>", TokenRSH)
-
-						CHECK_OPERATOR('=', TokenAssign)
-						CHECK_OPERATOR(';', TokenSemi)
-						CHECK_OPERATOR('{', TokenLBC)
-						CHECK_OPERATOR('}', TokenRBC)
-						CHECK_OPERATOR('(', TokenLRB)
-						CHECK_OPERATOR(')', TokenRRB)
-						CHECK_OPERATOR('[', TokenLSB)
-						CHECK_OPERATOR(']', TokenRSB)
-						CHECK_OPERATOR(',', TokenCmm)
-						CHECK_OPERATOR(':', TokenColon)
-						CHECK_OPERATOR('.', TokenMember)
-						CHECK_OPERATOR('|', TokenBitOR)
-						CHECK_OPERATOR('^', TokenBitXOR)
-						CHECK_OPERATOR('&', TokenBitAND)
-						CHECK_OPERATOR('>', TokenBig)
-						CHECK_OPERATOR('<', TokenLess)
-						CHECK_OPERATOR('+', TokenAdd)
-						CHECK_OPERATOR('-', TokenSub)
-						CHECK_OPERATOR('*', TokenMul)
-						CHECK_OPERATOR('/', TokenDiv)
-						CHECK_OPERATOR('%', TokenMod)
-						CHECK_OPERATOR('!', TokenLogNot)
-						CHECK_OPERATOR('~', TokenBitNot)
-						//执行到这里，说明碰到了未知字符
-						THROW_S(err::UnknownToken(text.substring(ed, ed+1)));
-						return st;
+						//分析操作符
+						if(
+							addOperatorToken(line, text_len, st, ed, text)
+							==false
+						) {
+							//不是上述的任意一种Token，就说明碰到了未知字符
+							THROW(
+								exception
+								::compiler
+								::TokenError(POSITION, text.substring(ed, ed+1))
+							);
+							return st;
+						}
 					}
 				}
 				return st;	//到这里说明一切正常
 			}
-
-
 	};
 }
 
 #undef CHECK_KEYWORD
+#undef POSITION
 #undef STR_EX
 #undef CHECK_OPERATOR
 #undef CHECK_LONG_OPERATOR

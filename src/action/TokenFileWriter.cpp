@@ -10,7 +10,7 @@
 
 #include "BinaryWriter.hpp"
 #include "Exception.hpp"
-#include "Lexer.cpp"
+#include "Token.cpp"
 #include "String.hpp"
 
 // 为了节约篇幅，定义了一些宏用于简写

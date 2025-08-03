@@ -14,13 +14,14 @@
 #include"FileMap.hpp"
 
 #include"Lexer.cpp"
-#include"CompilerExceptionMessage.cpp"
+#include"CompilerException.cpp"
 #include"CompilerConfig.hpp"
 
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
+#define POSITION ParsingFileName + String(":") + toString(ParsingLineNo)
 #define CE			CATCH { return NULL; }	//如果执行代码中出现异常，直接返回
-#define CTH(message)	CATCH { THROW_S(message) } //如果执行代码中出现异常，抛出异常
+#define CTH(message)	CATCH { THROW(message) } //如果执行代码中出现异常，抛出异常
 #define GETLN(type) \
 	int lineNo;\
 	if(true) {\
@@ -86,12 +87,20 @@ namespace stamon::c {
 				return false;
 			}
 
-			Token* Match(int type) {
+			Token* match(int type) {
 				//匹配一个类型为type的token，如果不匹配，就直接报错
 				if(Check(type)) {
 					return lexer.getTok();
 				} else {
-					THROW_S(err::InvalidSyntax());
+					THROW(
+						exception
+						::compiler
+						::SyntaxError(
+							lexer.filename
+							+ String(":")
+							+ toString(Peek(0)->lineNo)
+						)
+					);
 					return NULL;
 				}
 			}
@@ -110,7 +119,7 @@ namespace stamon::c {
 	class SyntaxScope {	//用于记录每个作用域的变量，防止变量重定义、变量未定义就使用
 		public:
 			//这个类要区分与vm::ObjectScope
-			StringMap<void> scope;
+			StringMap<void> scope;	//SyntaxScope的Map是引用传递的
 			int isWall = 0;
 			/*
 			 * 这里需要详细介绍一下isWall的用法
@@ -137,11 +146,6 @@ namespace stamon::c {
 
 			SyntaxScope() {}
 
-			SyntaxScope(const SyntaxScope& s) {
-				ex = s.ex;
-				scope = s.scope;
-			}
-
 			SyntaxScope(STMException* e) {
 				ex = e;
 			}
@@ -150,12 +154,14 @@ namespace stamon::c {
 				return scope.containsKey(((IdenToken*)iden)->iden);
 			}
 
-			void mark(Token* iden) {	//声明一个变量
+			void mark(Token* iden, const String& position) {	//声明一个变量
 				if(scope.containsKey(((IdenToken*)iden)->iden)) {
-					THROW_S(
-						err::VariableDeclaredRepeatedly(
-									((IdenToken*)iden)->iden
-							 )
+					THROW(
+						exception
+						::compiler
+						::VariableRedeclaredError(
+							position, ((IdenToken*)iden)->iden
+						)
 					);
 					return;
 				}
@@ -233,30 +239,21 @@ namespace stamon::c {
 			 * 不难发现，如果loop_levels的结尾元素大于0，则当前处于循环当中
 			 */
 
-			Parser(Matcher matcher, STMException* e) {
-				this->matcher = matcher;
-				ex = e;
-				SyntaxScope global_scope(ex);
-				//压入一个空的全局作用域
-				scopes.add(global_scope);
-				ImportFlag = false;
-			}	//这个构造函数用于兼容之前的测试样例
-
 			Parser(
 			    Matcher matcher, STMException* e,
 			    SyntaxScope global_scope, String filename,
 			    ArrayList<SourceSyntax>* src, FileMap map,
-			    ArrayList<String>* msg, bool isSupportImport
+			    ArrayList<String>* error_msg, bool is_support_import
 			) {
 				this->matcher = matcher;
 				ex = e;
 				//压入全局作用域
 				scopes.add(global_scope);
-				ImportFlag = isSupportImport;
+				ImportFlag = is_support_import;
 				ParsingFileName = filename;
 				filemap = map;
 				src_project = src;
-				ErrorMsg = msg;
+				ErrorMsg = error_msg;
 				loop_levels.add(0);
 			}
 
@@ -271,7 +268,7 @@ namespace stamon::c {
 			}
 
 			Token* match(int TokType) {
-				Token* rst = matcher.Match(TokType);
+				Token* rst = matcher.match(TokType);
 
 				CATCH {
 					if(matcher.Peek(0)->type!=TokenEOF) {
@@ -311,7 +308,7 @@ namespace stamon::c {
 				ast::AstIdentifierName *port, *arg;
 
 				if(!check(TokenIden)) {
-					THROW_S(err::WrongSfnSyntax());
+					THROW(exception::compiler::SfnError(POSITION));
 					CE;
 				}
 				port = IDEN();
@@ -320,7 +317,7 @@ namespace stamon::c {
 				match(TokenCmm);
 
 				if(!check(TokenIden)) {
-					THROW_S(err::WrongSfnSyntax());
+					THROW(exception::compiler::SfnError(POSITION));
 					CE;
 				}
 
@@ -401,7 +398,7 @@ namespace stamon::c {
 				} else if(check(TokenContinue)) {
 
 					if(loop_levels[loop_levels.size()-1]==0) {
-						THROW_S(err::ContinueOutsideLoop());
+						THROW(exception::compiler::ContinueError(POSITION));
 						return NULL;
 					}
 					stm->add(
@@ -414,7 +411,7 @@ namespace stamon::c {
 				} else if(check(TokenBreak)) {
 
 					if(loop_levels[loop_levels.size()-1]==0) {
-						THROW_S(err::BreakOutsideLoop());
+						THROW(exception::compiler::BreakError(POSITION));
 						return NULL;
 					}
 					stm->add(
@@ -433,6 +430,10 @@ namespace stamon::c {
 				} else if(check(TokenImport)) {
 
 					statement_import();
+
+				} else if (check(TokenExtern)) {
+
+					statement_extern();
 
 				} else {
 
@@ -478,11 +479,11 @@ namespace stamon::c {
 
 				if(iden->type!=TokenIden) {
 					//变量名必须为标识符
-					THROW_S(err::WrongVariableFormat());
+					THROW(exception::compiler::VariableError(POSITION));
 					return NULL;
 				}
 
-				scopes[scopes.size()-1].mark(iden);	//登记该变量
+				scopes[scopes.size()-1].mark(iden, POSITION);	//登记该变量
 				_pop;		//弹出iden
 				CE
 
@@ -567,7 +568,7 @@ namespace stamon::c {
 						    )
 						);
 						//在新建作用域中登记参数
-						scopes[scopes.size()-1].mark(iden);
+						scopes[scopes.size()-1].mark(iden, POSITION);
 						CE
 					}
 
@@ -582,12 +583,12 @@ namespace stamon::c {
 						    )
 						);
 						//在新建作用域中登记参数
-						scopes[scopes.size()-1].mark(iden);
+						scopes[scopes.size()-1].mark(iden, POSITION);
 						CE
 					}
 
 					if(match(TokenRRB)==NULL) {
-						THROW_S(err::RoundBracketNotClosed());
+						THROW(exception::compiler::RoundBracketError(POSITION));
 					}
 				}
 
@@ -634,7 +635,7 @@ namespace stamon::c {
 						    )
 						);
 						//在新建作用域中登记参数
-						scopes[scopes.size()-1].mark(iden);
+						scopes[scopes.size()-1].mark(iden, POSITION);
 						CE
 					}
 
@@ -649,12 +650,12 @@ namespace stamon::c {
 						    )
 						);
 						//在新建作用域中登记参数
-						scopes[scopes.size()-1].mark(iden);
+						scopes[scopes.size()-1].mark(iden, POSITION);
 						CE
 					}
 
 					if(match(TokenRRB)==NULL) {
-						THROW_S(err::RoundBracketNotClosed())
+						THROW(exception::compiler::RoundBracketError(POSITION));
 					}
 				}
 
@@ -714,7 +715,7 @@ namespace stamon::c {
 					          ||matcher.Peek(1)->type==TokenClass) {
 						stm->add(def_class());
 					} else {
-						THROW_S(err::WrongClassDefined());
+						THROW(exception::compiler::ClassDefinedError(POSITION));
 						return NULL;
 					}
 
@@ -770,7 +771,7 @@ namespace stamon::c {
 					          ||matcher.Peek(1)->type==TokenClass) {
 						stm->add(def_class());
 					} else {
-						THROW_S(err::WrongClassDefined());
+						THROW(exception::compiler::ClassDefinedError(POSITION));
 						return NULL;
 					}
 
@@ -865,7 +866,7 @@ namespace stamon::c {
 				CE
 
 				pushscope(0)	//新建作用域
-				scopes[scopes.size()-1].mark(iden_tok);	//登记变量
+				scopes[scopes.size()-1].mark(iden_tok, POSITION);	//登记变量
 
 				loop_levels[loop_levels.size()-1]++;
 
@@ -904,7 +905,7 @@ namespace stamon::c {
 				ParsingLineNo = lineNo;
 
 				if(ImportFlag==false) {
-					THROW_S(err::CannotImport());
+					THROW(exception::compiler::ImportError(POSITION));
 					return NULL;
 				}
 
@@ -938,7 +939,7 @@ namespace stamon::c {
 
 				//进行词法分析
 				lineNo = 1;
-				Lexer lexer(ex);
+				Lexer lexer(ex, import_path);
 
 				while(reader.isMore()) {
 					String text = reader.getLine();
@@ -949,18 +950,7 @@ namespace stamon::c {
 					            );
 
 					CATCH {
-						THROW_S(
-						    String((char*)"Error: at \"")
-						    + import_path
-						    + String((char*)"\": ")
-						    + toString(lineNo)
-						    + String((char*)":")
-						    + toString(index)
-						    + String((char*)" : ")
-						    + ex->getError()
-						)
-						ErrorMsg->add(ex->getError());
-
+						ErrorMsg->add(ex->getError().toString());
 						ex->isError = false;
 					}
 
@@ -977,16 +967,7 @@ namespace stamon::c {
 				ast::AstNode* node = parser->Parse();	//语法分析
 
 				CATCH {
-					THROW_S(
-					    String((char*)"Syntax Error: at \"")
-					    + import_path
-					    + String((char*)"\": ")
-					    + toString(parser->ParsingLineNo)
-					    + String((char*)": ")
-					    + ex->getError()
-					)
-					ErrorMsg->add(ex->getError());
-
+					ErrorMsg->add(ex->getError().toString());
 					ex->isError = false;
 				}
 
@@ -1000,6 +981,35 @@ namespace stamon::c {
 
 				return NULL;
 
+			}
+
+			ast::AstNode* statement_extern() {
+				//外部强定义标识符
+
+				GETLN(TokenExtern);
+
+				ParsingLineNo = lineNo;
+
+				Token* iden = match(TokenIden);
+				CE;
+
+				scopes[0].mark((IdenToken*)iden, POSITION);
+				CE;
+
+				while(check(TokenCmm)) {
+					match(TokenCmm);
+
+					Token* iden = match(TokenIden);
+					CE;
+
+					scopes[0].mark((IdenToken*)iden, POSITION);
+					CE;
+				}
+
+				match(TokenSemi);
+				CE;
+
+				return NULL;
 			}
 
 			ast::AstExpression* expression() {
@@ -1049,13 +1059,13 @@ namespace stamon::c {
 				    = new ArrayList<ast::AstNode*>();
 
 				if(val->getOperatorType()!=-1) {	//binary_operator: -1
-					THROW_S(err::LvalueRequieredLeftOperand())
+					THROW(exception::compiler::AssignmentError(POSITION));
 				}
 
 				ast::AstUnary* unary = (ast::AstUnary*)val->Children()->at(0);
 
 				if(unary->getOperatorType()!=-1) {	//unary_operator: -1
-					THROW_S(err::LvalueRequieredLeftOperand())
+					THROW(exception::compiler::AssignmentError(POSITION));
 				}
 
 				ArrayList<ast::AstNode*>* children = unary->Children();
@@ -1066,7 +1076,7 @@ namespace stamon::c {
 
 				if(quark->getType()!=ast::AstIdentifierType) {
 					//quark: IDEN
-					THROW_S(err::LvalueRequieredLeftOperand())
+					THROW(exception::compiler::AssignmentError(POSITION));
 				}
 
 				CE
@@ -1081,11 +1091,11 @@ namespace stamon::c {
 					    p->getPostfixType()!=ast::PostfixMemberType
 					    &&p->getPostfixType()!=ast::PostfixElementType
 					) {	//如果不满足左值后缀条件
-						THROW_S(err::LvalueRequieredLeftOperand())
+						THROW(exception::compiler::AssignmentError(POSITION));
 					}
 
 
-					ast::AstLeftPostfix* tmp = Ast<ast::AstLeftPostfix>(
+					ast::AstPostfix* tmp = Ast<ast::AstPostfix>(
 					                               p->lineNo,
 					                               p->getPostfixType(),
 					                               p->Children()->at(0)
@@ -1134,12 +1144,17 @@ namespace stamon::c {
 					CE
 					rst = Ast<ast::AstBinary>(
 					          op->lineNo,
-					          op->type-38,
+					          op->type - MATH_OPERATOR_START - 1,
 					          rst,
 					          right
 					      );
-					//其中，op->type-38其实是将token里的运算符映射到ast中的运算符
-					//例如TokenBitOR-38 = 2 = BinaryBitORType
+					/*
+					 * 观察op->type-MATH_OPERATOR_START-1
+					 * 这个表达式其实是将token里的运算符映射到ast中的运算符
+					 * 例如	TokenBitOR-MATH_OPERATOR_START-1 
+					 		= 2 
+							= BinaryBitORType
+					 */
 
 					op = matcher.Peek(0);
 				}
@@ -1227,7 +1242,7 @@ namespace stamon::c {
 
 					//正常的访问成员
 					IdenToken* iden_tok = (IdenToken*)match(TokenIden);
-					CTH(err::WrongMemberFormat());
+					CTH(exception::compiler::MemberError(POSITION));
 					CE;
 					ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
 					                                   iden_tok->lineNo,
@@ -1237,7 +1252,7 @@ namespace stamon::c {
 					           line, ast::PostfixMemberType, iden
 					       );
 				}
-				THROW_S(err::InvalidSyntax())
+				THROW(exception::compiler::SyntaxError(POSITION));
 				return NULL;
 			}
 
@@ -1290,7 +1305,7 @@ namespace stamon::c {
 					ast::AstExpression* expr = expression();
 					CE
 					match(TokenRRB);
-					CTH(err::RoundBracketNotClosed())
+					CTH(exception::compiler::RoundBracketError(POSITION));
 					return expr;
 				}
 				if(check(TokenFunc)) {
@@ -1301,7 +1316,7 @@ namespace stamon::c {
 					return anon_class();
 				}
 				CE
-				THROW_S(err::InvalidSyntax());
+				THROW(exception::compiler::SyntaxError(POSITION));
 				return NULL;
 			}
 
@@ -1330,7 +1345,11 @@ namespace stamon::c {
 
 				if(isIdenExist==false) {
 					//未声明的标识符
-					THROW_S(err::UndefinedVariable(tok->iden))
+					THROW(
+						exception
+						::compiler
+						::UndefinedVariableError(POSITION, tok->iden)
+					);
 
 					return NULL;
 				}
@@ -1354,7 +1373,7 @@ namespace stamon::c {
 					ParsingLineNo = matcher.Peek(0)->lineNo;
 					return Ast<ast::AstIntNumber>(_pop->lineNo, 0);
 				} else {
-					THROW_S(err::InvalidSyntax());
+					THROW(exception::compiler::SyntaxError(POSITION));
 				}
 				return NULL;
 			}
@@ -1379,7 +1398,7 @@ namespace stamon::c {
 				                                expression()
 				                            );
 				match(TokenRSB);
-				CTH(err::SquareBracketNotClosed())
+				CTH(exception::compiler::SquareBracketError(POSITION));
 				return rst;
 			}
 
@@ -1406,7 +1425,7 @@ namespace stamon::c {
 				    = Ast<ast::AstListLiteral>(t->lineNo, exprs);
 
 				match(TokenRBC);
-				CTH(err::BraceNotClosed())
+				CTH(exception::compiler::BraceError(POSITION));
 				return rst;
 			}
 	};
@@ -1414,6 +1433,7 @@ namespace stamon::c {
 
 #undef check
 #undef pop
+#undef POSITION
 #undef CE
 #undef CTH
 

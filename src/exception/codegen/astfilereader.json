@@ -1,0 +1,42 @@
+{
+  "name": "AstFileReaderException.cpp",
+  "error": [
+    {
+      "type": "FormatError",
+      "arg": [],
+      "msg": ["non-standardized ast-file"],
+      "doc": "Ast文件综合编码错误，请检查编码格式或重新编码。"
+    },
+    {
+      "type": "NodeError",
+      "arg": [],
+      "msg": ["unknown ast-node"],
+      "doc": "Ast文件出现了未知节点，请检查编码格式或重新编码。"
+    },
+    {
+      "type": "RedundantRootNodeError",
+      "arg": [],
+      "msg": ["redundant ast root node"],
+      "doc": "Ast文件有多余的根节点，请检查编码格式或重新编码。"
+    },
+    {
+      "type": "RootNodeError",
+      "arg": [],
+      "msg": ["expect ast root node"],
+      "doc": "Ast文件没有根节点，请检查编码格式或重新编码。"
+    },
+    {
+      "type": "RedundantEndNodeError",
+      "arg": [],
+      "msg": ["redundant ast end node"],
+      "doc": "Ast文件有多余的结束单元，请检查编码格式或重新编码。"
+    },
+    {
+      "type": "EndNodeError",
+      "arg": [],
+      "msg": ["expect ast end node"],
+      "doc": "Ast文件缺失结尾单元，请检查编码格式或重新编码。"
+    }
+  ],
+  "warning": []
+}

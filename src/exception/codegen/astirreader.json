@@ -1,0 +1,24 @@
+{
+  "name": "AstIrReaderException.cpp",
+  "error": [
+    {
+      "type": "CodeSizeError",
+      "arg": [],
+      "msg": ["the code size is too small"],
+      "doc": "AST-IR文件过小，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "FormatError",
+      "arg": [],
+      "msg": ["not stvc"],
+      "doc": "该文件的魔数不是0xABDB，由此推断该文件不是AST-IR字节码，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "ConstantsError",
+      "arg": [],
+      "msg": ["unknown constants"],
+      "doc": "该文件存在未知的常量，请检查编码文件或重新编译。"
+    }
+  ],
+  "warning": []
+}

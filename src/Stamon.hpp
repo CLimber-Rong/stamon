@@ -19,7 +19,6 @@
 #include"AstIr.cpp"
 #include"Compiler.hpp"
 #include"Exception.hpp"
-#include"BinaryReader.hpp"
 #include"StamonConfig.hpp"
 
 namespace stamon {
@@ -39,7 +38,7 @@ namespace stamon {
 
 			Stamon() {}
 
-			void Init() {
+			void init() {
 				ex = new STMException();
 				VerX = STAMON_VER_X;
 				VerY = STAMON_VER_Y;
@@ -85,9 +84,14 @@ namespace stamon {
 
 				//编译为IR
 
-				ir::AstIrConverter converter;
+				ir::AstIrConverter converter(ex);
 
 				ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
+
+				CATCH {
+					ErrorMsg.add(ex->getError().toString());
+					return;
+				}
 
 				delete node;	//删除AST
 
@@ -99,7 +103,7 @@ namespace stamon {
 				action::AstIrWriter writer(ex, dst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -109,14 +113,14 @@ namespace stamon {
 				);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
 				converter.destroyConst(converter.tableConst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -130,7 +134,7 @@ namespace stamon {
 				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -138,20 +142,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				if(ir_reader.ReadHeader()==false) {
+				if(ir_reader.readHeader()==false) {
 					//读取文件头
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				ir_list = ir_reader.ReadIR();
+				ir_list = ir_reader.readIR();
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -162,12 +166,17 @@ namespace stamon {
 				VerY = ir_reader.VerY;
 				VerZ = ir_reader.VerZ;
 
-				ir::AstIrConverter converter;	//初始化转换器
+				ir::AstIrConverter converter(ex);
 
 				converter.tableConst = ir_reader.tableConst;
 				//复制常量表到转换器
 
 				ast::AstNode* running_node = converter.ir2ast(ir_list);
+
+				CATCH {
+					ErrorMsg.add(ex->getError().toString());
+					return;
+				}
 
 				vm::AstRunner runner;
 
@@ -181,11 +190,15 @@ namespace stamon {
 				converter.destroyConst(converter.tableConst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				WarningMsg = runner.ex->getWarning();
+				ArrayList<STMInfo> runner_warning = runner.ex->getWarning();
+
+				for(int i=0,len=runner_warning.size(); i<len; i++) {
+					WarningMsg.add(runner_warning[i].toString());
+				}
 
 				return;
 			}
@@ -197,7 +210,7 @@ namespace stamon {
 				ArrayList<ir::AstIr> ir_list;
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -205,20 +218,20 @@ namespace stamon {
 				//初始化字节码读取器
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				if(ir_reader.ReadHeader()==false) {
+				if(ir_reader.readHeader()==false) {
 					//读取文件头
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				ir_list = ir_reader.ReadIR();
+				ir_list = ir_reader.readIR();
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
@@ -236,16 +249,19 @@ namespace stamon {
 					VerX, VerY, VerZ
 				);
 
-				ir::AstIrConverter converter;
+				ir::AstIrConverter converter(ex);
+
 				//利用转换器来销毁常量表
 				converter.destroyConst(ir_tableconst);
 
 				CATCH {
-					ErrorMsg.add(ex->getError());
+					ErrorMsg.add(ex->getError().toString());
 					return;
 				}
 
-				WarningMsg = ex->getWarning();
+				for(int i=0,len=ex->getWarning().size(); i<len; i++) {
+					WarningMsg.add(ex->getWarning().at(i).toString());
+				}
 
 				return;
 			}

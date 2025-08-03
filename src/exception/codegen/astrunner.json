@@ -1,0 +1,94 @@
+{
+  "name": "AstRunnerException.cpp",
+  "error": [
+    {
+      "type": "TypeError",
+      "arg": ["type"],
+      "msg": [
+        "an error of data type \\'",
+        "$type",
+        "' occurred in the calculation"
+      ],
+      "doc": "错误的数据类型被参与计算。例如字符串与整数相加时会触发此错误。"
+    },
+    {
+      "type": "PostfixError",
+      "arg": [],
+      "msg": ["unknown type of postfix"],
+      "doc": "未知后缀类型。这是运行端内部错误，请检查传递给运行端的二进制文件是否合理。"
+    },
+    {
+      "type": "IndexError",
+      "arg": [],
+      "msg": ["list index out of range"],
+      "doc": "数列访问越界。当访问的下标大等于数列长度时会触发此错误。"
+    },
+    {
+      "type": "ConstantsError",
+      "arg": [],
+      "msg": ["wrong index of constants"],
+      "doc": "错误的常量表下标。这是运行端内部错误，请检查传递给运行端的二进制文件是否合理。"
+    },
+    {
+      "type": "ZeroDivisionError",
+      "arg": [],
+      "msg": ["division by zerodivision by zero"],
+      "doc": "零作为除数。请检查运算过程中是否出现零作为除数的现象。"
+    },
+    {
+      "type": "BreakError",
+      "arg": [],
+      "msg": ["\\'break\\' outside loop"],
+      "doc": "break语句在循环体外。break语句作为循环流程控制相关的语句，必须在循环语句之内出现。原则上该报错会在编译端出现，因此如果运行端才出现此报错，请检查编译端是否正常，以及传递给运行端的二进制文件是否合理。"
+    },
+    {
+      "type": "ContinueError",
+      "arg": [],
+      "msg": ["\\'continue\\' outside loop"],
+      "doc": "continue语句在循环体外。continue语句作为循环流程控制相关的语句，必须在循环语句之内出现。原则上该报错会在编译端出现，因此如果运行端才出现此报错，请检查编译端是否正常，以及传递给运行端的二进制文件是否合理。"
+    },
+    {
+      "type": "ArgumentsError",
+      "arg": ["form_args", "actual_args"],
+      "msg": [
+        "takes ",
+        "$form_args",
+        "  form arguments but ",
+        "$actual_args",
+        " was given"
+      ],
+      "doc": "调用该函数需要的参数与所传递的参数个数不符。请检查调用函数的过程中是否出现参数传递错误。"
+    },
+    {
+      "type": "ReturnError",
+      "arg": [],
+      "msg": ["\\'return\\' outside function"],
+      "doc": "return语句在函数外。return语句作为函数相关的语句，必须在函数体之内出现。"
+    },
+    {
+      "type": "UnknownOperatorError",
+      "arg": [],
+      "msg": ["unknown operator"],
+      "doc": "未知运算符。这是运行端内部错误，请检查传递给运行端的二进制文件是否合理。"
+    },
+    {
+      "type": "UnknownMemberError",
+      "arg": ["id"],
+      "msg": ["object has no member \\'", "$id", "\\'"],
+      "doc": "对象没有指定的成员，请检查成员标识符是否输入正确。"
+    },
+    {
+      "type": "LengthError",
+      "arg": [],
+      "msg": ["the length must be non-negative"],
+      "doc": "长度必须是非负数。请检查申请数列的长度是否是负数。"
+    },
+    {
+      "type": "NegativeShiftError",
+      "arg": [],
+      "msg": ["negative shift count"],
+      "doc": "负数位移。位移运算中的位移数必须是非负数，请检查位移运算中的位移数是否是负数。"
+    }
+  ],
+  "warning": []
+}

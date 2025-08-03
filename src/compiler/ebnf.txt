@@ -5,6 +5,9 @@ statement: def_var | def_func | def_class
             | statement_if | statement_while | statement_for
             | "break;" | "continue;" | ";"
             | sfn | statement_return
+            | extern_def
+
+extern_def: "extern" IDEN { "," IDEN } ";"
 
 sfn:    "sfn" IDEN "," IDEN ";"
 

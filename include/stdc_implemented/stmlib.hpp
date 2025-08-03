@@ -38,7 +38,7 @@ template<typename T, typename F> T cast_func(F f) {
 
 
 template<class T>
-String toString(T&& t){
+String toString(const T& t){
 	return String().toString(t);
 }
 

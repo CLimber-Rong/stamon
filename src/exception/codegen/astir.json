@@ -1,0 +1,30 @@
+{
+  "name": "AstIrException.cpp",
+  "error": [
+    {
+      "type": "RootNodeError",
+      "arg": [],
+      "msg": ["expect ast-ir root node"],
+      "doc": "未在解码过程中发现根节点，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "RedundantEndNodeError",
+      "arg": [],
+      "msg": ["redundant ast-ir end node"],
+      "doc": "解码过程中出现多余的结束单元，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "RedundantRootNodeError",
+      "arg": [],
+      "msg": ["redundant ast-ir end node"],
+      "doc": "解码过程中出现多个根节点，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "EndNodeError",
+      "arg": [],
+      "msg": ["expect ast-ir end node"],
+      "doc": "解码过程中缺失结束单元，请检查编码文件或重新编译。"
+    }
+  ],
+  "warning": []
+}

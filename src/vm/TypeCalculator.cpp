@@ -8,11 +8,9 @@
 
 #pragma once
 
-#include"Lexer.cpp"
+#include"Token.cpp"
 #include"DataType.hpp"
-#include"Exception.hpp"
 #include"ObjectManager.cpp"
-
 
 //为了方便开发，我编写了一系列简写的宏
 #define DTT datatype::DataType
@@ -35,8 +33,6 @@
                     ||(dt->getType()==IDFLT)\
                     ||(dt->getType()==IDDBL)\
                   )
-
-#define TYPEERR(dt) THROW_S(getDataTypeName(dt->getType()))
 
 #define NEWDT(type) manager->MallocObject<type>
 
@@ -118,7 +114,7 @@ namespace stamon::vm {
                 }
             }
 
-            inline bool CheckUnaryOperator(int optype) {
+            inline bool checkUnaryOperator(int optype) {
                 /*
                  * 检查该运算符是否合理，是则返回true，否则返回false
                  */
@@ -126,13 +122,13 @@ namespace stamon::vm {
                     && optype<=ast::UnaryTypeCount;
             }
 
-            bool CheckUnaryOperandType(
+            bool checkUnaryOperandType(
                 datatype::DataType* a, int optype
             ) {
                 /*
                  * 检查运算数的类型是否合理
                  * 合理则返回true，否则返回false
-                 * 在调用此函数前，请先调用CheckUnaryOperator来确保运算符是合理的
+                 * 在调用此函数前，请先调用checkUnaryOperator来确保运算符是合理的
                  */
                 switch (optype)
                 {
@@ -156,13 +152,13 @@ namespace stamon::vm {
                  * 单目运算，给定需要运算的a，以及运算类型optype，计算后返回结果
                  * optype以ExprAst.cpp的_UnaryOperatorType为准
                  * 调用该函数之前请先分别调用：
-                 * CheckUnaryOperator和CheckUnaryOperandType
+                 * checkUnaryOperator和checkUnaryOperandType
                  * 来确保运算符的合理性和运算数类型的合理性
                  */
                 return (this->*(UnCalcFunc[optype]))(a);
             }
 
-            inline bool CheckBinaryOperator(int optype) {
+            inline bool checkBinaryOperator(int optype) {
                 /*
                  * 检查该运算符是否合理，是则返回true，否则返回false
                  */
@@ -170,13 +166,13 @@ namespace stamon::vm {
                     && optype<=ast::BinaryTypeCount;
             }
 
-            bool CheckBinaryOperandType(
+            bool checkBinaryOperandType(
                 datatype::DataType* a, int optype, datatype::DataType* b
             ) {
                 /*
                  * 检查运算数的类型是否合理
                  * 合理则返回true，否则返回false
-                 * 在调用此函数前，请先调用CheckBinaryOperator来确保运算符是合理的
+                 * 在调用此函数前，请先调用checkBinaryOperator来确保运算符是合理的
                  */
 
                 //部分运算的类型规则是相同的，因此我把case整合到一起，即跳转到同一代码
@@ -266,7 +262,7 @@ namespace stamon::vm {
                  * 双目运算，给定需要运算的a和b，以及运算类型optype，计算后返回结果
                  * optype以ExprAst.cpp的_BinaryOperatorType为准
                  * 调用该函数之前请先分别调用：
-                 * CheckBinaryOperator和CheckBinaryOperandType
+                 * checkBinaryOperator和checkBinaryOperandType
                  * 来确保运算符的合理性和运算数类型的合理性
                  */
                 return (this->*(BinCalcFunc[optype]))(a, b);
@@ -559,8 +555,6 @@ namespace stamon::vm {
 #undef IDSEQ
 
 #undef ISNUM
-
-#undef TYPEERR
 
 #undef NEWDT
 

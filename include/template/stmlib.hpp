@@ -32,13 +32,10 @@ T cast_func(F f) {
 	return ft.t;	//运用同一个地址，变相转换
 }
 
-String toString(int x);
-
-String toString(float x);
-
-String toString(double x);
-
-String toString(bool x);
+template<class T>
+String toString(const T& t){
+	return String().toString(t);
+}
 
 #define MACRO_START do {
 

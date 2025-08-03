@@ -1,0 +1,18 @@
+{
+  "name": "TokenFileReaderException.cpp",
+  "error": [
+    {
+      "type": "FormatError",
+      "arg": [],
+      "msg": ["non-standardized token-file"],
+      "doc": "文件格式综合错误，请检查编码文件或重新编码。"
+    },
+    {
+      "type": "TokenError",
+      "arg": [],
+      "msg": ["unknown token"],
+      "doc": "该文件出现未知的Token，请检查编码文件或重新编码。"
+    }
+  ],
+  "warning": []
+}

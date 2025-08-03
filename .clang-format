@@ -95,7 +95,7 @@ PenaltyBreakBeforeFirstCallParameter: 300
 PenaltyBreakComment: 500
 PenaltyBreakFirstLessLess: 400
 PenaltyBreakString: 600
-PenaltyExcessCharacter: 50
+PenaltyExcessCharacter: 1000
 PenaltyReturnTypeOnItsOwnLine: 300
 PointerAlignment: Right
 ReflowComments: true

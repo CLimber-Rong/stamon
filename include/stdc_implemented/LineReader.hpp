@@ -15,8 +15,16 @@
 #include"stdio.h"
 #include"stdlib.h"
 
-#define FILE_ERR { THROW("file opening error") return; }
-//这个宏用于简写，并且该宏只能在本文件中使用
+#define FILE_ERR(position) { \
+		THROW(\
+			STMInfo(\
+				"BinaryWriter",\
+				"FileError",\
+				String("an error has occured in ") + String(position),\
+				"BinaryWriter()"\
+			)\
+		);\
+	}
 
 ArrayList<String> ImportPaths;
 
@@ -49,21 +57,21 @@ class LineReader {
 				stream = fopen(filename.getstr(), "r");
 			}
 
-			if(stream==NULL) FILE_ERR;
+			if(stream==NULL) FILE_ERR("fopen");
 
-			if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR;
+			if(fseek(stream, 0, SEEK_END)!=0) FILE_ERR("fseek");
 			//将文件指针置于底部
 
 			size = ftell(stream);
 			//获取文件指针（即文件底部）与文件头部的距离（即文件大小）
 
-			if(size == -1) FILE_ERR;
+			if(size == -1) FILE_ERR("ftell");
 
 			buffer = (char*)calloc(size+1, 1);    //根据文件大小开辟内存
 
-			if(buffer==NULL)    FILE_ERR;
+			if(buffer==NULL)    FILE_ERR("calloc");
 
-			if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR;
+			if(fseek(stream, 0, SEEK_SET)!=0) FILE_ERR("fseek");
 
 			fread(buffer, 1, size+1, stream);
 

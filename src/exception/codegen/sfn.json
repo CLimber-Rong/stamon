@@ -1,0 +1,19 @@
+{
+  "name": "SFNException.cpp",
+  "error": [
+    {
+      "type": "SFNError",
+      "arg": ["msg"],
+      "msg": ["$msg"],
+      "doc": "SFN产生的综合性错误。"
+    }
+  ],
+  "warning": [
+    {
+      "type": "SFNWarning",
+      "arg": ["msg"],
+      "msg": ["$msg"],
+      "doc": "SFN产生的综合性警告。"
+    }
+  ]
+}
