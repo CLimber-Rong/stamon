@@ -46,6 +46,7 @@
 * copi143 [Github主页](https://github.com/copi143)
 * GusemFowage [Github主页](https://github.com/GusemFowage)
 * min0911_ [Github主页](https://github.com/min0911Y)
+* wenxuanjun [Github主页](https://github.com/wenxuanjun)
 
 ## 特别致谢
 
