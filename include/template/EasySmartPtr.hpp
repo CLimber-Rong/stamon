@@ -26,5 +26,7 @@ public:
 
 	T *operator->(); // 直接访问指针的成员
 
+	T &operator[](int index); // 直接访问元素
+
 	~EasySmartPtr(); // 析构函数
 };

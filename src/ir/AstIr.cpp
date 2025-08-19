@@ -246,11 +246,11 @@ public:
 			rst.filename = top->filename;
 
 			// 先特判一些节点
-			CHECK_SPECIAL_AST(ast::AstAnonClass, isHaveFather)
+			CHECK_SPECIAL_AST(ast::AstAnonClass, father_flag)
 			CHECK_SPECIAL_AST(ast::AstExpression, ass_type)
-			CHECK_SPECIAL_AST(ast::AstBinary, getOperatorType())
-			CHECK_SPECIAL_AST(ast::AstUnary, getOperatorType())
-			CHECK_SPECIAL_AST(ast::AstPostfix, getPostfixType())
+			CHECK_SPECIAL_AST(ast::AstBinary, operator_type)
+			CHECK_SPECIAL_AST(ast::AstUnary, operator_type)
+			CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type)
 			// 特判结束符
 			if (top->getType() == ast::AstNodeType) {
 				isLeafNode = true;
@@ -398,7 +398,7 @@ public:
 			ast::AstNode *n = NULL;
 
 			CHECK_SPECIAL_IR(ast::AstLeaf, index);
-			CHECK_SPECIAL_IR(ast::AstAnonClass, isHaveFather);
+			CHECK_SPECIAL_IR(ast::AstAnonClass, father_flag);
 			CHECK_SPECIAL_IR(ast::AstExpression, ass_type);
 			CHECK_SPECIAL_IR(ast::AstBinary, operator_type);
 			CHECK_SPECIAL_IR(ast::AstUnary, operator_type);

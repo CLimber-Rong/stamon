@@ -16,7 +16,8 @@ enum _PostfixType {
 	PostfixMemberType = 0, // 成员后缀
 	PostfixElementType, // 下标后缀
 	PostfixCallType, // 调用函数后缀
-	PostfixNewType // 新建对象后缀
+	PostfixNewType, // 新建对象后缀
+	PostfixTypeCount // 类型总数
 };
 enum _BinaryOperatorType {
 	// 双目运算符类型定义
@@ -85,10 +86,6 @@ public:
 class AstBinary : public AstNode {
 public:
 	int operator_type;
-	int getOperatorType() {
-		return operator_type;
-	}
-
 	AstBinary()
 		: AstNode(AstBinaryType) {
 	}
@@ -109,9 +106,6 @@ public:
 class AstUnary : public AstNode {
 public:
 	int operator_type;
-	int getOperatorType() {
-		return operator_type;
-	}
 	AstUnary()
 		: AstNode(AstUnaryType) {
 	}
@@ -130,10 +124,8 @@ public:
 };
 class AstPostfix : public AstNode {
 public:
+
 	int postfix_type;
-	int getPostfixType() {
-		return postfix_type;
-	}
 	AstPostfix()
 		: AstNode(AstPostfixType) {
 	}

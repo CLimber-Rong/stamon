@@ -9,44 +9,30 @@
 #pragma once
 
 #include "Ast.hpp"
-#include "BinaryWriter.hpp"
+#include "BufferStream.cpp"
 #include "Exception.hpp"
 #include "Stack.hpp"
 
 // 为了节约篇幅，定义了一些宏用于简写
 // 这些宏只用于此文件
 
-#define WRITE(b) \
-	writer.write(b); \
-	CATCH { \
-		return; \
-	}
-
-#define WRITE_I(n) \
-	writer.write_i(n); \
-	CATCH { \
-		return; \
+#define CHECK_SPECIAL_AST(ast_type, special_member) \
+	case ast_type##Type: { \
+		stream.write(((ast_type *) top)->special_member); \
+		break; \
 	}
 
 namespace stamon::action {
 
 class AstFileWriter {
-	BinaryWriter writer;
+	BufferOutStream& stream;
 
 public:
 	STMException *ex;
 
-	AstFileWriter() {
-	}
-
-	AstFileWriter(STMException *e, String filename) {
-		ex = e;
-		writer = BinaryWriter(ex, filename);
-
-		CATCH {
-			return;
-		}
-
+	AstFileWriter(STMException *e, BufferOutStream &outstream)
+		: ex(e)
+		, stream(outstream) {
 		WRITE(0xAB);
 		WRITE(0xDD);
 	}
@@ -63,7 +49,7 @@ public:
 
 			if (top == NULL) {
 				// 结束符
-				WRITE(-1);
+				stream.write((char) -1);
 				continue;
 			}
 
@@ -71,21 +57,21 @@ public:
 				// 需要输出调试信息
 
 				if (top->lineNo != lineno) {
-					WRITE(-2);
+					stream.write((char) -2);
 					lineno = top->lineNo;
-					WRITE_I(lineno);
+					stream.write(lineno);
 				}
 
 				if (top->filename != filename) {
 					// 输出文件信息
-					WRITE(-3);
+					stream.write((char) -3);
 
 					filename = top->filename;
 
-					WRITE_I(filename.length()); // 写入长度
+					stream.write(filename.length()); // 写入长度
 
 					for (int i = 0; i < filename.length(); i++) {
-						WRITE(filename[i]);
+						stream.write(filename[i]);
 					}
 				}
 			}
@@ -105,16 +91,16 @@ public:
 	}
 
 	void writeNode(ast::AstNode *top) {
-		WRITE(top->getType());
+		stream.write((char) (top->getType()));
 
 		switch (top->getType()) {
 		// 对有ast数据的节点进行特判
 		case ast::AstIdentifierType: {
 			// 标识符
 			String iden = ((ast::AstIdentifierName *) top)->getName();
-			WRITE_I(iden.length());
+			stream.write(iden.length());
 			for (int i = 0; i < iden.length(); i++) {
-				WRITE(iden[i]);
+				stream.write((char) (iden[i]));
 			}
 			break;
 		}
@@ -123,39 +109,25 @@ public:
 			// 数字
 			ast::AstNumber *number = (ast::AstNumber *) top;
 
-			WRITE(number->getNumberType());
+			stream.write((char) (number->getNumberType()));
 
 			switch (number->getNumberType()) {
 			case ast::IntNumberType: {
 				// 整数
 				int val = ((ast::AstIntNumber *) number)->getVal();
-				WRITE_I(val);
+				stream.write(val);
 				break;
 			}
 			case ast::FloatNumberType: {
 				// 单精度浮点
 				float val = ((ast::AstFloatNumber *) number)->getVal();
-				// 逐个字节写入
-				char *val_ptr = (char *) &val;
-				WRITE(val_ptr[0]);
-				WRITE(val_ptr[1]);
-				WRITE(val_ptr[2]);
-				WRITE(val_ptr[3]);
+				stream.write(val);
 				break;
 			}
 			case ast::DoubleNumberType: {
 				// 双精度浮点
 				double val = ((ast::AstDoubleNumber *) number)->getVal();
-				// 逐个字节写入
-				char *val_ptr = (char *) &val;
-				WRITE(val_ptr[0]);
-				WRITE(val_ptr[1]);
-				WRITE(val_ptr[2]);
-				WRITE(val_ptr[3]);
-				WRITE(val_ptr[4]);
-				WRITE(val_ptr[5]);
-				WRITE(val_ptr[6]);
-				WRITE(val_ptr[7]);
+				stream.write(val);
 				break;
 			}
 			}
@@ -166,51 +138,21 @@ public:
 			// 字符串
 			String text = ((ast::AstString *) top)->getVal();
 
-			WRITE_I(text.length());
+			stream.write(text.length());
 			for (int i = 0; i < text.length(); i++) {
-				WRITE(text[i]);
+				stream.write(text[i]);
 			}
 			break;
 		}
-
-		case ast::AstAnonClassType: {
-			// 匿名类
-			WRITE(((ast::AstAnonClass *) top)->isHaveFather);
-			break;
 		}
-
-		case ast::AstExpressionType: {
-			// 匿名类
-			WRITE_I(((ast::AstExpression *) top)->ass_type);
-			break;
-		}
-
-		case ast::AstBinaryType: {
-			// 匿名类
-			WRITE_I(((ast::AstBinary *) top)->operator_type);
-			break;
-		}
-
-		case ast::AstUnaryType: {
-			// 匿名类
-			WRITE_I(((ast::AstUnary *) top)->operator_type);
-			break;
-		}
-
-		case ast::AstPostfixType: {
-			// 匿名类
-			WRITE_I(((ast::AstPostfix *) top)->postfix_type);
-			break;
-		}
-		}
-	}
-
-	void close() {
-		writer.close();
+		CHECK_SPECIAL_AST(ast::AstAnonClass, father_flag);
+		CHECK_SPECIAL_AST(ast::AstExpression, ass_type);
+		CHECK_SPECIAL_AST(ast::AstBinary, operator_type);
+		CHECK_SPECIAL_AST(ast::AstUnary, operator_type);
+		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);
 	}
 };
 
 } // namespace stamon::action
 
-#undef WRITE
-#undef WRITE_I
+#undef CHECK_SPECIAL_AST

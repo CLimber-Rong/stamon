@@ -1,0 +1,18 @@
+{
+  "name": "ConstTabReaderException.cpp",
+  "error": [
+    {
+      "type": "ConstantsError",
+      "arg": [],
+      "msg": ["unknown constants"],
+      "doc": "该文件存在未知的常量，请检查编码文件或重新编译。"
+    },
+    {
+      "type": "FormatError",
+      "arg": [],
+      "msg": ["not stvc"],
+      "doc": "常量表的格式错误，请检查编码文件或重新编译。"
+    }
+  ],
+  "warning": []
+}

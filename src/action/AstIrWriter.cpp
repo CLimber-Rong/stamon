@@ -9,44 +9,22 @@
 #pragma once
 
 #include "AstIr.cpp"
-#include "BinaryWriter.hpp"
+#include "BufferStream.cpp"
+#include "ConstTabWriter.cpp"
 #include "DataType.hpp"
-#include "Exception.hpp"
-
-#define WRITE(b) \
-	writer.write(b); \
-	CATCH { \
-		return; \
-	}
-
-#define WRITE_I(n) \
-	writer.write_i(n); \
-	CATCH { \
-		return; \
-	}
 
 namespace stamon::action {
 class AstIrWriter {
-	BinaryWriter writer;
+	BufferOutStream& stream;
 
 public:
 	STMException *ex;
 
-	AstIrWriter() {
-	}
-	AstIrWriter(STMException *e, String filename) {
-		ex = e;
-
-		writer = BinaryWriter(ex, filename);
-
-		CATCH {
-			return;
-		}
-
-		// 写入魔数
-
-		WRITE(0xAB);
-		WRITE(0xDB);
+	AstIrWriter(STMException *e, BufferOutStream &outstream)
+		: ex(e)
+		, stream(outstream) {
+		stream.write((char) 0xAB);
+		stream.write((char) 0xDB);
 	}
 
 	void write(ArrayList<ir::AstIr> ir_list,
@@ -54,67 +32,14 @@ public:
 			int VerX, int VerY, int VerZ) {
 		// 写入版本
 
-		WRITE(VerX)
-		WRITE(VerY)
-		WRITE(VerZ)
+		stream.write(VerX);
+		stream.write(VerY);
+		stream.write(VerZ);
 
 		// 写入常量表
 
-		WRITE_I(ir_tableconst.size())
-
-		for (int i = 0, len = ir_tableconst.size(); i < len; i++) {
-			WRITE((char) ir_tableconst[i]->getType())
-
-			if (ir_tableconst[i]->getType() == datatype::IntegerTypeID) {
-				int val = ((datatype::IntegerType *) ir_tableconst[i])->getVal();
-
-				WRITE_I(val);
-			}
-
-			if (ir_tableconst[i]->getType() == datatype::FloatTypeID) {
-				float val = ((datatype::FloatType *) ir_tableconst[i])->getVal();
-				// 逐个字节写入
-				char *val_ptr = (char *) &val;
-				WRITE(val_ptr[0]);
-				WRITE(val_ptr[1]);
-				WRITE(val_ptr[2]);
-				WRITE(val_ptr[3]);
-			}
-
-			if (ir_tableconst[i]->getType() == datatype::DoubleTypeID) {
-				double val = ((datatype::DoubleType *) ir_tableconst[i])->getVal();
-				// 逐个字节写入
-				char *val_ptr = (char *) &val;
-				WRITE(val_ptr[0]);
-				WRITE(val_ptr[1]);
-				WRITE(val_ptr[2]);
-				WRITE(val_ptr[3]);
-				WRITE(val_ptr[4]);
-				WRITE(val_ptr[5]);
-				WRITE(val_ptr[6]);
-				WRITE(val_ptr[7]);
-			}
-
-			if (ir_tableconst[i]->getType() == datatype::StringTypeID) {
-				String s = ((datatype::StringType *) ir_tableconst[i])->getVal();
-
-				WRITE_I(s.length());
-
-				for (int i = 0, len = s.length(); i < len; i++) {
-					WRITE(s[i]);
-				}
-			}
-
-			if (ir_tableconst[i]->getType() == ir::IdenConstTypeID) {
-				String s = ((ir::IdenConstType *) ir_tableconst[i])->getVal();
-
-				WRITE_I(s.length());
-
-				for (int i = 0, len = s.length(); i < len; i++) {
-					WRITE(s[i])
-				}
-			}
-		}
+		ConstTabWriter tabwriter(ex, stream);
+		tabwriter.write(ir_tableconst);
 
 		// 最后写入IR
 
@@ -132,8 +57,8 @@ public:
 					// 如果行号没更新，更新行号并且将当前行号写入
 					lineNo = ir_list[i].lineNo;
 
-					WRITE_I(-2); //-2代表更新行号
-					WRITE_I(lineNo);
+					stream.write(-2); //-2代表更新行号
+					stream.write(lineNo);
 				}
 
 				if (filename.equals(ir_list[i].filename) == false
@@ -141,25 +66,18 @@ public:
 					// 检查文件名，原理同上
 					filename = ir_list[i].filename;
 
-					WRITE_I(-3); //-2代表更新文件
-					WRITE_I(filename.length());
+					stream.write(-3); //-2代表更新文件
+					stream.write(filename.length());
 
 					for (int i = 0, len = filename.length(); i < len; i++) {
-						WRITE(filename[i]);
+						stream.write(filename[i]);
 					}
 				}
 			}
 
-			WRITE_I(ir_list[i].type);
-			WRITE_I(ir_list[i].data);
+			stream.write(ir_list[i].type);
+			stream.write(ir_list[i].data);
 		}
-	}
-
-	void close() {
-		writer.close();
 	}
 };
 } // namespace stamon::action
-
-#undef WRITE
-#undef WRITE_I

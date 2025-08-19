@@ -19,7 +19,6 @@
 #include"stdio.h"
 
 typedef char char_type;
-typedef size_t size_type;
 
 class String {
 
@@ -60,7 +59,7 @@ class String {
 			strcpy(str, s);
 		}	   //初始化，将s复制到this
 
-		String(const char_type* s, size_type len) {
+		String(const char_type* s, unsigned int len) {
 			str = (char_type*)StrCalloc(len+1);
 			strncpy(str, s, len);
 		}
@@ -156,11 +155,11 @@ class String {
 			return rst;
 		}
 
-		size_type length() const {
+		unsigned int length() const {
 			return strlen(str);
 		}			   //返回字符串长度
 
-		char_type at(size_type index) const {
+		char_type at(unsigned int index) const {
 			return str[index];
 		}		   //返回第index个字符
 
@@ -168,7 +167,7 @@ class String {
 			return str;
 		}	//如果你只需要一个只读用的char_type*字符串，getstr函数足矣
 
-		String substring(size_type start, size_type end) {
+		String substring(unsigned int start, unsigned int end) {
 			//获取从start到end（不包含end）的子字符串
 			return String(str+start, end-start);
 		}
@@ -245,11 +244,11 @@ class String {
 			return !(*this < s);
 		}
 
-		char_type& operator[](size_type index) {
+		char_type& operator[](unsigned int index) {
 			return str[index];
 		}
 
-		char_type operator[](size_type index) const {
+		char_type operator[](unsigned int index) const {
 			return str[index];
 		}
 
@@ -259,7 +258,7 @@ class String {
 
 		String& append(const char_type* s) {
 
-			size_type len =  length()+strlen(s);
+			unsigned int len =  length()+strlen(s);
 
 			if(str==cache && len<=32-1) {
 				strcat(str, s);

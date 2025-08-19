@@ -21,8 +21,8 @@ AST-IR（以下简称``AstIr``）是一种将抽象语法树（以下简称``Ast
 一个AstIr文件结构由以下几种规则构成：
 
 * 每个词法单元文件的开头必须要有两字节的二进制码：0xABDB，此魔数用于区分于其他文件
-* 在0xABDB后面，必须要跟着三字节的版本号，对于版本号X.Y.Z，则必须依次跟着X，Y，Z的数值，各为一字节
-* 在三字节的版本号后面，需要跟着常量表（有关常量表的叙述在“STVC-TAC二进制编码规范”中有提及，因此我将其解释放到了文末的“常量表附注”中）
+* 在0xABDB后面，必须要跟着版本号，对于版本号X.Y.Z，则必须依次跟着X，Y，Z的数值，各为四字节
+* 在十二字节的版本号后面，需要跟着常量表（有关常量表的叙述在“STVC-TAC二进制编码规范”中有提及，因此我将其解释放到了文末的“常量表附注”中）
 * 常量表后面，需要跟着若干个AstIr的单元，如果有指定，还需在单元中穿插文件调试信息
 * 无论是逻辑单元，数据单元还是结束单元，每个单元的二进制长度都是八字节，前四字节是单元的类型（以``Ast.hpp``的``_AstType``为准，特别的，结束单元的类型是-1）；后四字节是单元的数据，如果该单元是逻辑单元或结束单元，则后四字节默认为0，如果该单元是数据单元，则后四字节为数据的二进制存储（采用大端存储，以Python的大端存储为标准），数据单元的种类以文末的“数据单元附表”为准。
 * 如果指定需要写入调试信息，则还需要遵循以下规则
@@ -36,11 +36,11 @@ AST-IR（以下简称``AstIr``）是一种将抽象语法树（以下简称``Ast
 
 |单元类型|对应的数据|
 |:-|:-|
-|ast::AstAnonClass|isHaveFather|
+|ast::AstAnonClass|father_flag|
 |ast::AstExpression|ass_type|
-|ast::AstBinary|getOperatorType()|
-|ast::AstUnary|getOperatorType()|
-|ast::AstPostfix|getPostfixType()|
+|ast::AstBinary|operator_type|
+|ast::AstUnary|operator_type|
+|ast::AstPostfix|postfix_type|
 
 ### AST-IR格式附注
 

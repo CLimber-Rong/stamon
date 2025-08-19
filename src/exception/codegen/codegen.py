@@ -20,7 +20,9 @@ setting_list = [
     ("astirreader", "CLimber-Rong"),
     ("objectmanager", "CLimber-Rong"),
     ("tokenfilereader", "CLimber-Rong"),
-    ("sfn", "CLimber-Rong")
+    ("sfn", "CLimber-Rong"),
+    ("bufferstream", "CLimber-Rong"),
+    ("consttabreader", "CLimber-Rong")
 ]
 # 生成所需的配置名称及其对应作者
 

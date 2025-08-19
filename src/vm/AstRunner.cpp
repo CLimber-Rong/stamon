@@ -254,7 +254,7 @@ namespace stamon::vm {
 				auto node = cls->getVal();
 
 				/*处理父类*/
-				if(node->isHaveFather == true) {
+				if(node->father_flag == true) {
 					//有父类，先初始化父类
 					auto father_class = manager->getVariable(
 					                        (
@@ -306,7 +306,7 @@ namespace stamon::vm {
 				//这样所有的操作都会直接通过membertab反馈到rst
 
 				for(int i=0,len=node->Children()->size(); i<len; i++) {
-					if(i==0 && node->isHaveFather) {
+					if(i==0 && node->father_flag) {
 						//如果有父类，则要从第二个节点开始
 						continue;
 					}
@@ -849,7 +849,7 @@ namespace stamon::vm {
 
 			RetStatus runBinary(ast::AstNode* node) {
 				ast::AstBinary* bin_node = (ast::AstBinary*)node;
-				int optype = bin_node->getOperatorType();
+				int optype = bin_node->operator_type;
 
 				if(optype==-1) {
 					RetStatus st = RUN(bin_node->Children()->at(0));
@@ -930,7 +930,7 @@ namespace stamon::vm {
 			RetStatus runUnary(ast::AstNode* node) {
 				ast::AstUnary* unary_node = (ast::AstUnary*)node;
 
-				if(unary_node->getOperatorType()==-1) {
+				if(unary_node->operator_type==-1) {
 					//先分析quark
 					datatype::DataType* quark;
 					GETDT(quark, runAst(node->Children()->at(0)))
@@ -954,7 +954,7 @@ namespace stamon::vm {
 				//如果是单目运算符
 
 				datatype::DataType* src;
-				int optype = unary_node->getOperatorType();
+				int optype = unary_node->operator_type;
 
 				GETDT(src, runAst(node->Children()->at(0)));
 
@@ -991,7 +991,7 @@ namespace stamon::vm {
 
 			RetStatus runPostfix(ast::AstNode* node, datatype::DataType* src) {
 				ast::AstPostfix* postfix_node = (ast::AstPostfix*)node;
-				int postfix_type = postfix_node->getPostfixType();
+				int postfix_type = postfix_node->postfix_type;
 
 				if(postfix_type==ast::PostfixMemberType) {
 					//访问成员

@@ -180,17 +180,13 @@ Ast文件缺失结尾单元，请检查编码格式或重新编码。
 
 ### astirreader
 
-##### CodeSizeError
-
-AST-IR文件过小，请检查编码文件或重新编译。
-
 ##### FormatError
 
 该文件的魔数不是0xABDB，由此推断该文件不是AST-IR字节码，请检查编码文件或重新编译。
 
-##### ConstantsError
+##### NodeError
 
-该文件存在未知的常量，请检查编码文件或重新编译。
+检测到未知的AST-IR单元，请检查编码文件或重新编译。
 
 ### objectmanager
 
@@ -229,4 +225,20 @@ SFN产生的综合性错误。
 ##### SFNWarning
 
 SFN产生的综合性警告。
+
+### bufferstream
+
+##### DataSizeError
+
+数据在读取过程中过早读完，即数据过小，此错误一般发生在文件解码过程中。
+
+### consttabreader
+
+##### ConstantsError
+
+该文件存在未知的常量，请检查编码文件或重新编译。
+
+##### FormatError
+
+常量表的格式错误，请检查编码文件或重新编译。
 

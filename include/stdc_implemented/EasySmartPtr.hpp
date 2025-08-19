@@ -28,7 +28,7 @@ public:
 	EasySmartPtr(T *pointer) {
 		// 初始化，传入指针
 		ref_cnt = new int; // 初始化计数器
-		(*ref_cnt) = 1; // 初始化时，只有一个SmartPointer拥有这个指针
+		(*ref_cnt) = 1; // 初始化时，只有一个EasySmartPtr拥有这个指针
 		ptr = pointer;
 		destroy_fp = __EASYSMARTPTR_DEFAULT_DESTROY_FUNCTION__<T>;
 	} // 直接传入指针，默认销毁方式为直接delete
@@ -83,6 +83,10 @@ public:
 	T *operator->() {
 		return ptr;
 	} // 直接访问指针的成员
+
+	T &operator[](int index) {
+		return ptr[index];
+	} // 直接访问元素
 
 	~EasySmartPtr() {
 		// 当前计数器需要减一

@@ -113,8 +113,6 @@ namespace stamon::vm {
 			STMException* ex;
 			bool is_gc;
 
-			ObjectManager() {}
-
 			ObjectManager(
 			    bool isGC, unsigned long long mem_limit,
 				int pool_cache_size, STMException* e

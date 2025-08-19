@@ -9,8 +9,9 @@
 #pragma once
 
 #include "BinaryReader.hpp"
-#include "Token.cpp"
+#include "BufferStream.cpp"
 #include "String.hpp"
+#include "Token.cpp"
 #include "TokenFileReaderException.cpp"
 
 // 为了节约篇幅，定义了一些宏用于简写
@@ -22,128 +23,112 @@
 
 namespace stamon::action {
 class TokenFileReader {
-	BinaryReader reader;
-	char *buffer;
-	int index;
+	BufferInStream stream;
 	int lineno; // 当前行数
-	int buffer_size;
-	bool ismore = true;
+	bool ismore; // 是否读完
 	STMException *ex;
 
 public:
 	TokenFileReader() {
 	}
-	TokenFileReader(STMException *e, String filename) {
-		ex = e;
-		reader = BinaryReader(ex, filename);
+	TokenFileReader(STMException *e, const BufferInStream &instream)
+		: ex(e)
+		, stream(instream)
+		, ismore(true) {
+		char magic_number[2];
+		stream.readArray(magic_number);
+
 		CATCH {
 			return;
 		}
 
-		buffer = reader.read(); // 读取
-		index = 0; // 当前阅读到第index字节
-		lineno = 1; // 当前读取到第lineno行
-		buffer_size = reader.getsize();
-
-		if (buffer_size < 2 || buffer[0] != (char) 0xAB
-				|| buffer[1] != (char) 0xDC) {
+		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDC) {
 			// 如果文件过小或魔数异常则报错
 			THROW(exception::tokenfilereader::FormatError("TokenFileReader()"));
 			return;
 		}
-		buffer += 2; // 从buffer[2]开始读
-	}
-
-	char readbyte() {
-		if (index >= buffer_size) {
-			THROW(exception::tokenfilereader::FormatError("TokenFileReader()"));
-			return 0;
-		}
-		char rst = buffer[index];
-		index++;
-		return rst;
 	}
 
 	c::Token *readToken() {
 		// 获取一个Token
-		int id = readbyte();
+		char id;
+		stream.read(id);
+		CE;
 
 		if (id < 0 || id > c::TokenNum) {
 			THROW(exception::tokenfilereader::TokenError("readToken()"));
 			return NULL;
 		}
 
-		if (id == -1) {
-			// 换行
+		switch (id) {
+		case -1: {
 			lineno++;
+			break;
 		}
 
-		if (id == c::TokenInt) {
+		case c::TokenInt: {
 			// 特判整数token
 			int val;
-
-			char *ptr = (char *) &val;
-
-			ptr[0] = readbyte();
-			ptr[1] = readbyte();
-			ptr[2] = readbyte();
-			ptr[3] = readbyte();
-
+			stream.read(val);
 			CE;
+
 			return (c::Token *) (new c::IntToken(lineno, val));
 		}
 
-		if (id == c::TokenDouble) {
+		case c::TokenDouble: {
 			// 特判浮点token
 			double val;
-
-			char *ptr = (char *) &val;
-
-			ptr[0] = readbyte();
-			ptr[1] = readbyte();
-			ptr[2] = readbyte();
-			ptr[3] = readbyte();
-			ptr[4] = readbyte();
-			ptr[5] = readbyte();
-			ptr[6] = readbyte();
-			ptr[7] = readbyte();
-
+			stream.read(val);
 			CE;
+
 			return (c::Token *) (new c::DoubleToken(lineno, val));
 		}
 
-		if (id == c::TokenString) {
+		case c::TokenString: {
 			// 特判字符串token
-			// 先读取出字符串长度
-			int len = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-					+ (readbyte());
+			int len;
+			stream.read(len);
 			CE;
+			if (len < 0) {
+				THROW(exception::tokenfilereader::FormatError("readToken()"));
+			}
+
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
+			cstr[len] = '\0';
 			for (int i = 0; i < len; i++) {
-				cstr[i] = readbyte();
+				stream.read(cstr[i]);
+				CE;
 			}
-			CE;
 			String val(cstr, len);
 			delete cstr; // 释放内存
 			return (c::Token *) (new c::StringToken(lineno, val));
 		}
 
-		if (id == c::TokenIden) {
-			// 特判标识符token，其实现与字符串token类似
-			// 先读取出标识符长度
-			int len = (readbyte() << 24) + (readbyte() << 16) + (readbyte() << 8)
-					+ (readbyte());
+		case c::TokenIden: {
+			// 特判标识符token
+			int len;
+			stream.read(len);
 			CE;
+			if (len < 0) {
+				THROW(exception::tokenfilereader::FormatError("readToken()"));
+			}
+
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
+			cstr[len] = '\0';
 			for (int i = 0; i < len; i++) {
-				cstr[i] = readbyte();
+				stream.read(cstr[i]);
+				CE;
 			}
-			CE;
 			String val(cstr, len);
 			delete cstr; // 释放内存
-			return (c::Token *) (new c::IdenToken(lineno, val));
+			return (c::Token *) (new c::StringToken(lineno, val));
+		}
+
+		default: {
+			break;
+		}
 		}
 
 		// 返回正常的Token

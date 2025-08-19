@@ -8,274 +8,211 @@
 
 #pragma once
 
-#include"ArrayList.hpp"
-#include"String.hpp"
-#include"DataType.hpp"
-#include"AstRunner.cpp"
-#include"ObjectManager.cpp"
-#include"Ast.hpp"
-#include"AstIrReader.cpp"
-#include"AstIrWriter.cpp"
-#include"AstIr.cpp"
-#include"Compiler.hpp"
-#include"Exception.hpp"
-#include"StamonConfig.hpp"
+#include "ArrayList.hpp"
+#include "Ast.hpp"
+#include "AstIr.cpp"
+#include "AstIrReader.cpp"
+#include "AstIrWriter.cpp"
+#include "AstRunner.cpp"
+#include "Compiler.hpp"
+#include "DataType.hpp"
+#include "Exception.hpp"
+#include "ObjectManager.cpp"
+#include "StamonConfig.hpp"
+#include "String.hpp"
+
+// 用于简写的宏
+#define CE \
+	CATCH { \
+		ErrorMsg.add(ex->getError().toString()); \
+		return; \
+	}
 
 namespace stamon {
-	// using namespace stamon::ir;
-	// using namespace stamon::datatype;
-	// using namespace stamon::c;
-	// using namespace stamon::vm;
-	// using namespace stamon::sfn;
 
-	class Stamon {
-		public:
-			STMException *ex;
-			ArrayList<String> ErrorMsg;
-			ArrayList<String> WarningMsg;
+class Stamon {
+public:
+	STMException *ex;
+	ArrayList<String> ErrorMsg;
+	ArrayList<String> WarningMsg;
 
-			int VerX, VerY, VerZ;   //这三个变量代表版本为X.Y.Z
+	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 
-			Stamon() {}
+	Stamon() {
+	}
 
-			void init() {
-				ex = new STMException();
-				VerX = STAMON_VER_X;
-				VerY = STAMON_VER_Y;
-				VerZ = STAMON_VER_Z;
-			}
+	void init() {
+		ex = new STMException();
+		VerX = STAMON_VER_X;
+		VerY = STAMON_VER_Y;
+		VerZ = STAMON_VER_Z;
+	}
 
-			void compile(
-			    String src, String dst, bool isSupportImport, bool isStrip
-			) {
-				c::Compiler compiler(ex, &ErrorMsg, &WarningMsg);
+	void compile(String src, String dst, bool isSupportImport, bool isStrip) {
+		ArrayList<c::SourceSyntax> *syntax_list = c::ParseTargetProject(ex,
+				&ErrorMsg, &WarningMsg, src, isSupportImport,
+				new ArrayList<c::SourceSyntax>(), StringMap<void>(),
+				c::SyntaxScope(ex));
 
-				compiler.compile(src, isSupportImport);
-				//开始编译
+		// 开始编译
 
-				if(ErrorMsg.empty() == false) {
-					//出现报错
-					return;
-				}
+		if (ErrorMsg.empty() == false) {
+			// 出现报错
+			return;
+		}
 
-				//将编译结果整合成一个AST
+		// 将编译结果整合成一个AST
 
-				ArrayList<ast::AstNode*>* program 
-										  = new ArrayList<ast::AstNode*>();
+		ast::AstNode *node = c::MergeAST(syntax_list);
 
-				for(int i=0,len=compiler.src->size(); i<len; i++) {
-					//获取该文件的AST根节点
-					ast::AstNode* node = compiler.src->at(i).program;
+		// 编译为IR
 
-					//放入总节点中
-					(*program) += *(node->Children());
+		ir::AstIrConverter converter(ex);
 
-					//node只是暂存了ast，需要被删除
-					//为了防止删除时将子节点也删除，因此需要先清空字节点列表
-					node->Children()->clear();
-					delete node;
-				}
+		ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
+		// AST转为AST-IR
 
-				ast::AstNode* node = new ast::AstProgram(program);
+		CE;
 
-				//初始化node
-				node->filename = String();
-				node->lineNo = -1;
+		delete node; // 删除AST
 
-				//编译为IR
+		// 开始写入
 
-				ir::AstIrConverter converter(ex);
+		ArrayList<datatype::DataType *> ir_tableconst = converter.tableConst;
 
-				ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
+		action::BufferOutStream stream(ex);
+		CE;
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		action::AstIrWriter writer(ex, stream);
+		CE;
 
-				delete node;	//删除AST
+		writer.write(ir_list, ir_tableconst, isStrip, VerX, VerY, VerZ);
+		CE;
 
-				//开始写入
+		stream.writeFile(dst);
+		CE;
+		// 写入文件
 
-				ArrayList<datatype::DataType*>
-				ir_tableconst = converter.tableConst;
+		converter.destroyConst(converter.tableConst);
+		CE;
+		// 利用转换器来销毁常量表
 
-				action::AstIrWriter writer(ex, dst);
+		return;
+	}
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+	void run(String src, bool isGC, int MemLimit, int PoolCacheSize) {
+		// 实现流程：文件读取器->字节码读取器->IR读取器->虚拟机
 
-				writer.write(
-					ir_list, ir_tableconst, isStrip,
-					VerX, VerY, VerZ
-				);
+		ArrayList<ir::AstIr> ir_list;
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		CE;
 
-				converter.destroyConst(converter.tableConst);
+		action::BufferInStream stream(ex, src);
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		action::AstIrReader ir_reader(ex, stream);
+		// 初始化字节码读取器
 
-				return;
-			}
+		CE;
 
-			void run(String src, bool isGC, int MemLimit, int PoolCacheSize) {
+		ir_reader.readHeader();
+		CE;
+		// 读取文件头
 
-				//实现流程：文件读取器->字节码读取器->IR读取器->虚拟机
+		ir_list = ir_reader.readIR();
+		CE;
+		// 读取IR
 
-				ArrayList<ir::AstIr> ir_list;
+		VerX = ir_reader.VerX;
+		VerY = ir_reader.VerY;
+		VerZ = ir_reader.VerZ;
+		// 复制版本号
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		ir::AstIrConverter converter(ex);
 
-				action::AstIrReader ir_reader(ex, src);
-				//初始化字节码读取器
+		converter.tableConst = ir_reader.tableConst;
+		// 复制常量表到转换器
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		ast::AstNode *running_node = converter.ir2ast(ir_list);
+		// 复原成AST
 
-				if(ir_reader.readHeader()==false) {
-					//读取文件头
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		CE;
 
-				ir_list = ir_reader.readIR();
+		vm::AstRunner runner;
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		runner.execute(running_node, isGC, MemLimit, converter.tableConst,
+				ArrayList<String>(), PoolCacheSize, ex);
+		// 执行
 
-				ir_reader.close();
+		delete running_node;
+		// 删除AST
 
-				//复制版本号
-				VerX = ir_reader.VerX;
-				VerY = ir_reader.VerY;
-				VerZ = ir_reader.VerZ;
+		converter.destroyConst(converter.tableConst);
+		CE;
+		// 利用转换器来销毁常量表
 
-				ir::AstIrConverter converter(ex);
+		ArrayList<STMInfo> runner_warning = runner.ex->getWarning();
+		CE;
 
-				converter.tableConst = ir_reader.tableConst;
-				//复制常量表到转换器
+		return;
+	}
 
-				ast::AstNode* running_node = converter.ir2ast(ir_list);
+	void strip(String src) {
+		// 剥夺调试信息
+		// 这些代码直接改编自run方法和compile方法
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		ArrayList<ir::AstIr> ir_list;
 
-				vm::AstRunner runner;
+		action::BufferInStream instream(ex, src);
+		// 输入流
 
-				runner.execute(
-				    running_node, isGC, MemLimit, converter.tableConst,
-				    ArrayList<String>(), PoolCacheSize ,ex
-				);
+		action::AstIrReader ir_reader(ex, instream);
+		// 初始化字节码读取器
+		CE;
 
-				delete running_node;	//删除AST
+		ir_reader.readHeader();
+		CE;
+		// 读取文件头
 
-				converter.destroyConst(converter.tableConst);
+		ir_list = ir_reader.readIR();
+		CE;
+		// 读取IR
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		action::BufferOutStream outstream(ex);
+		// 输出流
 
-				ArrayList<STMInfo> runner_warning = runner.ex->getWarning();
+		action::AstIrWriter writer(ex, outstream);
 
-				for(int i=0,len=runner_warning.size(); i<len; i++) {
-					WarningMsg.add(runner_warning[i].toString());
-				}
+		writer.write(ir_list, ir_reader.tableConst, true, VerX, VerY, VerZ);
 
-				return;
-			}
+		outstream.writeFile(src);
+		CE;
+		// 写入文件
 
-			void strip(String src) {
-				//剥夺调试信息
-				//这些代码直接改编自run方法和compile方法
+		ir::AstIrConverter converter(ex);
 
-				ArrayList<ir::AstIr> ir_list;
+		converter.destroyConst(ir_reader.tableConst);
+		// 利用转换器来销毁常量表
+		CE;
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+		for (int i = 0, len = ex->getWarning().size(); i < len; i++) {
+			WarningMsg.add(ex->getWarning().at(i).toString());
+		}
 
-				action::AstIrReader ir_reader(ex, src);
-				//初始化字节码读取器
+		return;
+	}
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+	ArrayList<String> getErrorMessages() {
+		return ErrorMsg;
+	}
 
-				if(ir_reader.readHeader()==false) {
-					//读取文件头
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
+	ArrayList<String> getWarningMessages() {
+		return WarningMsg;
+	}
 
-				ir_list = ir_reader.readIR();
+	~Stamon() {
+		delete ex;
+	}
+};
+} // namespace stamon
 
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
-
-				ir_reader.close();	//关闭文件
-
-				ArrayList<datatype::DataType*>
-				ir_tableconst = ir_reader.tableConst;
-
-				//写入魔数
-				
-				action::AstIrWriter writer(ex, src);
-
-				writer.write(
-					ir_list, ir_tableconst, true,
-					VerX, VerY, VerZ
-				);
-
-				ir::AstIrConverter converter(ex);
-
-				//利用转换器来销毁常量表
-				converter.destroyConst(ir_tableconst);
-
-				CATCH {
-					ErrorMsg.add(ex->getError().toString());
-					return;
-				}
-
-				for(int i=0,len=ex->getWarning().size(); i<len; i++) {
-					WarningMsg.add(ex->getWarning().at(i).toString());
-				}
-
-				return;
-			}
-
-			ArrayList<String> getErrorMessages() {
-				return ErrorMsg;
-			}
-
-			ArrayList<String> getWarningMessages() {
-				return WarningMsg;
-			}
-
-			~Stamon() {
-				delete ex;
-			}
-	};
-} //namespace stamon
+#undef CE

@@ -11,7 +11,6 @@
 #include"Ast.hpp"
 #include"Stack.hpp"
 #include"StringMap.hpp"
-#include"FileMap.hpp"
 
 #include"Lexer.cpp"
 #include"CompilerException.cpp"
@@ -181,6 +180,14 @@ namespace stamon::c {
 			String filename;
 	};
 
+	ArrayList<SourceSyntax>* ParseTargetProject(
+		STMException *e, ArrayList<String> *error_msg,
+		ArrayList<String> *warning_msg, String filename, bool isSupportImport, 
+		ArrayList<SourceSyntax>* src, StringMap<void> filemap,
+		SyntaxScope global_scope
+	);
+	//前置定义
+
 	class Parser {
 			Matcher matcher;
 			//定义双目运算符的优先级表
@@ -226,9 +233,10 @@ namespace stamon::c {
 			STMException* ex = NULL;
 			String ParsingFileName;
 
-			FileMap filemap;
+			StringMap<void> filemap;
 			ArrayList<SourceSyntax>* src_project;
 			ArrayList<String>* ErrorMsg;
+			ArrayList<String>* WarningMsg;
 
 			ArrayList<int> loop_levels;
 			/*
@@ -242,8 +250,9 @@ namespace stamon::c {
 			Parser(
 			    Matcher matcher, STMException* e,
 			    SyntaxScope global_scope, String filename,
-			    ArrayList<SourceSyntax>* src, FileMap map,
-			    ArrayList<String>* error_msg, bool is_support_import
+			    ArrayList<SourceSyntax>* src, StringMap<void> map,
+			    ArrayList<String>* error_msg, ArrayList<String>* warning_msg,
+				bool is_support_import
 			) {
 				this->matcher = matcher;
 				ex = e;
@@ -254,6 +263,7 @@ namespace stamon::c {
 				filemap = map;
 				src_project = src;
 				ErrorMsg = error_msg;
+				WarningMsg = warning_msg;
 				loop_levels.add(0);
 			}
 
@@ -930,54 +940,14 @@ namespace stamon::c {
 				CE
 
 				/*开始分析*/
-				if(filemap.exist(import_path)==true) {
+				if(filemap.containsKey(import_path)==true) {
 					return NULL;	//已经分析过了
 				}
 
-				LineReader reader = filemap.mark(import_path);
-				CE
-
-				//进行词法分析
-				lineNo = 1;
-				Lexer lexer(ex, import_path);
-
-				while(reader.isMore()) {
-					String text = reader.getLine();
-					CE
-
-					int index = lexer.getLineTok(
-					                lineNo, text
-					            );
-
-					CATCH {
-						ErrorMsg->add(ex->getError().toString());
-						ex->isError = false;
-					}
-
-					lineNo++;
-				}
-
-				Matcher matcher(lexer, ex);
-				Parser* parser = new Parser(
-				    matcher, ex, scopes[0],
-				    import_path, src_project, filemap,
-				    ErrorMsg, ImportFlag
+				ParseTargetProject(
+					ex, ErrorMsg, WarningMsg,
+					import_path, ImportFlag, src_project, filemap, scopes[0]
 				);
-
-				ast::AstNode* node = parser->Parse();	//语法分析
-
-				CATCH {
-					ErrorMsg->add(ex->getError().toString());
-					ex->isError = false;
-				}
-
-				SourceSyntax syntax;
-				syntax.program = node;
-				syntax.filename = import_path;
-
-				src_project->add(syntax);
-
-				reader.close();
 
 				return NULL;
 
@@ -1058,13 +1028,13 @@ namespace stamon::c {
 				ArrayList<ast::AstNode*>* postfixs
 				    = new ArrayList<ast::AstNode*>();
 
-				if(val->getOperatorType()!=-1) {	//binary_operator: -1
+				if(val->operator_type!=-1) {	//binary_operator: -1
 					THROW(exception::compiler::AssignmentError(POSITION));
 				}
 
 				ast::AstUnary* unary = (ast::AstUnary*)val->Children()->at(0);
 
-				if(unary->getOperatorType()!=-1) {	//unary_operator: -1
+				if(unary->operator_type!=-1) {	//unary_operator: -1
 					THROW(exception::compiler::AssignmentError(POSITION));
 				}
 
@@ -1088,8 +1058,8 @@ namespace stamon::c {
 					p = (ast::AstPostfix*)children->at(i);
 
 					if(
-					    p->getPostfixType()!=ast::PostfixMemberType
-					    &&p->getPostfixType()!=ast::PostfixElementType
+					    p->postfix_type!=ast::PostfixMemberType
+					    &&p->postfix_type!=ast::PostfixElementType
 					) {	//如果不满足左值后缀条件
 						THROW(exception::compiler::AssignmentError(POSITION));
 					}
@@ -1097,7 +1067,7 @@ namespace stamon::c {
 
 					ast::AstPostfix* tmp = Ast<ast::AstPostfix>(
 					                               p->lineNo,
-					                               p->getPostfixType(),
+					                               p->postfix_type,
 					                               p->Children()->at(0)
 					                           );
 

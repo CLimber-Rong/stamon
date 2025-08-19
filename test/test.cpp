@@ -48,24 +48,24 @@ void DebugAST(AstNode* node, int layer) {
 	//特判left_postfix
 	if(node->getType()==AstLeftPostfixType) {
 		AstLeftPostfix* rst = (AstLeftPostfix*)node;
-		printf(" LEFT-POSTFIX: %d", rst->getPostfixType());
+		printf(" LEFT-POSTFIX: %d", rst->postfix_type);
 	}
 
 	//特判postfix
 	if(node->getType()==AstPostfixType) {
 		AstPostfix* rst = (AstPostfix*)node;
-		printf(" POSTFIX:  %d",rst->getPostfixType());
+		printf(" POSTFIX:  %d",rst->postfix_type);
 	}
 
 	//特判单目运算符
 	if(node->getType()==AstUnaryType) {
 		AstUnary* rst = (AstUnary*)node;
-		printf(" UNARY:  %d",rst->getOperatorType());
+		printf(" UNARY:  %d",rst->operator_type);
 	}
 	//特判双目运算符
 	if(node->getType()==AstBinaryType) {
 		AstBinary* rst = (AstBinary*)node;
-		printf(" BINARY:  %d",rst->getOperatorType());
+		printf(" BINARY:  %d",rst->operator_type);
 	}
 
 	//ast的叶子节点要特判

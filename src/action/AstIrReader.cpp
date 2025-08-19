@@ -10,181 +10,58 @@
 
 #include "AstIr.cpp"
 #include "AstIrReaderException.cpp"
-#include "BinaryReader.hpp"
+#include "BufferStream.cpp"
+#include "ConstTabReader.cpp"
 #include "DataType.hpp"
 #include "NumberMap.hpp"
 #include "String.hpp"
 
+// 用于简写的宏
+#define CE \
+	CATCH { \
+		return; \
+	}
+
 namespace stamon::action {
 class AstIrReader {
-	BinaryReader reader;
-	char *buffer; // 代码
-	int buffer_size; // 代码大小
-	int pos; // 设当前需要读取的字节为buffer[pos]
+	BufferInStream stream;
+
 public:
 	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 	ArrayList<datatype::DataType *> tableConst; // 常量表
 
 	STMException *ex;
 
-	AstIrReader(STMException *e, String filename) {
-		ex = e;
-		// 传入字节码和字节码大小
-		reader = BinaryReader(ex, filename);
-		buffer_size = reader.getsize();
-		buffer = reader.read();
+	AstIrReader(STMException *e, const BufferInStream &instream)
+		: ex(e)
+		, stream(instream) {
 	}
 
-	bool readHeader() {
-		// 读取字节码头，读取失败则抛出异常并返回false，否则返回true
+	void readHeader() {
+		// 读取魔数
+		char magic_number[2];
+		stream.readArray(magic_number);
+		CE;
 
-		if (buffer_size < 8) {
-			// 字节码太少了
-			THROW(exception::astirreader::CodeSizeError("readHeader()"));
-			return false;
-		}
-
-		pos = 0; // 初始化
-
-		if (buffer[pos] == (char) 0xAB && buffer[pos + 1] == (char) 0xDB) {
-			// 通过魔数查看该字节码是否为STVC
-			nextPos(2);
-		} else {
+		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDB) {
+			// 检查字节码是否为AST-IR
+			printf("%d %d \n",magic_number[0],magic_number[1]);
 			THROW(exception::astirreader::FormatError("readHeader()"));
-			return false;
-		}
-		// 版本计算方法：X、Y、Z共占两个字节
-		// 其中X占一个字节，Y占一个字节的前四位，Z占一个字节的后四位
-
-		VerX = buffer[pos];
-		VerY = buffer[pos + 1];
-		VerZ = buffer[pos + 2];
-
-		nextPos(3);
-		// 获取常量表
-		int tableConstNumber = readInt();
-		// 常量表项数
-		nextPos(4);
-
-		CATCH {
-			// 如果上述代码当中出现了异常
-			/*
-			 * 值得注意的是，由于我在执行了好几步可能报错的代码后才判错
-			 * 所以上述当中的有些值可能是错乱的
-			 * 不过反正也要return false，所以这些错乱的值无伤大雅
-			 */
-			return false;
 		}
 
-		if (readTableConst(tableConstNumber) == false) {
-			return false;
-		}
+		// 读取版本号
+		stream.read(VerX);
+		CE;
+		stream.read(VerY);
+		CE;
+		stream.read(VerZ);
+		CE;
 
-		return true;
-	}
-
-	bool readTableConst(int size) {
-		// 读取常量表，size为常量表项数，pos为下一个读取的字节的下标
-		while (size != 0) {
-			int type = (int) buffer[pos];
-
-			nextPos(1);
-
-			switch (type) {
-			case datatype::IntegerTypeID: {
-				int value = readInt();
-				nextPos(4);
-				tableConst.add(new datatype::IntegerType(value));
-				break;
-			}
-
-			case datatype::FloatTypeID: {
-				float value;
-				char *tmp = (char *) &value;
-				tmp[0] = buffer[pos] << 24;
-				tmp[1] = buffer[pos + 1] << 16;
-				tmp[2] = buffer[pos + 2] << 8;
-				tmp[3] = buffer[pos + 3];
-				// 通过写入字节的方式给value赋值
-				nextPos(4);
-				tableConst.add(new datatype::FloatType(value));
-				break;
-			}
-
-			case datatype::DoubleTypeID: {
-				double value;
-				char *tmp = (char *) &value;
-				for (int i = 0; i < 8; i++) {
-					tmp[i] = buffer[pos + i];
-					/*
-					 * 比如i=0时：
-					 * tmp[0] = buffer[pos]<<56
-					 * i=1时
-					 * tmp[1] = buffer[pos+1]<<48
-					 * 以此类推，这样可以通过写入字节的方式给value赋值
-					 */
-				}
-				nextPos(8);
-				tableConst.add(new datatype::DoubleType(value));
-				break;
-			}
-
-			case datatype::NullTypeID: {
-				tableConst.add(new datatype::NullType());
-				break;
-			}
-
-			case datatype::StringTypeID: {
-				int slen = readInt();
-				nextPos(4);
-
-				char *c_arr = new char[slen + 1];
-				c_arr[slen] = '\0';
-
-				for (int i = 0; i < slen; i++) {
-					c_arr[i] = buffer[pos + i];
-				}
-				nextPos(slen);
-				String s(c_arr);
-
-				delete[] c_arr;
-
-				tableConst.add(new datatype::StringType(s));
-				break;
-			}
-
-			case ir::IdenConstTypeID: {
-				int slen = readInt();
-				nextPos(4);
-
-				char *c_arr = new char[slen + 1];
-				c_arr[slen] = '\0';
-
-				for (int i = 0; i < slen; i++) {
-					c_arr[i] = buffer[pos + i];
-				}
-
-				nextPos(slen);
-
-				tableConst.add(new ir::IdenConstType(String(c_arr)));
-
-				delete[] c_arr;
-				break;
-			}
-
-			default: {
-				THROW(exception::astirreader::ConstantsError(
-						"readTableConst()"));
-			}
-			}
-
-			CATCH {
-				return false;
-			}
-
-			size--;
-		}
-		return true;
+		// 读取常量表
+		ConstTabReader reader(ex, stream);
+		reader.read();
+		CE;
+		tableConst = reader.tableConst;
 	}
 
 	ArrayList<ir::AstIr> readIR() {
@@ -194,42 +71,56 @@ public:
 
 		String filename = String((char *) "");
 
-		while (pos != buffer_size) {
-			int type = readInt();
-
-			nextPos(4);
+		while (stream.isMore()) {
+			int type;
+			stream.read(type);
+			CATCH {
+				return ir;
+			}
 
 			if (type == -2) {
 				// 更新行号
-				lineNo = readInt();
-
-				nextPos(4);
+				stream.read(lineNo);
 
 			} else if (type == -3) {
 				// 更新文件名
-				int slen = readInt();
-
-				nextPos(4);
-
-				char *c_arr = new char[slen];
-
-				for (int i = 0; i < slen; i++) {
-					c_arr[i] = buffer[pos + i];
+				int len;
+				stream.read(len);
+				CATCH {
+					return ir;
 				}
 
-				nextPos(slen);
+				if (len < 0) {
+					THROW(exception::astirreader::FormatError("readIR()"));
+					return ir;
+				}
 
-				filename = String(c_arr);
+				char *cstr = new char[len + 1];
+				cstr[len] = '\0';
 
-				delete[] c_arr;
+				for (int i = 0; i < len; i++) {
+					stream.read(cstr[i]);
+				}
+
+				filename = String(cstr);
+
+				delete[] cstr;
 
 			} else {
 				// 正常的IR
 				ir::AstIr rst;
 
-				rst.data = readInt();
+				stream.read(rst.data);
 
-				nextPos(4);
+				if (type < -1 || type >= ast::AstTypeNum) {
+					//不属于正常AST编码，也不是结尾单元
+					THROW(exception::astirreader::NodeError("readIR()"));
+					return ir;
+				}
+
+				CATCH {
+					return ir;
+				}
 
 				rst.lineNo = lineNo;
 				rst.filename = filename;
@@ -237,43 +128,11 @@ public:
 
 				ir.add(rst);
 			}
-
-			CATCH {
-				return ir;
-			}
 		}
 
 		return ir;
 	}
-
-	void nextPos(int x) {
-		// 这个函数把pos向后移动x位，如果pos超出了buffer_size，那么抛出异常
-		if (pos >= buffer_size) {
-			/*
-			 * 为了保护程序不会因为越界而退出
-			 * 我在pos越界后，抛出异常并把pos调整至非越界范围
-			 */
-			pos = 0; // 调整至非越界范围
-			THROW(exception::astirreader::CodeSizeError("nextPos()"));
-		} else {
-			pos += x;
-		}
-		return;
-	}
-
-	int readInt() {
-		// 将buffer[pos]到buffer[pos+3]转换成int
-
-		char arr[4] = { buffer[pos + 3], buffer[pos + 2], buffer[pos + 1],
-			buffer[pos] };
-
-		int rst = *((int *) arr);
-
-		return rst;
-	}
-
-	void close() {
-		reader.close();
-	}
 };
 } // namespace stamon::action
+
+#undef CE

@@ -11,12 +11,14 @@
 #include"String.hpp"
 #include"Exception.hpp"
 
+ArrayList<String> ImportPaths;
+
 class BinaryReader {
 	public:
 		BinaryReader() {}
 		BinaryReader(STMException* e, String filename);
 
-		int getsize();
+		int getSize();
 
 		char* read();
 

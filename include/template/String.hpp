@@ -8,14 +8,13 @@
 #pragma once
 
 typedef char_type;	//需自行定义char_type
-typedef size_type;	//需自行定义size_type
 
 class String {
 	public:
 		String();	   //初始化为空字符串
 
 		String(char_type *s);
-		String(char_type* s, size_type len);
+		String(char_type* s, unsigned int len);
 		String(const String& s);
 		String(String&& s);
 
@@ -42,14 +41,14 @@ class String {
 
 		double toDouble() const;
 
-		size_type length() const;//返回字符串长度
+		unsigned int length() const;//返回字符串长度
 
-		char_type at(size_type index) const;//返回第index个字符
+		char_type at(unsigned int index) const;//返回第index个字符
 
 		char_type* getstr() const;
 		//如果你只需要一个只读用的char_type*字符串，getstr函数足矣
 
-		String substring(size_type start, size_type end);
+		String substring(unsigned int start, unsigned int end);
 
 		String operator=(const String& right_value);
 
@@ -83,9 +82,9 @@ class String {
 
 		bool operator>=(const String& s) const;
 
-		char_type& operator[](size_type index);
+		char_type& operator[](unsigned int index);
 
-		char_type operator[](size_type index) const;
+		char_type operator[](unsigned int index) const;
 
 		bool empty() const;
 

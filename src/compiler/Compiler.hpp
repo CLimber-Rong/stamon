@@ -8,88 +8,97 @@
 
 #pragma once
 
+#include "BufferStream.cpp"
 #include "Parser.cpp"
+#include "StringMap.hpp"
 
 namespace stamon::c {
-class Compiler {
-public:
-	FileMap filemap;
-	SyntaxScope global_scope;
-	ArrayList<SourceSyntax> *src;
-	STMException *ex;
-	ArrayList<String> *ErrorMsg;
-	ArrayList<String> *WarningMsg;
 
-	Compiler() {
+ArrayList<SourceSyntax> *ParseTargetProject(STMException *e,
+		ArrayList<String> *error_msg, ArrayList<String> *warning_msg,
+		String filename, bool is_support_import, ArrayList<SourceSyntax> *src,
+		StringMap<void> filemap, SyntaxScope global_scope) {
+
+	STMException *ex = e;
+
+	filemap.put(filename, NULL);
+
+	action::BufferInStream stream(ex, filename);
+
+	CATCH {
+		error_msg->add(ex->getError().toString());
+		return NULL;
 	}
 
-	Compiler(STMException *e, ArrayList<String> *error_msg,
-			 ArrayList<String> *warning_msg)
-		: filemap(e)
-		, global_scope(e) {
+	ArrayList<String> lines = stream.readLines();
 
-		src = new ArrayList<SourceSyntax>();
-		ex = e;
-		ErrorMsg = error_msg;
-		WarningMsg = warning_msg;
-		
-	}
+	int lineNo = 1;
+	Lexer lexer(ex, filename);
 
-	void compile(String filename, bool isSupportImport) {
+	for (int i = 0; i < lines.size(); i++) {
+		String text = lines[i];
 
-		LineReader reader = filemap.mark(filename);
+		int index = lexer.getLineTok(lineNo, text);
 
 		CATCH {
-			return;
-		}
-
-		int lineNo = 1;
-		Lexer lexer(ex, filename);
-
-		while (reader.isMore()) {
-			String text = reader.getLine();
-
-			CATCH {
-				return;
-			}
-
-			int index = lexer.getLineTok(lineNo, text);
-
-			CATCH {
-				ErrorMsg->add(ex->getError().toString());
-				ex->isError = false;
-			}
-
-			if(ISWARNING) {
-				for (int i = 0, len = ex->Warning.size(); i < len; i++) {
-					auto warning = ex->Warning[i];
-					WarningMsg->add(warning.toString());
-				}
-				ex->isWarning = false;
-			}
-
-			lineNo++;
-		}
-
-		Matcher matcher(lexer, ex);
-		Parser *parser = new Parser(
-				matcher, ex, global_scope, filename, src, filemap, ErrorMsg,
-				isSupportImport);
-
-		ast::AstNode *node = parser->Parse(); // 语法分析
-
-		CATCH {
-			ErrorMsg->add(ex->getError().toString());
+			error_msg->add(ex->getError().toString());
 			ex->isError = false;
 		}
 
-		SourceSyntax syntax;
-		syntax.program = node;
-		syntax.filename = filename;
+		if (ISWARNING) {
+			for (int i = 0, len = ex->Warning.size(); i < len; i++) {
+				auto warning = ex->Warning[i];
+				warning_msg->add(warning.toString());
+			}
+			ex->isWarning = false;
+		}
 
-		src->add(syntax);
-
-		reader.close();
+		lineNo++;
 	}
-};
+
+	Matcher matcher(lexer, ex);
+	Parser *parser = new Parser(matcher, ex, global_scope, filename, src,
+			filemap, error_msg, warning_msg, is_support_import);
+
+	ast::AstNode *node = parser->Parse(); // 语法分析
+
+	CATCH {
+		error_msg->add(ex->getError().toString());
+		ex->isError = false;
+	}
+
+	SourceSyntax syntax;
+	syntax.program = node;
+	syntax.filename = filename;
+
+	src->add(syntax);
+
+	return src;
+}
+
+ast::AstNode *MergeAST(ArrayList<SourceSyntax> *syntax_list) {
+	ArrayList<ast::AstNode *> *program = new ArrayList<ast::AstNode *>();
+
+	for (int i = 0, len = syntax_list->size(); i < len; i++) {
+		// 获取该文件的AST根节点
+		ast::AstNode *node = syntax_list->at(i).program;
+
+		// 放入总节点中
+		(*program) += *(node->Children());
+
+		// node只是暂存了ast，需要被删除
+		// 为了防止删除时将子节点也删除，因此需要先清空字节点列表
+		node->Children()->clear();
+		delete node;
+	}
+
+	ast::AstNode *node = new ast::AstProgram(program);
+
+	// 初始化node
+	node->filename = String();
+	node->lineNo = -1;
+
+	return node;
+}
+
 } // namespace stamon::c

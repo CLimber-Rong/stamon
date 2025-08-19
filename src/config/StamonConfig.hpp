@@ -17,6 +17,12 @@ constexpr int STAMON_VER_Z = 50;
 
 namespace stamon::config {
 
+enum STAMON_CODING_ENDIAN {
+	// 机器的大小端控制
+	StamonCodingLittleEndian = 0,
+	StamonCodingBigEndian
+};
+
 enum STAMON_WARNING_SAFE_LEVEL {
 	// 警告等级
 	StamonWarningSafeLevel_IgnoreWarning = 0, // 忽略警告
@@ -24,7 +30,12 @@ enum STAMON_WARNING_SAFE_LEVEL {
 	StamonWarningSafeLevel_FatalWarning // 将警告视为致命错误
 };
 
-}
+// 编码的端序
+constexpr int StamonEncodingEndian = StamonCodingLittleEndian;
+// 解码的顺序
+constexpr int StamonDecodingEndian = StamonCodingLittleEndian;
+
+} // namespace stamon::config
 
 #include "CompilerConfig.hpp"
 #include "VmConfig.hpp"

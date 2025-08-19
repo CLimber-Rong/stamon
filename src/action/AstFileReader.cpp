@@ -10,105 +10,79 @@
 
 #include "Ast.hpp"
 #include "AstFileReaderException.cpp"
-#include "BinaryReader.hpp"
+#include "BufferStream.cpp"
 #include "Stack.hpp"
 #include "String.hpp"
+#include "TypeCalculator.cpp"
 
+// 用于简写的宏
 #define CE \
 	CATCH { \
 		return NULL; \
 	}
 
-#define CHECK_AST(ast_type) \
-	if (type == ast_type##Type) { \
-		n = new ast_type(); \
-	}
-
-#define CHECK_SPECIAL_AST(ast_type, special_member) \
-	if (type == ast_type##Type) { \
-		int data = readint(); \
-		n = new ast_type(); \
-		((ast_type *) n)->special_member = data; \
-	}
-
 namespace stamon::action {
 class AstFileReader {
-	char *buffer; // 二进制码
-	int buffer_size; // 二进制文件大小
-	int pos; // 设当前需要读取的字节为buffer[pos]
-	BinaryReader reader;
+	BufferInStream stream;
 
 public:
 	STMException *ex;
 
-	AstFileReader() {
-	}
-
-	AstFileReader(STMException *e, String filename) {
+	AstFileReader(STMException *e, const BufferInStream &instream)
+		: ex(e)
+		, stream(instream) {
 		ex = e;
-		reader = BinaryReader(e, filename);
+
+		char magic_number[2];
+		stream.readArray(magic_number);
+
 		CATCH {
 			return;
 		}
 
-		buffer = reader.read(); // 读取
-		pos = 0;
-		buffer_size = reader.getsize();
-
-		if (buffer_size < 2 || buffer[0] != (char) 0xAB
-				|| buffer[1] != (char) 0xDD) {
+		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDD) {
 			// 如果文件过小或魔数异常则报错
 			THROW(exception::astfilereader::FormatError("start"));
 			return;
 		}
-
-		// 从buffer[2]开始读
-		readbyte();
-		readbyte();
-	}
-
-	char readbyte() {
-		if (pos >= buffer_size) {
-			THROW_S(exception::astfilereader::FormatError("readbyte()"));
-			return 0;
-		}
-		char rst = buffer[pos];
-		pos++;
-		return rst;
-	}
-
-	unsigned int readint() {
-		return (((unsigned char) readbyte()) << 24)
-			 + (((unsigned char) readbyte()) << 16)
-			 + (((unsigned char) readbyte()) << 8)
-			 + (((unsigned char) readbyte()));
 	}
 
 	int updateLineNo() {
 		// 更新行号
-		int rst = readint();
+		int rst;
+
+		stream.read(rst);
+
 		CATCH {
 			return -1;
 		}
+
 		return rst;
 	}
 
 	String updateFileName() {
-		int slen = readint();
+		int len;
+
+		stream.read(len);
 
 		CATCH {
 			return String();
 		}
 
-		char *c_arr = new char[slen];
-
-		for (int i = 0; i < slen; i++) {
-			c_arr[i] = readbyte();
+		if (len < 0) {
+			THROW(exception::astfilereader::FormatError("updateFileName()"));
+			return String();
 		}
 
-		String filename = String(c_arr);
+		char *cstr = new char[len];
 
-		delete[] c_arr;
+		for (int i = 0; i < len; i++) {
+			stream.read(cstr[i]);
+		}
+
+		String filename = String(cstr);
+
+		delete[] cstr;
 
 		return filename;
 	}
@@ -121,37 +95,34 @@ public:
 			// 返回结尾单元
 		}
 
-		CHECK_AST(ast::AstProgram);
-		CHECK_AST(ast::AstDefClass);
-		CHECK_AST(ast::AstDefFunc);
-		CHECK_AST(ast::AstDefVar);
-		CHECK_AST(ast::AstAnonFunc);
-		CHECK_AST(ast::AstBlock);
-		CHECK_AST(ast::AstBreak);
-		CHECK_AST(ast::AstContinue);
-		CHECK_AST(ast::AstIfStatement);
-		CHECK_AST(ast::AstWhileStatement);
-		CHECK_AST(ast::AstForStatement);
-		CHECK_AST(ast::AstReturnStatement);
-		CHECK_AST(ast::AstSFN);
-		CHECK_AST(ast::AstLeftValue);
-		CHECK_AST(ast::AstArguments);
-		CHECK_AST(ast::AstNull);
-		CHECK_AST(ast::AstArrayLiteral);
-		CHECK_AST(ast::AstListLiteral);
+		if (type >= ast::AstTypeNum) {
+			// 非法AST编号
+			THROW(exception::astfilereader::NodeError("readNode()"));
+			return NULL;
+		}
 
 		// 对有ast数据的节点进行特判
 		switch (type) {
 		case ast::AstIdentifierType: {
 			// 标识符
-			int len = readint();
+			int len;
+			stream.read(len);
 			CE;
+
+			if (len < 0) {
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
+			cstr[len] = '\0';
+
 			for (int i = 0; i < len; i++) {
-				cstr[i] = readbyte();
+				stream.read(cstr[i]);
 			}
 			CE;
+
 			String iden(cstr, len);
 			delete cstr; // 释放内存
 			n = new ast::AstIdentifierName(iden);
@@ -160,13 +131,15 @@ public:
 
 		case ast::AstNumberType: {
 			// 数字
-			int numtype = readbyte();
+			char numtype;
+			stream.read(numtype);
 			CE;
 
 			switch (numtype) {
 			case ast::IntNumberType: {
 				// 整数
-				int val = readint();
+				int val;
+				stream.read(val);
 				CE;
 				n = new ast::AstIntNumber(val);
 				break;
@@ -174,14 +147,7 @@ public:
 			case ast::FloatNumberType: {
 				// 单精度浮点
 				float val;
-
-				char *ptr = (char *) &val;
-
-				ptr[0] = readbyte();
-				ptr[1] = readbyte();
-				ptr[2] = readbyte();
-				ptr[3] = readbyte();
-
+				stream.read(val);
 				CE;
 				n = new ast::AstFloatNumber(val);
 				break;
@@ -189,18 +155,7 @@ public:
 			case ast::DoubleNumberType: {
 				// 双精度浮点
 				double val;
-
-				char *ptr = (char *) &val;
-
-				ptr[0] = readbyte();
-				ptr[1] = readbyte();
-				ptr[2] = readbyte();
-				ptr[3] = readbyte();
-				ptr[4] = readbyte();
-				ptr[5] = readbyte();
-				ptr[6] = readbyte();
-				ptr[7] = readbyte();
-
+				stream.read(val);
 				CE;
 				n = new ast::AstDoubleNumber(val);
 				break;
@@ -212,14 +167,24 @@ public:
 		case ast::AstStringType: {
 			// 字符串
 			// 先读取出字符串长度
-			int len = readint();
+			int len;
+			stream.read(len);
 			CE;
+
+			if (len < 0) {
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
 			// 再读取到char数组里
 			char *cstr = new char[len + 1];
+			cstr[len] = '\0';
+
 			for (int i = 0; i < len; i++) {
-				cstr[i] = readbyte();
+				stream.read(cstr[i]);
 			}
 			CE;
+
 			String val(cstr, len);
 			delete cstr; // 释放内存
 			n = new ast::AstString(val);
@@ -228,21 +193,84 @@ public:
 
 		case ast::AstAnonClassType: {
 			// 匿名类
-			char isHaveFather = readbyte();
+			char father_flag;
+			stream.read(father_flag);
 			CE;
 
 			n = new ast::AstAnonClass();
-			((ast::AstAnonClass *) n)->isHaveFather = isHaveFather;
+			((ast::AstAnonClass *) n)->father_flag = father_flag;
 			break;
 		}
+
+		case ast::AstExpressionType: {
+			// 表达式
+			int ass_type;
+			stream.read(ass_type);
+			CE;
+
+			if (vm::TypeCalculator().AssignOperatorToBinaryOperator(ass_type)
+					!= -1) {
+				// 判断赋值编号是否合法
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
+			n = new ast::AstExpression();
+			((ast::AstExpression *) n)->ass_type = ass_type;
 		}
 
-		CHECK_SPECIAL_AST(ast::AstExpression, ass_type);
-		CHECK_SPECIAL_AST(ast::AstBinary, operator_type);
-		CHECK_SPECIAL_AST(ast::AstUnary, operator_type);
-		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);
+		case ast::AstBinaryType: {
+			int operator_type;
+			stream.read(operator_type);
+			CE;
+
+			if (vm::TypeCalculator().checkBinaryOperator(operator_type)
+					== false) {
+				// 判断运算符编号是否合法
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
+			n = new ast::AstBinary();
+			((ast::AstBinary *) n)->operator_type = operator_type;
+		}
+
+		case ast::AstUnaryType: {
+			int operator_type;
+			stream.read(operator_type);
+			CE;
+
+			if (vm::TypeCalculator().checkUnaryOperator(operator_type)
+					== false) {
+				// 判断运算符编号是否合法
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
+			n = new ast::AstUnary();
+			((ast::AstUnary *) n)->operator_type = operator_type;
+		}
+
+		case ast::AstPostfix: {
+			int postfix_type;
+			stream.read(postfix_type);
+			CE;
+
+			if ((0 <= postfix_type && postfix_type < ast::PostfixTypeCount)
+					== false) {
+				// 判断后缀编号是否合法
+				THROW(exception::astfilereader::FormatError("readNode()"));
+				return NULL;
+			}
+
+			n = new ast::AstPostfix();
+			((ast::AstPostfix *) n)->postfix_type = postfix_type;
+		}
+		}
 
 		if (n == NULL) {
+			// 非特殊节点
+			n = new ast::AstNode(type);
 			THROW(exception::astfilereader::NodeError("readNode()"));
 		}
 
@@ -256,8 +284,9 @@ public:
 		int lineno = -1;
 		String filename;
 
-		while (pos < buffer_size) {
-			int type = readbyte();
+		while (stream.isMore()) {
+			char type;
+			stream.read(type);
 			CE;
 
 			while (type == -2 || type == -3) {
@@ -267,7 +296,7 @@ public:
 				if (type == -3) {
 					filename = updateFileName();
 				}
-				type = readbyte();
+				stream.read(byte);
 				CE;
 			}
 
@@ -276,6 +305,7 @@ public:
 			CATCH {
 				return NULL;
 			}
+
 			if (node != NULL) {
 				// 非结尾单元需指定行号和文件名
 				node->lineNo = lineno;
@@ -342,13 +372,7 @@ public:
 
 		return root;
 	}
-
-	void close() {
-		reader.close();
-	}
 };
 } // namespace stamon::action
 
-#undef CHECK_AST
-#undef CHECK_SPECIAL_AST
 #undef CE

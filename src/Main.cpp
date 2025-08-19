@@ -110,7 +110,7 @@ int StamonHelpCommand() {
 		   "\thelp | -h\t\t\tDisplay this information.\n"
 		   "\tbuild | -b\t\t\tBuild this source to program.\n"
 		   "\t\t<filename>\t\tSource filename (Required)\n"
-		   "\t\t<filename>\t\tTarget filename\n"
+		   "\t\t<filename>\t\tTarget filename (Required)\n"
 		   "\t\t--import=<boolean>\t\tSupport import flag\n"
 		   "\t\t--strip=<boolean>\t\tStrip debug information flag\n"
 		   "\t\t-I<path>\t\tAdd include path\n"

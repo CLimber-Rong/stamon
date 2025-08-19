@@ -1,0 +1,12 @@
+{
+  "name": "BufferStreamException.cpp",
+  "error": [
+    {
+      "type": "DataSizeError",
+      "arg": [],
+      "msg": ["the size of data is too small"],
+      "doc": "数据在读取过程中过早读完，即数据过小，此错误一般发生在文件解码过程中。"
+    }
+  ],
+  "warning": []
+}

@@ -8,29 +8,14 @@
 
 #pragma once
 
-#include "BinaryWriter.hpp"
+#include "BufferStream.cpp"
 #include "Exception.hpp"
-#include "Token.cpp"
 #include "String.hpp"
-
-// 为了节约篇幅，定义了一些宏用于简写
-// 这些宏只用于此文件
-
-#define WRITE(b) \
-	writer.write(b); \
-	CATCH { \
-		return; \
-	}
-
-#define WRITE_I(n) \
-	writer.write_i(n); \
-	CATCH { \
-		return; \
-	}
+#include "Token.cpp"
 
 namespace stamon::action {
 class TokenFileWriter {
-	BinaryWriter writer;
+	BufferOutStream& stream;
 
 public:
 	STMException *ex;
@@ -38,54 +23,60 @@ public:
 	TokenFileWriter() {
 	}
 
-	TokenFileWriter(STMException *e, String filename) {
-		ex = e;
-		writer = BinaryWriter(ex, filename);
-		WRITE(0xAB);
-		WRITE(0xDC);
+	TokenFileWriter(STMException *e, BufferOutStream &outstream)
+		: ex(e)
+		, stream(outstream) {
+		stream.writeArray((char) 0xAB);
+		stream.write((char) 0xDC);
 	}
 
 	void writeToken(c::Token *tok) {
-		int id = tok->type;
+		char id = tok->type;
 
-		WRITE(id);
+		stream.write(id);
 
 		// 接着特判带有词法单元数据的词法单元
-		if (id == c::TokenInt) {
+
+		switch (id) {
+		case c::TokenInt: {
 			// 特判整数token
-			WRITE_I(((c::IntToken *) tok)->val);
+			stream.write(((c::IntToken *) tok)->val);
+			break;
 		}
 
-		if (id == c::TokenDouble) {
+		case c::TokenDouble: {
 			// 特判浮点token
-			double val = ((c::DoubleToken *) tok)->val;
-
-			char *ptr = (char *) &val;
-
-			WRITE_I(*((int *) ptr));
-			WRITE_I(*((int *) (ptr + 4)));
+			stream.write(((c::DoubleToken *) tok)->val);
+			break;
 		}
 
-		if (id == c::TokenString) {
+		case c::TokenString: {
 			String val = ((c::StringToken *) tok)->val;
 
-			WRITE_I(val.length());
+			stream.write(val.length());
 
 			for (int index = 0; index < val.length(); index++) {
-				WRITE(val[index]);
+				stream.write(val[index]);
 			}
+			break;
 		}
 
-		if (id == c::TokenIden) {
+		case c::TokenIden: {
 			// 特判标识符token，其实现与字符串token类似
 
 			String iden = ((c::IdenToken *) tok)->iden;
 
-			WRITE_I(iden.length());
+			stream.write(iden.length());
 
 			for (int index = 0; index < iden.length(); index++) {
-				WRITE(iden[index]);
+				stream.write(iden[index]);
 			}
+			break;
+		}
+
+		default: {
+			break;
+		}
 		}
 	}
 
@@ -94,24 +85,13 @@ public:
 
 		for (int i = 0, len = tokens.size(); i < len; i++) {
 			writeToken(tokens[i]);
-			CATCH {
-				return;
-			}
 		}
 
-		WRITE(-1); // 写入EOL
-
-		return;
+		stream.write((char) -1); // 写入EOL
 	}
 
-	void close() {
-		WRITE(c::TokenEOF);
-
-		writer.close();
-		return;
+	void writeEOF() {
+		stream.write(c::TokenEOF);
 	}
 };
 } // namespace stamon::action
-
-#undef WRITE
-#undef WRITE_I

@@ -60,7 +60,7 @@ public:
 };
 class AstAnonClass : public AstNode {
 public:
-	bool isHaveFather = false;
+	bool father_flag = false;
 
 	AstAnonClass()
 		: AstNode(AstAnonClassType) {
@@ -70,7 +70,7 @@ public:
 		: AstNode(AstAnonClassType) {
 		children = expr;
 		if (father != NULL) {
-			isHaveFather = true;
+			father_flag = true;
 			children->insert(0, (AstNode *) father);
 		}
 	}
