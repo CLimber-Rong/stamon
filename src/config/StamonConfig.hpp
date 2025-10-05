@@ -9,10 +9,10 @@
 #pragma once
 
 // stamon的版本号
-namespace stamon {
+namespace stamon::config {
 constexpr int STAMON_VER_X = 2;
 constexpr int STAMON_VER_Y = 4;
-constexpr int STAMON_VER_Z = 50;
+constexpr int STAMON_VER_Z = 53;
 } // namespace stamon
 
 namespace stamon::config {

@@ -10,12 +10,13 @@
 
 #include"String.hpp"
 #include"ArrayList.hpp"
-#include"stmlib.hpp"
+#include"StamonLib.hpp"
+#include"BasicPlatform.hpp"
 #include"CompilerException.cpp"
 #include"Token.cpp"
 
 #define CHECK_KEYWORD(keyword, TokType) \
-	if(iden==String((char*)keyword)) {\
+	if(iden==String(keyword)) {\
 		st = ed;\
 		Token* rst = new Token(line, TokType);\
 		tokens.add(rst);\
@@ -56,7 +57,7 @@
 		}\
 	}
 
-//这个宏用于匹配两个字符的运算符，其中op应是char*类型
+//这个宏用于匹配两个字符的运算符，其中op应是const char*类型
 
 #define CHECK_LONG_LONG_OPERATOR(op, TokType) \
 	if(text_len-ed>2) {\
@@ -68,11 +69,11 @@
 			return true;\
 		}\
 	}
-//这个宏用于匹配三个字符的运算符，其中op应是char*类型
+//这个宏用于匹配三个字符的运算符，其中op应是const char*类型
 
 #define CHECK_ESCAPE_CHAR(charactor, str) \
 	if(tmp[i]==charactor) {\
-		val += String((char*)str);\
+		val += String(str);\
 		i++;\
 	} else
 
@@ -100,10 +101,8 @@ namespace stamon::c {   //编译器命名空间
 				if (tmp[i] == 'x') {
 					i++;
 					String data = tmp.substring(i, i + 2);
-					char *c = new char[1];
-					*c = data.toIntX();
-					val += String(c);
-					delete[] c;
+					byte c = data.toIntX();
+					val += String(&c);
 					i += 2;
 				}
 			} else {
@@ -124,7 +123,7 @@ namespace stamon::c {   //编译器命名空间
 				*（可以简单理解为弹出缓冲区的第一个元素）
 			 * peek(index)会获取第index个token，但是不会从缓冲区里移除它
 			 	*（可以简单理解为读取操作）
-			*/
+			 */
 
 			ArrayList<Token*> tokens;	//缓存token用
 
@@ -192,7 +191,7 @@ namespace stamon::c {   //编译器命名空间
 
 			Token* getTok() {
 				//读取一个Token
-				if(tokens.empty()==true) {
+				if(tokens.empty()) {
 					return &TokEOF;
 				}
 
@@ -258,7 +257,7 @@ namespace stamon::c {   //编译器命名空间
 					}
 				} //分析小数
 
-				if(isInt==true) {
+				if(isInt) {
 					int value = toInt(line, ed, text.substring(st, ed));
 					IntToken* rst = new IntToken(line, value);
 					tokens.add((Token*)rst);

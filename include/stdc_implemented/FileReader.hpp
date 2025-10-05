@@ -1,5 +1,5 @@
 /*
-	Name: BinaryWriter.hpp
+	Name: FileReader.hpp
 	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 22/02/24 21:52
@@ -9,41 +9,35 @@
 #pragma once
 
 #define FILE_ERR(position) \
-	THROW(STMInfo("BinaryReader", "FileError", \
+	THROW(STMInfo("FileReader", "FileError", \
 			String("an error has occured in ") + String(position), \
-			"BinaryReader()"));
+			"FileReader()"));
 
-#include "Exception.hpp"
-#include "String.hpp"
-#include "EasySmartPtr.hpp"
+#include "IFileReader.hpp"
 #include "stdio.h"
 
-ArrayList<String> ImportPaths;
+namespace stamon::stdc {
 
-class BinaryReader {
-public:
+class FileReader {
 	FILE *stream;
 	int size;
-	char *buffer;
+	byte *buffer;
+
+public:
 	STMException *ex;
 
-	BinaryReader() {
-	}
-
-	BinaryReader(STMException *e, String filename) {
+	FileReader(STMException *e, String filename) {
 		ex = e;
 
 		stream = fopen(filename.getstr(), "rb");
-		//尝试从当前目录打开文件
+		// 尝试从当前目录打开文件
 
-		for(int i=0,len=ImportPaths.size(); i<len; i++) {
-			if(stream!=NULL) {
-				break;  //成功打开文件
+		for (int i = 0, len = ImportPaths.size(); i < len; i++) {
+			if (stream != NULL) {
+				break; // 成功打开文件
 			}
 
-			stream = fopen(
-							(ImportPaths[i]+filename).getstr(), "rb"
-						);
+			stream = fopen((ImportPaths[i] + filename).getstr(), "rb");
 		}
 
 		if (stream == NULL) {
@@ -76,10 +70,9 @@ public:
 		return size;
 	}
 
-	EasySmartPtr<char> read() {
+	EasySmartPtr<byte> read() {
 		// 读取数据，会开辟并返回存储文件二进制数据的堆内存
-		// 开辟出的内存需要由开发者手动释放
-		EasySmartPtr<char> buffer(new char[size + 1]); // 根据文件大小开辟内存
+		EasySmartPtr<byte> buffer(new byte[size + 1]); // 根据文件大小开辟内存
 		buffer[size] = '\0';
 
 		if (buffer.get() == NULL) {
@@ -99,5 +92,13 @@ public:
 		fclose(stream);
 	}
 };
+
+} // namespace stamon::stdc
+
+namespace stamon {
+
+using FileReader = IFileReader<stdc::FileReader>;
+
+}
 
 #undef FILE_ERR

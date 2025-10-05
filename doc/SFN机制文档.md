@@ -43,20 +43,23 @@ void sfn_print(SFN_PARA_LIST);
 
 ##### 实现外部函数
 
-外部函数可以使用依赖库上的函数，对于移植在平台上的开发者而言，也可以引入更多平台特有的函数进行操作。外部函数应该使用``stamon::exception::sfn::SFNError``作为异常生成函数，开发者也可以引入更多细化的异常生成函数。
+外部函数可以使用移植接口上的函数，对于移植在平台上的开发者而言，也可以引入更多平台特有的函数进行操作。外部函数应该使用``stamon::exception::sfn::SFNError``作为异常生成函数，开发者也可以引入更多细化的异常生成函数。
 
 ``sfn_print``的实际实现如下：
 
 ```C++
 void sfn_print(SFN_PARA_LIST) {
+
+	using namespace stamon;
+
 	STMException *ex = sfn.ex;
-	stamon::datatype::DataType *val = arg->data;
-	if (val->getType() != stamon::datatype::StringTypeID) {
-		THROW(stamon::exception::sfn::SFNError(
+	datatype::DataType *val = arg->data;
+	if (val->getType() != datatype::StringTypeID) {
+		THROW(exception::sfn::SFNError(
 				"sfn_print()", "invalid type"));
 		return;
 	}
-	platform_print(((stamon::datatype::StringType *) val)->getVal());
+	platform_print(((datatype::StringType *) val)->getVal());
 	return;
 }
 ```
@@ -81,4 +84,4 @@ SFN(STMException *e, vm::ObjectManager *objman) {
 }
 ```
 
-``sfn_functions``是一个``StringMap``，存储的值类型是符合外部函数原型的函数指针。在构造函数中加入利用``sfn_functions.put``来指定端口号及其对应的外部函数
+``sfn_functions``是一个Map，存储的值类型是符合外部函数原型的函数指针。在构造函数中加入利用``sfn_functions.put``来指定端口号及其对应的外部函数

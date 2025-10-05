@@ -9,30 +9,21 @@
 #pragma once
 
 #include "ArrayList.hpp"
-#include "Exception.hpp"
-#include "NumberMap.hpp"
-#include "TypeDef.hpp"
+#include "BasicPlatform.hpp"
+#include "HashMap.hpp"
+#include "IMemoryPool.hpp"
 
 #include "stddef.h"
 #include "stdio.h"
 #include "stdlib.h"
 
-template<typename T> void *operator new(size_t size, T *ptr) {
-	// 重载placement_new
-	return (void *) ptr;
-}
+namespace stamon::stdc {
 
 class MemoryPool {
 	// 内存池
 
-	using byte = bytes_get<1, false>::type;
-	// 定义字节类型
-
-	NumberMap<ArrayList<byte *>> free_mem_map;
+	HashMap<int, ArrayList<byte *> *> free_mem_map;
 	// 以空闲内存大小为键，空闲内存列表为值
-	NumberMap<void> free_mems;
-	// 以空闲内存大小为键和值
-	// 用于快速得知free_mem_map的值有哪些
 	int FreeMemConsumeSize = 0;
 	// 目前空闲内存总大小为多少
 	int PoolCacheSize;
@@ -40,9 +31,6 @@ class MemoryPool {
 	STMException *ex;
 
 public:
-	MemoryPool() {
-	}
-
 	MemoryPool(STMException *e, int mem_limit, int pool_cache_size) {
 		ex = e;
 		PoolCacheSize = pool_cache_size;
@@ -51,12 +39,12 @@ public:
 	template<typename T, typename... Types> T *NewObject(Types &&...args) {
 		if (PoolCacheSize <= 0) {
 			// 无缓存，直接使用new
-			return new T(args...);
+			return new T(forward<Types>(args)...);
 		} else {
 			// 使用内存池
 			byte *ptr;
 
-			if (free_mem_map.containsKey(sizeof(T))) {
+			if (free_mem_map.exist(sizeof(T))) {
 				ArrayList<byte *> *freelist = free_mem_map.get(sizeof(T));
 				if (!freelist->empty()) {
 					// 有空闲内存
@@ -64,30 +52,38 @@ public:
 					freelist->erase(freelist->size() - 1);
 					FreeMemConsumeSize -= sizeof(T);
 
-					new ((T *) ptr) T(args...);
+					new ((T *) ptr) T(forward<Types>(args)...);
 					return (T *) ptr;
 				}
 			}
 
 			ptr = (byte *) malloc(sizeof(T));
 
-			new ((T *) ptr) T(args...);
+			new ((T *) ptr) T(forward<Types>(args)...);
 			return (T *) ptr;
 		}
 	}
 
-	void ClearAllFreeMem() {
-		ArrayList<void *> frees = free_mems.getValList<void *>();
+	void clearAllFreeMem() {
+		ArrayList<int> free_mem_type = free_mem_map.getKeyList();
+		// 获取空闲内存块有几种不同大小
 
-		for (int i = 0, len = frees.size(); i < len; i++) {
-			// 遍历所有空闲内存大小
-			ArrayList<byte *> *list = free_mem_map.get((size_t) (frees[i]));
-			while (!list->empty()) {
-				// 清空列表中所有元素
-				free(list->at(list->size() - 1));
-				list->erase(list->size() - 1);
-				FreeMemConsumeSize -= (size_t) frees[i];
+		for (int i = 0, ilen = free_mem_type.size(); i < ilen; i++) {
+			// 遍历所有空闲内存种类
+			ArrayList<byte *> *list = free_mem_map.get(free_mem_type[i]);
+			// 获取当前种类的空闲内存列表
+			for (int j = 0, jlen = list->size(); j < jlen; j++) {
+				free(list->at(j));
+				// 释放空闲内存
 			}
+			FreeMemConsumeSize -= free_mem_type[i] * list->size();
+			// 减去占用内存
+			list->clear();
+			// 清空列表
+			delete list;
+			// 删除列表
+			free_mem_map.del(free_mem_type[i]);
+			// 该类型无任何空闲内存
 		}
 
 		return;
@@ -111,16 +107,15 @@ public:
 
 			if (FreeMemConsumeSize + sizeof(T) > PoolCacheSize) {
 				// 释放所有空闲内存
-				ClearAllFreeMem();
+				clearAllFreeMem();
 			}
 
-			if (!free_mem_map.containsKey(sizeof(T))) {
+			if (!free_mem_map.exist(sizeof(T))) {
 				// 新建ArrayList
 				free_mem_map.put(sizeof(T), new ArrayList<byte *>());
 			}
 
 			free_mem_map.get(sizeof(T))->add(ptr);
-			free_mems.put(sizeof(T), (void *) sizeof(T));
 
 			FreeMemConsumeSize += sizeof(T);
 
@@ -128,3 +123,11 @@ public:
 		}
 	}
 };
+
+} // namespace stamon::stdc
+
+namespace stamon {
+
+using MemoryPool = IMemoryPool<stdc::MemoryPool>;
+
+}

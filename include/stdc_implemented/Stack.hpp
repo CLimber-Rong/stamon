@@ -1,39 +1,50 @@
 /*
 	Name: Stack.hpp
 	License: Apache 2.0
-	Author: 瞿相荣
+	Author: CLimber-Rong
 	Date: 17/01/23 18:06
-	Description: 栈库，基于stack.h
+	Description: 栈库
 */
 #pragma once
 
 #include "ArrayList.hpp"
+#include "BasicPlatform.hpp"
+#include "IStack.hpp"
+#include "StamonLib.hpp"
+
+namespace stamon::stdc {
 
 template<typename T> class Stack {
 	ArrayList<T *> list;
 
 public:
-	Stack() {}
-	int clear() {
+	void clear() {
 		list.clear();
-		return 1;
-	} // 清空
-	int empty() {
+	}
+	bool empty() {
 		return list.empty();
-	} // 是否为空
+	}
 	int size() {
 		return list.size();
-	} // 元素个数
+	}
 	T *peek() {
 		return list[list.size() - 1];
-	} // 获取栈顶元素
-	int push(T *data) {
+	}
+	void push(T *data) {
 		list.add(data);
-		return 1;
-	} // 入栈
+	}
 	T *pop() {
 		T *rst = list[list.size() - 1];
 		list.erase(list.size() - 1);
 		return rst;
-	} // 出栈
+	}
 };
+
+} // namespace stamon::stdc
+
+namespace stamon {
+
+template<typename T>
+using Stack = IStack<T, stdc::Stack<T>>;
+
+}

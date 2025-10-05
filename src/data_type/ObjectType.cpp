@@ -11,22 +11,22 @@
 #pragma once
 
 #include"DataType.hpp"
-#include"NumberMap.hpp"
+#include"HashMap.hpp"
 
 namespace stamon::datatype {
 	class ObjectType : public DataType {
-			NumberMap<Variable> vals;  
-			//由于STVM内部以数字来代替标识符，所以采用NumberMap
+			HashMap<int, Variable*> vals;  
+			//STVM内部以数字来代替标识符
 		public:
-			ObjectType(NumberMap<Variable> value)
-				: DataType(ObjectTypeID), vals(NumberMap<Variable>()) {
+			ObjectType(HashMap<int, Variable*> value)
+				: DataType(ObjectTypeID), vals(HashMap<int, Variable*>()) {
 				vals = value;
 			}
-			virtual NumberMap<Variable> getVal() const {
+			virtual HashMap<int, Variable*> getVal() const {
 				return vals;
 			}
 			virtual ~ObjectType() {
-				ArrayList<Variable*> vars = vals.getValList<Variable*>();
+				ArrayList<Variable*> vars = vals.getValList();
 				for(int i=0;i<vars.size();i++) {
 					delete vars[i];
 				}

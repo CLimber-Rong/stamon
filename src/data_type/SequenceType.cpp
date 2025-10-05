@@ -23,10 +23,11 @@ namespace stamon::datatype {
 			SequenceType(int length) 
 			: DataType(SequenceTypeID), sequence(ArrayList<Variable*>(length)) {
 			}
-			SequenceType(ArrayList<Variable*> value) : DataType(SequenceTypeID) {
-				sequence = value;
+			SequenceType(ArrayList<Variable*> value)
+			: DataType(SequenceTypeID) {
+				sequence = move(value);
 			}
-			virtual ArrayList<Variable*> getVal() const {
+			virtual const ArrayList<Variable*>& getVal() const {
 				return sequence;
 			}
 			virtual ~SequenceType() {

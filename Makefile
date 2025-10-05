@@ -5,7 +5,8 @@ UPX = upx
 REMOVE = del
 
 STD = c++17
-LINK = 	-I include/stdc_implemented \
+LINK = 	-I include/interface \
+		-I include/stdc_implemented \
 		-I src/ast \
 		-I src/data_type \
 		-I src/vm \
@@ -77,7 +78,7 @@ zip_release_win:
 	$(UPX) --best --lzma bin/stamon.exe
 
 zip_release_linux:
-	$(UPX) --best --lzma bin/stamon.exe
+	$(UPX) --best --lzma bin/stamon
 
 zip_release_macos:
-	$(UPX) --best --lzma bin/stamon.exe
+	$(UPX) --best --lzma bin/stamon

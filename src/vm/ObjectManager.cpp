@@ -22,25 +22,24 @@
 #include"DataType.hpp"
 #include"MemoryPool.hpp"
 #include"ArrayList.hpp"
-#include"Stack.hpp"
-#include"NumberMap.hpp"
 #include"ObjectManagerException.cpp"
-#include"stmlib.hpp"
+#include"StamonLib.hpp"
+#include"BasicPlatform.hpp"
 
 namespace stamon::vm {
 	typedef datatype::Variable Variable;
 
 	class ObjectScope {		//单个对象作用域
-			NumberMap<Variable> scope; //实际上存储的是DataType指针
+			HashMap<int, Variable*> scope; //实际上存储的是DataType指针
 		public:
 
 			ObjectScope() {}
-			ObjectScope(NumberMap<Variable> s) {
+			ObjectScope(HashMap<int, Variable*> s) {
 				scope = s;
 			}
 
 			bool exist(int key) {	//是否存在该标识符
-				return scope.containsKey(key);
+				return scope.exist(key);
 			}
 
 			Variable* get(int key) {
@@ -53,7 +52,7 @@ namespace stamon::vm {
 				return;
 			}
 
-			NumberMap<Variable> getScope() {
+			HashMap<int, Variable*> getScope() {
 				return scope;
 			}
 
@@ -61,7 +60,7 @@ namespace stamon::vm {
 				ArrayList<Variable*> var;
 				ArrayList<datatype::DataType*> obj;
 
-				var = getScope().getValList<Variable*>();
+				var = getScope().getValList();
 				
 				for(int i=0,len=var.size(); i<len; i++) {
 					obj.add(var.at(i)->data);
@@ -73,7 +72,7 @@ namespace stamon::vm {
 			void destroyScope() {
 				ArrayList<Variable*> var;
 
-				var = getScope().getValList<Variable*>();
+				var = getScope().getValList();
 
 				for(int i=0;i<var.size();i++) {
 					delete var[i];
@@ -97,7 +96,7 @@ namespace stamon::vm {
 			 * 这个null值不参与gc
 			 */
 
-			datatype::IntegerType* InterningIntegerConst[5+1+256] = {NULL};
+			datatype::IntegerType* InterningIntegerConst[5+1+256] {};
 			//先全部初始化为0
 			/*
 			 * 虚拟机在运行过程当中通常需要频繁申请一些小整数
@@ -140,12 +139,12 @@ namespace stamon::vm {
 			template<class T>
 			bool GCConditions(T* object) {
 				/*
-				* 用于判断此时是否要进行GC
-				* 开发者也可以选择重写这个函数
-				* 有些开发者编写的GC条件取决于object
-				* 所以我编写了这个参数，但是我不会用到
-				* 这里默认当对象占用内存以及GC预留内存大于内存限制时触发GC
-				*/
+				 * 用于判断此时是否要进行GC
+				 * 开发者也可以选择重写这个函数
+				 * 有些开发者编写的GC条件取决于object
+				 * 所以我编写了这个参数，但是我不会用到
+				 * 这里默认当对象占用内存以及GC预留内存大于内存限制时触发GC
+				 */
 				if(is_gc==false) {
 					return false;
 				}
@@ -171,12 +170,12 @@ namespace stamon::vm {
 			 * 创建一个内容为s的字符串对象，应该这么做
 			 * StringType* str;
 			 * str = manager.MallocObject<StringType>(s);
-			*/
+			 */
 
 			template<class T, typename...Types>
 			T* MallocObject(Types&& ...args) {
 				//这个代码比较难懂，涉及到形参模板和右值引用
-				return _malloc_object<T>(args...);
+				return _malloc_object<T>(forward<Types>(args)...);
 			}
 
 
@@ -192,7 +191,8 @@ namespace stamon::vm {
 				//这个代码比较难懂，涉及到形参模板和右值引用
 				T* result;      //要返回的对象
 
-				result = Pool.NewObject<T>(args...);		//从内存池新建对象
+				result = Pool.NewObject<T>(forward<Types>(args)...);
+				//从内存池新建对象
 
 				CATCH {		//如果GC报错就退出函数
 					return NULL;
@@ -227,7 +227,7 @@ namespace stamon::vm {
 
 				/*
 				 * 注意：一定要在GC后才能添加到列表，否则刚申请的对象可能会被GC掉
-				*/
+				 */
 
 				result->gc_flag = false;
 
@@ -258,7 +258,7 @@ namespace stamon::vm {
 			Variable* getVariable(int id) {
 				//从最新的作用域到全局作用域逐个查找
 				for(int i=Scopes.size()-1; i>=0; i--) {
-					if(Scopes.at(i).exist(id) == true) {
+					if(Scopes.at(i).exist(id)) {
 						return Scopes.at(i).get(id);
 					}
 				}
@@ -363,7 +363,7 @@ namespace stamon::vm {
 								/*
 								 * 如果这个对象还没有被扫描过
 								 * 那么标记，并放到unscanned中
-								*/
+								 */
 								p->gc_flag = true;
 								unscanned.add(p);
 							}
@@ -378,7 +378,7 @@ namespace stamon::vm {
 						ArrayList<Variable*> referVars = 
 											 obj
 											 ->getVal()
-											 .getValList<Variable*>();
+											 .getValList();
 						//获取引用对象的列表
 
 						for(int i=0,len=referVars.size();i<len;i++) {
@@ -426,7 +426,7 @@ namespace stamon::vm {
 					}
 				}
 
-				Objects = NewObjects;
+				Objects = move(NewObjects);
 				//更新对象列表
 			}
 
@@ -453,23 +453,23 @@ namespace stamon::vm {
 					FreeObject(InterningIntegerConst[i]);
 				}
 				//释放内存池的剩余内存
-				Pool.ClearAllFreeMem();
+				Pool.clearAllFreeMem();
 			}
 	};
 
 
 	/*
-	* 此处运用到了模板特化，代码相对来说需要更长时间去理解
-	* 利用模板特化，我们可以在编译期就直接判断代码调用的模板类型，从而进行优化
-	* 例如，对于一个template<T>的函数f而言
-	* 我们可以特别定义一个template<int>的函数f，然后进行一些更细节的处理
-	* 这里我们特别优化了：
+	 * 此处运用到了模板特化，代码相对来说需要更长时间去理解
+	 * 利用模板特化，我们可以在编译期就直接判断代码调用的模板类型，从而进行优化
+	 * 例如，对于一个template<T>的函数f而言
+	 * 我们可以特别定义一个template<int>的函数f，然后进行一些更细节的处理
+	 * 这里我们特别优化了：
 		* NullType的申请：
 			* 直接返回null常量而不申请对象
 		* IntegerType的申请：
 			* 对于-5~256的整数，直接返回常量而不申请对象
 			* 这种机制通常被称为小整数池，我喜欢叫做整数复用池
-	*/
+	 */
 
 	template<>
 	datatype::NullType*

@@ -3,23 +3,23 @@
 	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 24/08/23 18:09
-	Description: 异常处理的实现
+	Description: 异常处理，该类无需特殊实现
 */
 #pragma once
 
 #include "ArrayList.hpp"
+#include "StamonLib.hpp"
+#include "BasicPlatform.hpp"
 #include "String.hpp"
-#include "stmlib.hpp"
-// 该库不额外依赖平台，实现上述库即可
 
 /*
 	CATCH的使用方法：
 	CATCH {
 		//在这里写上捕捉异常的代码
 	}
-	THROW(message)用于抛出异常，异常信息为message
-	THROW_S的作用与THROW相近，通常用于抛出“运行时才能决定异常信息”的异常
-	ERROR是异常信息
+	THROW(info)用于抛出异常，异常信息为info
+	WARN(info)用于抛出警告，警告信息为info
+	ISWARNING用于判断是否有警告被抛出，是则为true，否则为false
 */
 
 /*
@@ -32,6 +32,8 @@
 
 #define WARN(info) ex->Warn(info);
 #define ISWARNING (ex->isWarning)
+
+namespace stamon {
 
 class STMInfo {
 	// 一个信息的组成，通常用于异常和日志系统
@@ -57,8 +59,8 @@ public:
 
 class STMException {
 public:
-	STMInfo Exception;	//异常
-	ArrayList<STMInfo> Warning;	//一系列的警告
+	STMInfo Exception; // 异常
+	ArrayList<STMInfo> Warning; // 一系列的警告
 	bool isError = false;
 	bool isWarning = false;
 
@@ -79,5 +81,6 @@ public:
 	ArrayList<STMInfo> getWarning() {
 		return Warning;
 	}
-
 };
+
+} // namespace stamon

@@ -44,12 +44,12 @@ public:
 		Stack<ast::AstNode> stack;
 		stack.push(node);
 
-		while (stack.empty() == false) {
+		while (!stack.empty()) {
 			ast::AstNode *top = stack.pop();
 
 			if (top == NULL) {
 				// 结束符
-				stream.write((char) -1);
+				stream.write((byte) -1);
 				continue;
 			}
 
@@ -57,14 +57,14 @@ public:
 				// 需要输出调试信息
 
 				if (top->lineNo != lineno) {
-					stream.write((char) -2);
+					stream.write((byte) -2);
 					lineno = top->lineNo;
 					stream.write(lineno);
 				}
 
 				if (top->filename != filename) {
 					// 输出文件信息
-					stream.write((char) -3);
+					stream.write((byte) -3);
 
 					filename = top->filename;
 
@@ -91,7 +91,7 @@ public:
 	}
 
 	void writeNode(ast::AstNode *top) {
-		stream.write((char) (top->getType()));
+		stream.write((byte) (top->getType()));
 
 		switch (top->getType()) {
 		// 对有ast数据的节点进行特判
@@ -100,7 +100,7 @@ public:
 			String iden = ((ast::AstIdentifierName *) top)->getName();
 			stream.write(iden.length());
 			for (int i = 0; i < iden.length(); i++) {
-				stream.write((char) (iden[i]));
+				stream.write((byte) (iden[i]));
 			}
 			break;
 		}
@@ -109,7 +109,7 @@ public:
 			// 数字
 			ast::AstNumber *number = (ast::AstNumber *) top;
 
-			stream.write((char) (number->getNumberType()));
+			stream.write((byte) (number->getNumberType()));
 
 			switch (number->getNumberType()) {
 			case ast::IntNumberType: {

@@ -9,8 +9,8 @@
 #pragma once
 
 #include "ArrayList.hpp"
-#include "BinaryReader.hpp"
-#include "BinaryWriter.hpp"
+#include "FileReader.hpp"
+#include "FileWriter.hpp"
 #include "BufferStreamException.cpp"
 #include "EasySmartPtr.hpp"
 #include "StamonConfig.hpp"
@@ -31,14 +31,14 @@ template<typename T> void BUFFERINSTREAM_DESTROY_NOTHING(EasySmartPtr<T> *p) {
 
 class BufferInStream {
 	// 内存输入流，引用传递
-	EasySmartPtr<char> buffer;
+	EasySmartPtr<byte> buffer;
 	int buffer_size;
 	EasySmartPtr<int> read_pos;
 
 public:
 	STMException *ex;
 
-	BufferInStream(STMException *e, EasySmartPtr<char> buff, int bf_sz)
+	BufferInStream(STMException *e, EasySmartPtr<byte> buff, int bf_sz)
 		: ex(e)
 		, buffer(buff)
 		, buffer_size(bf_sz)
@@ -52,7 +52,7 @@ public:
 		, read_pos(new int(0)) // 从起始处读
 		, buffer(NULL, BUFFERINSTREAM_DESTROY_NOTHING) {
 		// 给定文件名，进行读取
-		BinaryReader reader(ex, filename);
+		FileReader reader(ex, filename);
 		CE;
 
 		buffer = reader.read();
@@ -67,9 +67,9 @@ public:
 		read_pos[0] = 0;
 	}
 
-	char readByte() {
+	byte readByte() {
 		// 读取一字节
-		char rst;
+		byte rst;
 		if (read_pos[0] < buffer_size) {
 			rst = buffer[read_pos[0]];
 			read_pos[0]++;
@@ -81,7 +81,7 @@ public:
 		return rst;
 	}
 
-	void read(char *data, int size) {
+	void read(byte *data, int size) {
 		// 数据是用大端存储的，在读取时应该根据大小端复原到内存中
 		if (config::StamonDecodingEndian == config::StamonCodingBigEndian) {
 			// 大端读取
@@ -101,7 +101,7 @@ public:
 
 	template<typename T> void read(T &data) {
 		// 类型转换辅助
-		read((char *) &data, sizeof(T));
+		read((byte *) &data, sizeof(T));
 	}
 
 	template<typename T, int n> void readArray(T (&data)[n]) {
@@ -144,21 +144,21 @@ public:
 
 class BufferOutStream {
 	// 内存输出流，引用传递
-	EasySmartPtr<ArrayList<char>> buffer;
+	EasySmartPtr<ArrayList<byte>> buffer;
 
 public:
 	STMException *ex;
 
 	BufferOutStream(STMException *e)
 		: ex(e)
-		, buffer(new ArrayList<char>()) {
+		, buffer(new ArrayList<byte>()) {
 	}
 
-	void writeByte(char data) {
+	void writeByte(byte data) {
 		buffer->add(data);
 	}
 
-	void write(const char *data, int size) {
+	void write(const byte *data, int size) {
 		// 根据端序写入，以保证生成的数据都是大端
 		if (config::StamonEncodingEndian == config::StamonCodingBigEndian) {
 			for (int i = 0; i < size; i++) {
@@ -174,7 +174,7 @@ public:
 
 	BufferInStream toBufferInStream() {
 		// 转换为BufferInStream，用于数据传递
-		EasySmartPtr<char> buff(new char[buffer->size()]); // 新建内存块
+		EasySmartPtr<byte> buff(new byte[buffer->size()]); // 新建内存块
 		for (int i = 0; i < buffer->size(); i++) {
 			buff[i] = buffer->at(i);
 		}
@@ -183,7 +183,7 @@ public:
 
 	template<typename T> void write(const T &data) {
 		// 类型转换辅助
-		write((char *) &data, sizeof(T));
+		write((byte *) &data, sizeof(T));
 	}
 
 	template<typename T, int n> void write(const T (&data)[n]) {
@@ -199,7 +199,7 @@ public:
 
 	void writeFile(String filename) {
 		// 在写入完毕后，调用此函数将其全部保存至文件
-		BinaryWriter writer(ex, filename);
+		FileWriter writer(ex, filename);
 		CE;
 
 		for (int i = 0; i < buffer->size(); i++) {

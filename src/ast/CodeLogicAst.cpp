@@ -111,7 +111,8 @@ public:
 		children->add((AstNode *) expr);
 		children->add((AstNode *) block_if);
 	}
-	AstIfStatement(AstExpression *expr, AstBlock *block_if, AstBlock *block_else)
+	AstIfStatement(
+			AstExpression *expr, AstBlock *block_if, AstBlock *block_else)
 		: AstNode(AstIfStatementType) {
 		children->add((AstNode *) expr);
 		children->add((AstNode *) block_if);
@@ -136,7 +137,8 @@ public:
 		: AstNode(AstForStatementType) {
 	}
 
-	AstForStatement(AstIdentifier *iden, AstExpression *expr, AstBlock *block_for)
+	AstForStatement(
+			AstIdentifier *iden, AstExpression *expr, AstBlock *block_for)
 		: AstNode(AstForStatementType) {
 		children->add((AstNode *) iden);
 		children->add((AstNode *) expr);

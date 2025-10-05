@@ -26,12 +26,12 @@ public:
 	TokenFileWriter(STMException *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
-		stream.writeArray((char) 0xAB);
-		stream.write((char) 0xDC);
+		stream.writeArray((byte) 0xAB);
+		stream.write((byte) 0xDC);
 	}
 
 	void writeToken(c::Token *tok) {
-		char id = tok->type;
+		byte id = tok->type;
 
 		stream.write(id);
 
@@ -87,7 +87,7 @@ public:
 			writeToken(tokens[i]);
 		}
 
-		stream.write((char) -1); // 写入EOL
+		stream.write((byte) -1); // 写入EOL
 	}
 
 	void writeEOF() {

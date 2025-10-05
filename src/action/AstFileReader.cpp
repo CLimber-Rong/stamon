@@ -33,14 +33,14 @@ public:
 		, stream(instream) {
 		ex = e;
 
-		char magic_number[2];
+		byte magic_number[2];
 		stream.readArray(magic_number);
 
 		CATCH {
 			return;
 		}
 
-		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDD) {
+		if (magic_number[0] != (byte) 0xAB || magic_number[1] != (byte) 0xDD) {
 			// 如果文件过小或魔数异常则报错
 			THROW(exception::astfilereader::FormatError("start"));
 			return;
@@ -74,7 +74,7 @@ public:
 			return String();
 		}
 
-		char *cstr = new char[len];
+		byte *cstr = new byte[len];
 
 		for (int i = 0; i < len; i++) {
 			stream.read(cstr[i]);
@@ -114,8 +114,8 @@ public:
 				return NULL;
 			}
 
-			// 再读取到char数组里
-			char *cstr = new char[len + 1];
+			// 再读取到byte数组里
+			byte *cstr = new byte[len + 1];
 			cstr[len] = '\0';
 
 			for (int i = 0; i < len; i++) {
@@ -131,7 +131,7 @@ public:
 
 		case ast::AstNumberType: {
 			// 数字
-			char numtype;
+			byte numtype;
 			stream.read(numtype);
 			CE;
 
@@ -176,8 +176,8 @@ public:
 				return NULL;
 			}
 
-			// 再读取到char数组里
-			char *cstr = new char[len + 1];
+			// 再读取到byte数组里
+			byte *cstr = new byte[len + 1];
 			cstr[len] = '\0';
 
 			for (int i = 0; i < len; i++) {
@@ -193,7 +193,7 @@ public:
 
 		case ast::AstAnonClassType: {
 			// 匿名类
-			char father_flag;
+			byte father_flag;
 			stream.read(father_flag);
 			CE;
 
@@ -285,7 +285,7 @@ public:
 		String filename;
 
 		while (stream.isMore()) {
-			char type;
+			byte type;
 			stream.read(type);
 			CE;
 
@@ -349,7 +349,8 @@ public:
 
 				if (root != NULL) {
 					// 已经出现根节点了，因此是重复的根节点
-					THROW(exception::astfilereader::RedundantRootNode("read()"));
+					THROW(exception::astfilereader::RedundantRootNode(
+							"read()"));
 					return root;
 				}
 
@@ -365,7 +366,7 @@ public:
 		}
 
 		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失
-		if (stack.empty() == false) {
+		if (!stack.empty()) {
 			THROW(exception::astfilereader::EndNodeError("read()"));
 			return root;
 		}

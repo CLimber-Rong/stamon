@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BinaryReader.hpp"
 #include "BufferStream.cpp"
 #include "String.hpp"
 #include "Token.cpp"
@@ -35,14 +34,14 @@ public:
 		: ex(e)
 		, stream(instream)
 		, ismore(true) {
-		char magic_number[2];
+		byte magic_number[2];
 		stream.readArray(magic_number);
 
 		CATCH {
 			return;
 		}
 
-		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDC) {
+		if (magic_number[0] != (byte) 0xAB || magic_number[1] != (byte) 0xDC) {
 			// 如果文件过小或魔数异常则报错
 			THROW(exception::tokenfilereader::FormatError("TokenFileReader()"));
 			return;
@@ -51,7 +50,7 @@ public:
 
 	c::Token *readToken() {
 		// 获取一个Token
-		char id;
+		byte id;
 		stream.read(id);
 		CE;
 
@@ -61,7 +60,7 @@ public:
 		}
 
 		switch (id) {
-		case -1: {
+		case (byte)-1: {
 			lineno++;
 			break;
 		}
@@ -93,8 +92,8 @@ public:
 				THROW(exception::tokenfilereader::FormatError("readToken()"));
 			}
 
-			// 再读取到char数组里
-			char *cstr = new char[len + 1];
+			// 再读取到byte数组里
+			byte *cstr = new byte[len + 1];
 			cstr[len] = '\0';
 			for (int i = 0; i < len; i++) {
 				stream.read(cstr[i]);
@@ -114,8 +113,8 @@ public:
 				THROW(exception::tokenfilereader::FormatError("readToken()"));
 			}
 
-			// 再读取到char数组里
-			char *cstr = new char[len + 1];
+			// 再读取到byte数组里
+			byte *cstr = new byte[len + 1];
 			cstr[len] = '\0';
 			for (int i = 0; i < len; i++) {
 				stream.read(cstr[i]);

@@ -23,8 +23,8 @@ public:
 	AstIrWriter(STMException *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
-		stream.write((char) 0xAB);
-		stream.write((char) 0xDB);
+		stream.write((byte) 0xAB);
+		stream.write((byte) 0xDB);
 	}
 
 	void write(ArrayList<ir::AstIr> ir_list,
@@ -44,7 +44,7 @@ public:
 		// 最后写入IR
 
 		int lineNo = -1; // 当前正在写入的行号
-		String filename((char *) ""); // 当前正在写入的文件名
+		String filename; // 当前正在写入的文件名
 
 		for (int i = 0, len = ir_list.size(); i < len; i++) {
 			if (isStrip == false) {

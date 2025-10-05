@@ -11,7 +11,8 @@
 #include"ArrayList.hpp"
 #include"AstRunnerException.cpp"
 #include"String.hpp"
-#include"stmlib.hpp"
+#include"StamonLib.hpp"
+#include"BasicPlatform.hpp"
 #include"Ast.hpp"
 #include"DataType.hpp"
 #include"TypeCalculator.cpp"
@@ -81,17 +82,17 @@ namespace stamon::vm {
 	using VariablePtr = EasySmartPtr<Variable>;
 	//为了简写，使用using关键字定义（效果类似typedef）
 
-	void __LEFT_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+	void LeftVariableDestroyFunction(VariablePtr* p) {
 		return;
 		//左值变量指针不需要被销毁
 	}
 
-	void __RIGHT_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+	void RightVariableDestroyFunction(VariablePtr* p) {
 		delete p->ptr;
 		//右值变量指针需要被销毁
 	}
 
-	void __NULL_VARIABLE_PTR_DESTROY_FUNCTION__(VariablePtr* p) {
+	void NullVariableDestroyFunction(VariablePtr* p) {
 		return;
 		//空变量指针不需要被销毁
 	}
@@ -99,7 +100,7 @@ namespace stamon::vm {
 	class LeftVariablePtr : public VariablePtr {
 		public:
 		LeftVariablePtr(Variable* ptr)
-		: VariablePtr(ptr, __LEFT_VARIABLE_PTR_DESTROY_FUNCTION__)
+		: VariablePtr(ptr, LeftVariableDestroyFunction)
 		{}
 	};
 
@@ -107,14 +108,14 @@ namespace stamon::vm {
 		public:
 		RightVariablePtr(datatype::DataType* ptr)
 		: VariablePtr(
-			new Variable(ptr), __RIGHT_VARIABLE_PTR_DESTROY_FUNCTION__
+			new Variable(ptr), RightVariableDestroyFunction
 		) {}
 	};
 
 	class NullVariablePtr : public VariablePtr {
 		public:
 		NullVariablePtr()
-		: VariablePtr(NULL, __NULL_VARIABLE_PTR_DESTROY_FUNCTION__)
+		: VariablePtr(NULL, NullVariableDestroyFunction)
 		{}
 	};
 
@@ -250,7 +251,7 @@ namespace stamon::vm {
 
 			datatype::ObjectType* initObject(datatype::ClassType* cls) {
 				datatype::ObjectType* rst;
-				NumberMap<Variable> membertab;	//成员表
+				HashMap<int, Variable*> membertab;	//成员表
 				auto node = cls->getVal();
 
 				/*处理父类*/
@@ -1006,7 +1007,7 @@ namespace stamon::vm {
 					if(
 					    ((datatype::ObjectType*)src)
 					    ->getVal()
-					    .containsKey(member_id)==false
+					    .exist(member_id)==false
 					) {
 						//未知成员
 						THROW(exception::astrunner::UnknownMemberError(
@@ -1039,8 +1040,8 @@ namespace stamon::vm {
 
 					CDT(index_dt, datatype::IntegerType)
 
-					ArrayList<Variable*> list = ((datatype::SequenceType*)src)
-					                            ->getVal();
+					const ArrayList<Variable*>& list 
+									= ((datatype::SequenceType*)src)->getVal();
 
 					int index = ((datatype::IntegerType*)index_dt)->getVal();
 
@@ -1076,7 +1077,7 @@ namespace stamon::vm {
 
 					OPND_PUSH(obj_dt)
 
-					if(obj_dt->getVal().containsKey(0)==true) {
+					if(obj_dt->getVal().exist(0)) {
 						//有构造函数
 						datatype::DataType* init_func_dt = obj_dt
 						                                   ->getVal()
@@ -1246,35 +1247,35 @@ namespace stamon::vm {
 			}
 
 	};
+
+	//一些冗余的函数放到后面
+
+	inline String AstRunner::getDataTypeName(int type) {
+		switch (type)
+		{
+		case stamon::datatype::ClassTypeID:		return String("class");
+		case stamon::datatype::MethodTypeID:	return String("function");
+		case stamon::datatype::IntegerTypeID:	return String("int");
+		case stamon::datatype::FloatTypeID:		return String("float");
+		case stamon::datatype::DoubleTypeID:	return String("double");
+		case stamon::datatype::ObjectTypeID:	return String("object");
+		case stamon::datatype::SequenceTypeID:	return String("sequence");
+		case stamon::datatype::StringTypeID:	return String("string");
+		case -1:								return String("identifier");
+		default:								return String("unknown-type");
+		}
+	}
+
+	inline String AstRunner::getExecutePosition() {
+		if (RunningFileName.equals("") && RunningLineNo == -1) {
+			// 字节码中被没有调试信息，即被字节码被strip过
+			return String("");
+		} else {
+			return String("at \"") + RunningFileName + String("\": ")
+				+ toString(RunningLineNo) + String(": ");
+		}
+	}
 } //namespace stamon::vm
-
-//一些冗余的函数放到后面
-
-inline String stamon::vm::AstRunner::getDataTypeName(int type) {
-	switch (type)
-	{
-	case stamon::datatype::ClassTypeID:		return String("class");
-	case stamon::datatype::MethodTypeID:	return String("function");
-	case stamon::datatype::IntegerTypeID:	return String("int");
-	case stamon::datatype::FloatTypeID:		return String("float");
-	case stamon::datatype::DoubleTypeID:	return String("double");
-	case stamon::datatype::ObjectTypeID:	return String("object");
-	case stamon::datatype::SequenceTypeID:	return String("sequence");
-	case stamon::datatype::StringTypeID:	return String("string");
-	case -1:								return String("identifier");
-	default:								return String("unknown-type");
-	}
-}
-
-inline String stamon::vm::AstRunner::getExecutePosition() {
-	if (RunningFileName.equals("") && RunningLineNo == -1) {
-		// 字节码中被没有调试信息，即被字节码被strip过
-		return String("");
-	} else {
-		return String("at \"") + RunningFileName + String("\": ")
-			 + toString(RunningLineNo) + String(": ");
-	}
-}
 
 #undef CDT
 #undef OPND_PUSH

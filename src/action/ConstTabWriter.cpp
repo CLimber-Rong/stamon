@@ -30,7 +30,7 @@ public:
 		stream.write(tableconst.size());
 
 		for (int i = 0, len = tableconst.size(); i < len; i++) {
-			stream.write((char) tableconst[i]->getType());
+			stream.write((byte) tableconst[i]->getType());
 
 			switch (tableconst[i]->getType()) {
 			case datatype::IntegerTypeID: {

@@ -14,17 +14,20 @@
 #include "AstIrReader.cpp"
 #include "AstIrWriter.cpp"
 #include "AstRunner.cpp"
+#include "BasicIo.hpp"
+#include "BasicPlatform.hpp"
 #include "Compiler.hpp"
 #include "DataType.hpp"
 #include "Exception.hpp"
 #include "ObjectManager.cpp"
 #include "StamonConfig.hpp"
+#include "StamonLib.hpp"
 #include "String.hpp"
 
 // 用于简写的宏
 #define CE \
 	CATCH { \
-		ErrorMsg.add(ex->getError().toString()); \
+		ErrorMsg->add(ex->getError().toString()); \
 		return; \
 	}
 
@@ -32,31 +35,30 @@ namespace stamon {
 
 class Stamon {
 public:
-	STMException *ex;
-	ArrayList<String> ErrorMsg;
-	ArrayList<String> WarningMsg;
+	EasySmartPtr<STMException> ex;
+	EasySmartPtr<ArrayList<String>> ErrorMsg;
+	EasySmartPtr<ArrayList<String>> WarningMsg;
 
 	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 
-	Stamon() {
-	}
-
-	void init() {
-		ex = new STMException();
-		VerX = STAMON_VER_X;
-		VerY = STAMON_VER_Y;
-		VerZ = STAMON_VER_Z;
+	Stamon()
+		: ex(new STMException)
+		, ErrorMsg(new ArrayList<String>())
+		, WarningMsg(new ArrayList<String>())
+		, VerX(config::STAMON_VER_X)
+		, VerY(config::STAMON_VER_Y)
+		, VerZ(config::STAMON_VER_Z) {
 	}
 
 	void compile(String src, String dst, bool isSupportImport, bool isStrip) {
-		ArrayList<c::SourceSyntax> *syntax_list = c::ParseTargetProject(ex,
-				&ErrorMsg, &WarningMsg, src, isSupportImport,
-				new ArrayList<c::SourceSyntax>(), StringMap<void>(),
-				c::SyntaxScope(ex));
+		ArrayList<c::SourceSyntax> *syntax_list = c::ParseTargetProject(
+				ex.get(), ErrorMsg.get(), WarningMsg.get(), src,
+				isSupportImport, new ArrayList<c::SourceSyntax>(),
+				HashMap<String, bool>(), c::SyntaxScope(ex.get()));
 
 		// 开始编译
 
-		if (ErrorMsg.empty() == false) {
+		if (!ErrorMsg->empty()) {
 			// 出现报错
 			return;
 		}
@@ -67,7 +69,7 @@ public:
 
 		// 编译为IR
 
-		ir::AstIrConverter converter(ex);
+		ir::AstIrConverter converter(ex.get());
 
 		ArrayList<ir::AstIr> ir_list = converter.ast2ir(node);
 		// AST转为AST-IR
@@ -80,10 +82,10 @@ public:
 
 		ArrayList<datatype::DataType *> ir_tableconst = converter.tableConst;
 
-		action::BufferOutStream stream(ex);
+		action::BufferOutStream stream(ex.get());
 		CE;
 
-		action::AstIrWriter writer(ex, stream);
+		action::AstIrWriter writer(ex.get(), stream);
 		CE;
 
 		writer.write(ir_list, ir_tableconst, isStrip, VerX, VerY, VerZ);
@@ -107,9 +109,9 @@ public:
 
 		CE;
 
-		action::BufferInStream stream(ex, src);
+		action::BufferInStream stream(ex.get(), src);
 
-		action::AstIrReader ir_reader(ex, stream);
+		action::AstIrReader ir_reader(ex.get(), stream);
 		// 初始化字节码读取器
 
 		CE;
@@ -127,7 +129,7 @@ public:
 		VerZ = ir_reader.VerZ;
 		// 复制版本号
 
-		ir::AstIrConverter converter(ex);
+		ir::AstIrConverter converter(ex.get());
 
 		converter.tableConst = ir_reader.tableConst;
 		// 复制常量表到转换器
@@ -140,7 +142,7 @@ public:
 		vm::AstRunner runner;
 
 		runner.execute(running_node, isGC, MemLimit, converter.tableConst,
-				ArrayList<String>(), PoolCacheSize, ex);
+				ArrayList<String>(), PoolCacheSize, ex.get());
 		// 执行
 
 		delete running_node;
@@ -162,10 +164,10 @@ public:
 
 		ArrayList<ir::AstIr> ir_list;
 
-		action::BufferInStream instream(ex, src);
+		action::BufferInStream instream(ex.get(), src);
 		// 输入流
 
-		action::AstIrReader ir_reader(ex, instream);
+		action::AstIrReader ir_reader(ex.get(), instream);
 		// 初始化字节码读取器
 		CE;
 
@@ -177,10 +179,10 @@ public:
 		CE;
 		// 读取IR
 
-		action::BufferOutStream outstream(ex);
+		action::BufferOutStream outstream(ex.get());
 		// 输出流
 
-		action::AstIrWriter writer(ex, outstream);
+		action::AstIrWriter writer(ex.get(), outstream);
 
 		writer.write(ir_list, ir_reader.tableConst, true, VerX, VerY, VerZ);
 
@@ -188,29 +190,25 @@ public:
 		CE;
 		// 写入文件
 
-		ir::AstIrConverter converter(ex);
+		ir::AstIrConverter converter(ex.get());
 
 		converter.destroyConst(ir_reader.tableConst);
 		// 利用转换器来销毁常量表
 		CE;
 
 		for (int i = 0, len = ex->getWarning().size(); i < len; i++) {
-			WarningMsg.add(ex->getWarning().at(i).toString());
+			WarningMsg->add(ex->getWarning().at(i).toString());
 		}
 
 		return;
 	}
 
-	ArrayList<String> getErrorMessages() {
+	EasySmartPtr<ArrayList<String>> getErrorMessages() {
 		return ErrorMsg;
 	}
 
-	ArrayList<String> getWarningMessages() {
+	EasySmartPtr<ArrayList<String>> getWarningMessages() {
 		return WarningMsg;
-	}
-
-	~Stamon() {
-		delete ex;
 	}
 };
 } // namespace stamon

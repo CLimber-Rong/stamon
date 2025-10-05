@@ -44,7 +44,7 @@ public:
 		}
 
 		for (int i = 1; i <= size; i++) {
-			char type;
+			byte type;
 			stream.read(type);
 			CE;
 
@@ -88,7 +88,7 @@ public:
 					return;
 				}
 
-				char *cstr = new char[len + 1];
+				byte *cstr = new byte[len + 1];
 				cstr[len] = '\0';
 
 				for (int i = 0; i < len; i++) {
@@ -103,7 +103,7 @@ public:
 				break;
 			}
 
-			case ir::IdenConstTypeID: {
+			case (byte) ir::IdenConstTypeID: {
 				int len;
 				stream.read(len);
 				CE;
@@ -113,7 +113,7 @@ public:
 					return;
 				}
 
-				char *cstr = new char[len + 1];
+				byte *cstr = new byte[len + 1];
 				cstr[len] = '\0';
 
 				for (int i = 0; i < len; i++) {

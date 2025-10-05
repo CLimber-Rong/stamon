@@ -10,18 +10,18 @@
 
 #include "BufferStream.cpp"
 #include "Parser.cpp"
-#include "StringMap.hpp"
+#include "HashMap.hpp"
 
 namespace stamon::c {
 
 ArrayList<SourceSyntax> *ParseTargetProject(STMException *e,
 		ArrayList<String> *error_msg, ArrayList<String> *warning_msg,
 		String filename, bool is_support_import, ArrayList<SourceSyntax> *src,
-		StringMap<void> filemap, SyntaxScope global_scope) {
+		HashMap<String, bool> filemap, SyntaxScope global_scope) {
 
 	STMException *ex = e;
 
-	filemap.put(filename, NULL);
+	filemap.put(filename, true);
 
 	action::BufferInStream stream(ex, filename);
 

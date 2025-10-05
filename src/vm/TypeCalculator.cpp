@@ -416,6 +416,18 @@ namespace stamon::vm {
                 if(a->getType()==IDINT || b->getType()==IDINT) { \
                     return NEWDT(INT)(toInt(a) op toInt(b)); \
                 }
+            
+            //将数字比较计算的代码封装到一个宏
+            #define LOGIC_CALCULATION(op) \
+                if(a->getType()==IDDBL || b->getType()==IDDBL) { \
+                    return NEWDT(INT)(toDouble(a) op toDouble(b)); \
+                } \
+                if(a->getType()==IDFLT || b->getType()==IDFLT) { \
+                    return NEWDT(INT)(toFloat(a) op toFloat(b)); \
+                } \
+                if(a->getType()==IDINT || b->getType()==IDINT) { \
+                    return NEWDT(INT)(toInt(a) op toInt(b)); \
+                }
 
             //封装判等和判不等的运算
             #define DEFINE_EQU_OPERATE(name, op) \
@@ -460,7 +472,7 @@ namespace stamon::vm {
                         ); \
                     } \
                     \
-                    MATH_CALCULATION(op); \
+                    LOGIC_CALCULATION(op); \
                     \
                     return NULL; \
                     \
@@ -535,6 +547,7 @@ namespace stamon::vm {
 
 
             #undef MATH_CALCULATION
+            #undef LOGIC_CALCULATION
 
     };
 }

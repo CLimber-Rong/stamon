@@ -13,7 +13,6 @@
 #include "BufferStream.cpp"
 #include "ConstTabReader.cpp"
 #include "DataType.hpp"
-#include "NumberMap.hpp"
 #include "String.hpp"
 
 // 用于简写的宏
@@ -39,11 +38,11 @@ public:
 
 	void readHeader() {
 		// 读取魔数
-		char magic_number[2];
+		byte magic_number[2];
 		stream.readArray(magic_number);
 		CE;
 
-		if (magic_number[0] != (char) 0xAB || magic_number[1] != (char) 0xDB) {
+		if (magic_number[0] != (byte) 0xAB || magic_number[1] != (byte) 0xDB) {
 			// 检查字节码是否为AST-IR
 			printf("%d %d \n",magic_number[0],magic_number[1]);
 			THROW(exception::astirreader::FormatError("readHeader()"));
@@ -69,7 +68,7 @@ public:
 
 		int lineNo = -1;
 
-		String filename = String((char *) "");
+		String filename;
 
 		while (stream.isMore()) {
 			int type;
@@ -95,7 +94,7 @@ public:
 					return ir;
 				}
 
-				char *cstr = new char[len + 1];
+				byte *cstr = new byte[len + 1];
 				cstr[len] = '\0';
 
 				for (int i = 0; i < len; i++) {

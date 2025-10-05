@@ -11,12 +11,10 @@
 #include "ArrayList.hpp"
 #include "Ast.hpp"
 #include "AstIrException.cpp"
-#include "ByteMap.hpp"
 #include "DataType.hpp"
-#include "NumberMap.hpp"
 #include "Stack.hpp"
 #include "String.hpp"
-#include "StringMap.hpp"
+#include "HashMap.hpp"
 
 // 为了方便，我定义了宏
 // 这些宏只能在本文件中使用
@@ -75,26 +73,13 @@ public:
 class AstIrConverter {
 public:
 	ArrayList<datatype::DataType *> tableConst;
-	ByteMap<void> tableConstFloat;
-	ByteMap<void> tableConstDouble;
-	NumberMap<void> tableConstInt;
-	StringMap<void> tableConstString;
-	StringMap<void> tableConstIden;
+	HashMap<float, int> tableConstFloat;
+	HashMap<double, int> tableConstDouble;
+	HashMap<int, int> tableConstInt;
+	HashMap<String, int> tableConstString;
+	HashMap<String, int> tableConstIden;
 
 	STMException *ex;
-
-	/*
-	 * 这里需要解释一下
-	 * 以上是不同类型的常量表
-	 * 无论是ByteMap，抑或是NumberMap、StringMap
-	 * 如果设置模板类型为void，即代表该map的值的类型为void*（详见库的定义）
-	 * 这些void*里存的是整数，即键在tableConst当中的下标
-	 * 举个例子：
-	 * 遇到整数常量1145
-	 * 以1145为键，在tableConstInt中查找值
-	 * 假设查到值为14
-	 * 则代表tableConst[14]是一个IntegerType，且值为1145
-	 */
 
 	AstIrConverter() {
 	}
@@ -114,43 +99,28 @@ public:
 
 		if (dt->getType() == datatype::IntegerTypeID) {
 			datatype::IntegerType *dtInt = (datatype::IntegerType *) dt;
-			tableConstInt.put(dtInt->getVal(), *(void **) &index);
-			//*(void**)&index等价于(void*)index
+			tableConstInt.put(dtInt->getVal(), index);
 		}
 
 		if (dt->getType() == datatype::FloatTypeID) {
 			datatype::FloatType *dtFlt = (datatype::FloatType *) dt;
-
-			float val = dtFlt->getVal();
-			char *key = (char *) &val;
-
-			tableConstFloat.put(key, sizeof(float), *(void **) &index);
+			tableConstFloat.put(dtFlt->getVal(), index);
 		}
 
 		if (dt->getType() == datatype::DoubleTypeID) {
 			datatype::DoubleType *dtDb = (datatype::DoubleType *) dt;
-
-			double val = dtDb->getVal();
-			char *key = (char *) &val;
-
-			tableConstFloat.put(key, sizeof(double), *(void **) &index);
+			tableConstDouble.put(dtDb->getVal(), index);
 		}
 
 		if (dt->getType() == datatype::StringTypeID) {
 			datatype::StringType *dtStr = (datatype::StringType *) dt;
-
-			String key = dtStr->getVal();
-
-			tableConstString.put(key, *(void **) &index);
+			tableConstString.put(dtStr->getVal(), index);
 		}
 
 		if (dt->getType() == -1) {
 			// 新建的是标识符
 			IdenConstType *dtIden = (IdenConstType *) dt;
-
-			String key = dtIden->getVal();
-
-			tableConstIden.put(key, *(void **) &index);
+			tableConstIden.put(dtIden->getVal(), index);
 		}
 
 		return index;
@@ -162,58 +132,49 @@ public:
 
 		if (dt->getType() == datatype::IntegerTypeID) {
 			datatype::IntegerType *dtInt = (datatype::IntegerType *) dt;
-			if (!tableConstInt.containsKey(dtInt->getVal())) {
+			int key = dtInt->getVal();
+			if (!tableConstInt.exist(key)) {
 				// 不在常量表中
 				return -1;
 			}
-			return (long long) tableConstInt.get(dtInt->getVal());
+			return tableConstInt.get(key);
 		}
 
 		if (dt->getType() == datatype::FloatTypeID) {
 			datatype::FloatType *dtFlt = (datatype::FloatType *) dt;
-
-			float val = dtFlt->getVal();
-			char *key = (char *) &val;
-
-			if (!tableConstFloat.containsKey(key, sizeof(float))) {
+			float key = dtFlt->getVal();
+			if (!tableConstFloat.exist(key)) {
 				return -1;
 			}
-			return (long long) tableConstFloat.get(key, sizeof(float));
+			return tableConstFloat.get(key);
 		}
 
 		if (dt->getType() == datatype::DoubleTypeID) {
 			datatype::DoubleType *dtDb = (datatype::DoubleType *) dt;
-
-			double val = dtDb->getVal();
-			char *key = (char *) &val;
-
-			if (!tableConstDouble.containsKey(key, sizeof(double))) {
+			double key = dtDb->getVal();
+			if (!tableConstDouble.exist(key)) {
 				return -1;
 			}
-			return (long long) tableConstDouble.get(key, sizeof(double));
+			return tableConstDouble.get(key);
 		}
 
 		if (dt->getType() == datatype::StringTypeID) {
 			datatype::StringType *dtStr = (datatype::StringType *) dt;
-
 			String key = dtStr->getVal();
-
-			if (!tableConstString.containsKey(key)) {
+			if (!tableConstString.exist(key)) {
 				return -1;
 			}
-			return (long long) tableConstString.get(key);
+			return tableConstString.get(key);
 		}
 
 		if (dt->getType() == -1) {
 			// 查找的是标识符
 			IdenConstType *dtIden = (IdenConstType *) dt;
-
 			String key = dtIden->getVal();
-
-			if (!tableConstIden.containsKey(key)) {
+			if (!tableConstIden.exist(key)) {
 				return -1;
 			}
-			return (long long) tableConstIden.get(key);
+			return tableConstIden.get(key);
 		}
 
 		return -1;
@@ -229,13 +190,13 @@ public:
 
 		// 先把__init__放入常量表
 		// 这也就意味着__init__始终在常量表的第一位
-		createConst(new IdenConstType(String((char *) "__init__")));
+		createConst(new IdenConstType(String("__init__")));
 
 		stack.push(program);
 
 		// 迭代遍历语法树，编译成AstIr
 
-		while (stack.empty() == false) {
+		while (!stack.empty()) {
 			bool isLeafNode = false;
 			AstIr rst;
 			ast::AstNode *top = stack.pop(); // 弹出栈顶
@@ -256,7 +217,7 @@ public:
 				isLeafNode = true;
 				rst.type = -1;
 				rst.lineNo = -1;
-				rst.filename = String((char *) "");
+				rst.filename = String("");
 			}
 			// 特判叶子节点
 
@@ -437,7 +398,7 @@ public:
 		}
 
 		// 解析完后，判断栈内是否还有节点，如有，则代表结束单元缺失
-		if (stack.empty() == false) {
+		if (!stack.empty()) {
 			THROW(exception::astir::EndNodeError("ir2ast()"));
 			return root;
 		}

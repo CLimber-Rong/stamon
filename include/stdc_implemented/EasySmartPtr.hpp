@@ -8,32 +8,40 @@
 
 #pragma once
 
+#include "IEasySmartPtr.hpp"
+
 /*
  * 对于一些不会循环引用的数据结构，可以用智能指针来封装指针
  * 利用引用计数法，EasySmartPtr会记录有多少个数据正在使用该指针
  * 当没有任何数据使用该指针时，其可以被视作垃圾内存而删除
  */
 
+namespace stamon::stdc {
+
 template<typename T> class EasySmartPtr;
 
-template<typename T> void __EASYSMARTPTR_DEFAULT_DESTROY_FUNCTION__(EasySmartPtr<T> *p);
+template<typename T>
+void EasySmartPtrDefaultDestroyFunction(IEasySmartPtr<T, EasySmartPtr<T>> *p);
 // 默认的销毁函数
 
 template<typename T> class EasySmartPtr {
-public:
-	void (*destroy_fp)(EasySmartPtr<T> *ptr);
-	T *ptr;
 	int *ref_cnt;
+	using Deverid = IEasySmartPtr<T, EasySmartPtr<T>>;
+	//外部代码实际上调用到的CITP模板类
+
+public:
+	void (*destroy_fp)(Deverid *ptr);
+	T *ptr;
 
 	EasySmartPtr(T *pointer) {
 		// 初始化，传入指针
 		ref_cnt = new int; // 初始化计数器
 		(*ref_cnt) = 1; // 初始化时，只有一个EasySmartPtr拥有这个指针
 		ptr = pointer;
-		destroy_fp = __EASYSMARTPTR_DEFAULT_DESTROY_FUNCTION__<T>;
+		destroy_fp = EasySmartPtrDefaultDestroyFunction<T>;
 	} // 直接传入指针，默认销毁方式为直接delete
 
-	EasySmartPtr(T *pointer, void (*destroy_funcptr)(EasySmartPtr<T> *ptr)) {
+	EasySmartPtr(T *pointer, void (*destroy_funcptr)(Deverid *ptr)) {
 		ref_cnt = new int;
 		(*ref_cnt) = 1;
 		ptr = pointer;
@@ -62,7 +70,7 @@ public:
 		(*ref_cnt)--; // 减去当前计数器
 		if ((*ref_cnt) == 0) {
 			delete ref_cnt;
-			destroy_fp(this);
+			destroy_fp((Deverid*)this);
 			// 如果已经没有任何EasySmartPtr指向该指针
 			// 那么此ptr可以被视作垃圾指针，需要被销毁
 		}
@@ -76,29 +84,43 @@ public:
 		return *this;
 	} // 赋值构造函数
 
-	T *get() {
+	T *get() const {
 		return ptr;
 	} // 获取指针
 
-	T *operator->() {
+	T *operator->() const {
 		return ptr;
 	} // 直接访问指针的成员
 
-	T &operator[](int index) {
+	T &operator[](int index) const {
 		return ptr[index];
 	} // 直接访问元素
+
+	T &operator*() const {
+		return *ptr;
+	}
 
 	~EasySmartPtr() {
 		// 当前计数器需要减一
 		(*ref_cnt)--;
 		if ((*ref_cnt) == 0) {
 			delete ref_cnt;
-			destroy_fp(this);
+			destroy_fp((Deverid*)this);
 			// 原理同上
 		}
 	} // 析构函数
 };
 
-template<typename T> void __EASYSMARTPTR_DEFAULT_DESTROY_FUNCTION__(EasySmartPtr<T> *p) {
+template<typename T>
+void EasySmartPtrDefaultDestroyFunction(IEasySmartPtr<T, EasySmartPtr<T>> *p) {
 	delete p->ptr;
+}
+
+} // namespace stamon::stdc
+
+namespace stamon {
+
+template<typename T>
+using EasySmartPtr = IEasySmartPtr<T, stdc::EasySmartPtr<T>>;
+
 }

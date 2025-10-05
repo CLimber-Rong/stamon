@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include "stmlib.hpp"
+#include "IArrayList.hpp"
 
+namespace stamon::stdc {
 template<typename T> class ArrayList {
 	/*
 	 * 采用双倍扩容法
@@ -21,22 +22,23 @@ template<typename T> class ArrayList {
 	 * 我们规定：当实际占用的容量小于缓冲区容量的二分之一时，将缓冲区缩小为原来的一半
 	 * 这样，我们将ArrayList的分配次数从线性级将为对数级
 	 */
-	
+
 	T *cache = NULL;
 	int cache_length = 0;
 	int length = 0;
 
-	void realloc_list(int len) {
-		if (len < (cache_length / 2)) {
-			// 缩小至一半
+	void reallocList(int len) {
+		if (len < (cache_length / 4)) {
+			// 小于缓存的四分之一后，缓存才能缩小至二分之一
+			// 之所以要小于四分之一的容量才缩小二分之一，是为了防止出现临界震荡
 
 			T *temp = new T[cache_length / 2];
 			for (int i = 0; i < len; i++) {
-				temp[i] = cache[i];
+				temp[i] = move(cache[i]);
 				// 尽可能地复制
 			}
 
-			destroy_cache(); // 销毁原来的cache
+			destroyCache(); // 销毁原来的cache
 
 			cache = temp;
 			cache_length = cache_length / 2;
@@ -45,10 +47,10 @@ template<typename T> class ArrayList {
 
 			T *temp = new T[cache_length * 2];
 			for (int i = 0; i < length; i++) {
-				temp[i] = cache[i];
+				temp[i] = move(cache[i]);
 			}
 
-			destroy_cache(); // 销毁原来的cache
+			destroyCache(); // 销毁原来的cache
 
 			cache = temp;
 			cache_length = cache_length * 2;
@@ -56,10 +58,36 @@ template<typename T> class ArrayList {
 		// 如果不满足缩小条件，也不满足扩容条件，就什么都不做
 	}
 
-	void destroy_cache() {
+	void destroyCache() {
 		if (cache != NULL) {
 			delete[] cache;
 		}
+	}
+
+	void deepCopy(const ArrayList<T> &list) {
+		// 深拷贝
+		if (list.size() == 0) {
+			// 缓冲区至少要有一个元素
+			cache_length = 1;
+		} else {
+			cache_length = list.length;
+		}
+
+		cache = new T[cache_length];
+
+		for (int i = 0; i < list.size(); i++) {
+			cache[i] = list[i];
+		}
+
+		length = list.length;
+	}
+
+	void shallowCopy(ArrayList<T> &&list) {
+		// 浅拷贝
+		cache = list.cache;
+		cache_length = list.cache_length;
+		length = list.length;
+		list.cache = NULL;
 	}
 
 public:
@@ -80,75 +108,39 @@ public:
 	}
 
 	ArrayList(const ArrayList<T> &list) {
-		if (list.size() == 0) {
-			// 缓冲区至少要有一个元素
-			cache_length = 1;
-		} else {
-			cache_length = list.length;
-		}
-
-		cache = new T[cache_length];
-
-		for (int i = 0; i < list.size(); i++) {
-			cache[i] = list[i];
-		}
-
-		length = list.length;
+		deepCopy(list);
 	}
 
 	ArrayList(ArrayList<T> &&list) {
-		cache = list.cache;
-		cache_length = list.cache_length;
-		length = list.length;
-		list.cache = NULL;
+		shallowCopy(move(list));
 	}
 
 	ArrayList<T> &operator=(const ArrayList<T> &list) {
-		destroy_cache();
-
-		if (list.size() == 0) {
-			// 缓冲区至少要有一个元素
-			cache_length = 1;
-		} else {
-			cache_length = list.length;
-		}
-
-		cache = new T[cache_length];
-
-		for (int i = 0; i < list.size(); i++) {
-			cache[i] = list[i];
-		}
-
-		length = list.length;
-
+		destroyCache();
+		deepCopy(list);
 		return *this;
 	}
 
 	ArrayList<T> &operator=(ArrayList<T> &&list) {
-		destroy_cache();
-
-		cache = list.cache;
-		cache_length = list.cache_length;
-		length = list.length;
-		list.cache = NULL;
-
+		destroyCache();
+		shallowCopy(move(list));
 		return *this;
 	}
 
-	void add(const T &value) {
-		realloc_list(length + 1); // 重新分配内存
-		cache[length] = value;
+	void add(T value) {
+		reallocList(length + 1); // 重新分配内存
+		cache[length] = move(value);
 		length++;
 	} // 末尾添加值
 
-	void insert(int index, const T &value) {
-		realloc_list(length + 1); // 重新分配内存
+	void insert(int index, T value) {
+		reallocList(length + 1); // 重新分配内存
 
 		for (int i = length - 1; i >= index; i--) {
 			cache[i + 1] = cache[i];
 		}
 
-		cache[index] = value;
+		cache[index] = move(value);
 		length++;
 	} // 将value插入到[index]
 
@@ -157,8 +149,8 @@ public:
 			cache[i] = cache[i + 1];
 		}
 
-		realloc_list(length - 1); // 重新分配内存
 		length--;
+		reallocList(length); // 重新分配内存
 	} // 删除[index]
 
 	T at(int index) const {
@@ -170,7 +162,7 @@ public:
 	} // 判断是否为空
 
 	void clear() {
-		destroy_cache(); // 销毁
+		destroyCache(); // 销毁
 		cache = new T[1]; // 新建缓冲区
 		cache_length = 1;
 		length = 0; // 长度清零
@@ -180,17 +172,17 @@ public:
 		return length;
 	} // 获得元素个数
 
-	ArrayList<T> operator+(ArrayList<T> src) {
+	ArrayList<T> operator+(ArrayList<T> src) const {
 		ArrayList<T> rst = *this;
 
 		for (int i = 0, len = src.size(); i < len; i++) {
-			rst.add(src[i]);
+			rst.add(move(src[i]));
 		}
 
 		return rst;
 	}
 
-	ArrayList<T> operator+=(ArrayList<T> src) {
+	ArrayList<T> &operator+=(ArrayList<T> src) {
 		return *(this) = *(this) + src;
 	}
 
@@ -203,6 +195,14 @@ public:
 	}
 
 	~ArrayList() {
-		destroy_cache();
+		destroyCache();
 	}
 };
+} // namespace stamon::stdc
+
+namespace stamon {
+
+template<typename T>
+using ArrayList = interface::IArrayList<T, stdc::ArrayList<T>>;
+
+} // namespace stamon
