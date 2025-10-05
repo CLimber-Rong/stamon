@@ -13,7 +13,6 @@ LINK = 	-I include/interface \
 		-I src/ir \
 		-I src/compiler \
 		-I src/sfn \
-		-I src/tac \
 		-I src/action \
 		-I src/exception \
 		-I src/config \
