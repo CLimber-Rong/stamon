@@ -60,7 +60,7 @@ public:
 		ConstTabReader reader(ex, stream);
 		reader.read();
 		CE;
-		tableConst = reader.tableConst;
+		tableConst = move(reader.tableConst);
 	}
 
 	ArrayList<ir::AstIr> readIR() {

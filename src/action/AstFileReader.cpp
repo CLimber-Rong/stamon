@@ -317,7 +317,7 @@ public:
 
 		// 将平面的节点复原成树状结构
 
-		Stack<ast::AstNode> stack;
+		Stack<ast::AstNode*> stack;
 
 		ast::AstNode *root = NULL;
 

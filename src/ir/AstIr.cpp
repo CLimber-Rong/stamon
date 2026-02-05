@@ -181,7 +181,7 @@ public:
 	}
 
 	ArrayList<AstIr> ast2ir(ast::AstNode *program) {
-		Stack<ast::AstNode> stack;
+		Stack<ast::AstNode*> stack;
 		ArrayList<AstIr> list;
 
 		if (program == NULL) {
@@ -325,14 +325,14 @@ public:
 		return list;
 	}
 
-	ast::AstNode *ir2ast(ArrayList<AstIr> ir) {
+	ast::AstNode *ir2ast(const ArrayList<AstIr>& ir) {
 		/*
 		 * AstIr转Ast
 		 * 如果ir不正确，程序会运行时错误
 		 * 所以请在运行该函数前检查ir
 		 */
 
-		Stack<ast::AstNode> stack;
+		Stack<ast::AstNode*> stack;
 
 		ast::AstNode *root = NULL;
 

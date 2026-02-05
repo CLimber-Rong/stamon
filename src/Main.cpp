@@ -24,9 +24,9 @@ String getNoEndingSeparatorPath(String path); // 获取末尾没有分隔符的�
 void checkEnvironmentVariableWarning(); // 检查环境变量是否存在，不存在则输出警告
 int StamonVersionCommand();
 int StamonHelpCommand();
-int StamonBuildCommand(ArrayList<String> args);
-int StamonRunCommand(ArrayList<String> args);
-int StamonStripCommand(ArrayList<String> args);
+int StamonBuildCommand(const ArrayList<String>& args);
+int StamonRunCommand(const ArrayList<String>& args);
+int StamonStripCommand(const ArrayList<String>& args);
 
 int main(int argc, char *argv[]) {
 	// 参数表
@@ -132,7 +132,7 @@ int StamonHelpCommand() {
 	return 0;
 }
 
-int StamonBuildCommand(ArrayList<String> args) {
+int StamonBuildCommand(const ArrayList<String>& args) {
 	if (getenv("STAMON") == NULL) {
 		printf("stamon: fatal error: missing enviroment variable \"STAMON\"\n"
 			   "please enter \'stamon help\' to get more information.\n");
@@ -256,7 +256,7 @@ int StamonBuildCommand(ArrayList<String> args) {
 	return 0;
 }
 
-int StamonRunCommand(ArrayList<String> args) {
+int StamonRunCommand(const ArrayList<String>& args) {
 	checkEnvironmentVariableWarning();
 
 	String src;
@@ -348,7 +348,7 @@ int StamonRunCommand(ArrayList<String> args) {
 	return 0;
 }
 
-int StamonStripCommand(ArrayList<String> args) {
+int StamonStripCommand(const ArrayList<String>& args) {
 	checkEnvironmentVariableWarning();
 
 	String src;

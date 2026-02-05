@@ -82,41 +82,25 @@ namespace stamon::vm {
 	using VariablePtr = EasySmartPtr<Variable>;
 	//为了简写，使用using关键字定义（效果类似typedef）
 
-	void LeftVariableDestroyFunction(VariablePtr* p) {
-		return;
-		//左值变量指针不需要被销毁
-	}
-
-	void RightVariableDestroyFunction(VariablePtr* p) {
-		delete p->ptr;
-		//右值变量指针需要被销毁
-	}
-
-	void NullVariableDestroyFunction(VariablePtr* p) {
-		return;
-		//空变量指针不需要被销毁
-	}
-
 	class LeftVariablePtr : public VariablePtr {
 		public:
 		LeftVariablePtr(Variable* ptr)
-		: VariablePtr(ptr, LeftVariableDestroyFunction)
-		{}
+		: VariablePtr(ptr, stamon::DestroyNothing) {}
+		//左值变量指针不需要被销毁
 	};
 
 	class RightVariablePtr : public VariablePtr {
 		public:
 		RightVariablePtr(datatype::DataType* ptr)
-		: VariablePtr(
-			new Variable(ptr), RightVariableDestroyFunction
-		) {}
+		: VariablePtr(new Variable(ptr)) {}
+		//右值变量指针需要被销毁
 	};
 
 	class NullVariablePtr : public VariablePtr {
 		public:
 		NullVariablePtr()
-		: VariablePtr(NULL, NullVariableDestroyFunction)
-		{}
+		: VariablePtr(NULL, stamon::DestroyNothing) {}
+		//空变量指针不需要被销毁
 	};
 
 	class RetStatus {	//返回的状态（Return Status）

@@ -285,6 +285,15 @@ namespace stamon::vm {
                 case IDNUL:
                     return false;
                 
+                case IDSTR:
+                    return !((STR*)dt)->getVal().empty();
+                
+                case IDSEQ:
+                    return !((SEQ*)dt)->getVal().empty();
+                
+                case datatype::ClassTypeID:
+                    return true;
+                
                 default:
                     return true;
                 }
@@ -434,7 +443,7 @@ namespace stamon::vm {
                 DTT* name(DTT* a, DTT* b) { \
                     switch (a->getType()) \
                     { \
-                    /*特判类和函数*/ \
+                    /*特判类和函数和空值*/ \
                     \
                     case datatype::ClassTypeID: \
                         return NEWDT(INT)( \
@@ -447,6 +456,9 @@ namespace stamon::vm {
                                     ((datatype::MethodType*)a)->getVal() \
                                     op ((datatype::MethodType*)b)->getVal() \
                         ); \
+                    \
+                    case datatype::NullTypeID: \
+                        return NEWDT(INT)(true); \
                     \
                     default: \
                         break; \

@@ -67,7 +67,7 @@ public:
 		sfn_functions.put(String("exit"), sfn_exit);
 		sfn_functions.put(String("version"), sfn_version);
 	}
-	void call(String port, datatype::Variable *arg) {
+	void call(const String& port, datatype::Variable *arg) {
 		if (sfn_functions.exist(port) == 0) {
 			THROW(exception::sfn::SFNError("call()", "undefined sfn port"));
 		} else {

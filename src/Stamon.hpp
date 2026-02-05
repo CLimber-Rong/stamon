@@ -105,11 +105,9 @@ public:
 	void run(String src, bool isGC, int MemLimit, int PoolCacheSize) {
 		// 实现流程：文件读取器->字节码读取器->IR读取器->虚拟机
 
-		ArrayList<ir::AstIr> ir_list;
+		action::BufferInStream stream(ex.get(), src);
 
 		CE;
-
-		action::BufferInStream stream(ex.get(), src);
 
 		action::AstIrReader ir_reader(ex.get(), stream);
 		// 初始化字节码读取器
@@ -120,8 +118,7 @@ public:
 		CE;
 		// 读取文件头
 
-		ir_list = ir_reader.readIR();
-		CE;
+		const ArrayList<ir::AstIr>& ir_list = ir_reader.readIR();
 		// 读取IR
 
 		VerX = ir_reader.VerX;
@@ -131,8 +128,8 @@ public:
 
 		ir::AstIrConverter converter(ex.get());
 
-		converter.tableConst = ir_reader.tableConst;
-		// 复制常量表到转换器
+		converter.tableConst = move(ir_reader.tableConst);
+		// 移动常量表到转换器
 
 		ast::AstNode *running_node = converter.ir2ast(ir_list);
 		// 复原成AST

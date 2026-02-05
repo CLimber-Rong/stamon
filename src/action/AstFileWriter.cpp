@@ -41,7 +41,7 @@ public:
 		String filename;
 		int lineno = -1;
 
-		Stack<ast::AstNode> stack;
+		Stack<ast::AstNode*> stack;
 		stack.push(node);
 
 		while (!stack.empty()) {

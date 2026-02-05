@@ -24,21 +24,16 @@
 
 namespace stamon::action {
 
-template<typename T> void BUFFERINSTREAM_DESTROY_NOTHING(EasySmartPtr<T> *p) {
-	// 用于BufferInStream打开文件时初始化智能指针
-	return;
-}
-
 class BufferInStream {
 	// 内存输入流，引用传递
-	EasySmartPtr<byte> buffer;
+	EasySmartPtr<byte[]> buffer;
 	int buffer_size;
 	EasySmartPtr<int> read_pos;
 
 public:
 	STMException *ex;
 
-	BufferInStream(STMException *e, EasySmartPtr<byte> buff, int bf_sz)
+	BufferInStream(STMException *e, EasySmartPtr<byte[]> buff, int bf_sz)
 		: ex(e)
 		, buffer(buff)
 		, buffer_size(bf_sz)
@@ -50,7 +45,7 @@ public:
 	BufferInStream(STMException *e, String filename)
 		: ex(e)
 		, read_pos(new int(0)) // 从起始处读
-		, buffer(NULL, BUFFERINSTREAM_DESTROY_NOTHING) {
+		, buffer(NULL, stamon::DestroyNothing) {
 		// 给定文件名，进行读取
 		FileReader reader(ex, filename);
 		CE;
@@ -64,17 +59,17 @@ public:
 
 	void reset() {
 		// 重新从起始处读取
-		read_pos[0] = 0;
+		(*read_pos) = 0;
 	}
 
 	byte readByte() {
 		// 读取一字节
 		byte rst;
-		if (read_pos[0] < buffer_size) {
-			rst = buffer[read_pos[0]];
-			read_pos[0]++;
+		if (*read_pos < buffer_size) {
+			rst = buffer[*read_pos];
+			(*read_pos)++;
 		} else {
-			printf("pos %u\n", read_pos[0]);
+			printf("pos %u\n", *read_pos);
 			rst = 0;
 			THROW(exception::bufferstream::DataSizeError("readByte()"));
 		}
@@ -138,7 +133,7 @@ public:
 	}
 
 	bool isMore() {
-		return read_pos[0] < buffer_size;
+		return *read_pos < buffer_size;
 	}
 };
 
@@ -174,7 +169,7 @@ public:
 
 	BufferInStream toBufferInStream() {
 		// 转换为BufferInStream，用于数据传递
-		EasySmartPtr<byte> buff(new byte[buffer->size()]); // 新建内存块
+		EasySmartPtr<byte[]> buff(new byte[buffer->size()]); // 新建内存块
 		for (int i = 0; i < buffer->size(); i++) {
 			buff[i] = buffer->at(i);
 		}
