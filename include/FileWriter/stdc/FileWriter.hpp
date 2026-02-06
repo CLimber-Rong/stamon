@@ -19,29 +19,53 @@
 namespace stamon::stdc {
 
 class FileWriter {
-	FILE *fstream;
+	FILE *stream;
 
 public:
 	STMException *ex;
 
 	FileWriter(STMException *e, String filename) {
 		ex = e;
-		fstream = fopen(filename.getstr(), "wb");
-		if (fstream == NULL) {
+		stream = fopen(filename.getstr(), "wb");
+		if (stream == NULL) {
 			FILE_ERR("fopen()");
 			return;
 		}
 	}
 
+	FileWriter(const FileWriter&) = delete;
+	FileWriter& operator=(const FileWriter&) = delete;
+
+	FileWriter(FileWriter&& writer) : stream(writer.stream), ex(writer.ex) {
+		writer.stream = NULL;
+		writer.ex = NULL;
+	}
+
+	FileWriter& operator=(FileWriter&& writer) {
+		close();
+		stream = writer.stream;
+		ex = writer.ex;
+		writer.stream = NULL;
+		writer.ex = NULL;
+		return *this;
+	}
+
 	void write(byte b) {
-		if (!fwrite(&b, 1, 1, fstream)) {
+		if (!fwrite(&b, 1, 1, stream)) {
 			FILE_ERR("fwrite()");
 			return;
 		}
 	}
 
 	void close() {
-		fclose(fstream);
+		if(stream!=NULL) {
+			fclose(stream);
+			stream = NULL;
+		}
+	}
+
+	~FileWriter() {
+		close();
 	}
 };
 

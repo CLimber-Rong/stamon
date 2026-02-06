@@ -22,6 +22,10 @@ public:
 		: Impl(e, filename) {
 		// 打开名为filename的文件
 	}
+
+	IFileWriter(const IFileWriter&) = delete;
+	IFileWriter& operator=(const IFileWriter&) = delete;
+
 	void write(byte b) {
 		// 写入一个字节
 		return Impl::write(move(b));

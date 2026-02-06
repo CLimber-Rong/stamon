@@ -12,7 +12,7 @@
 #include "FileReader.hpp"
 #include "FileWriter.hpp"
 #include "BufferStreamException.cpp"
-#include "EasySmartPtr.hpp"
+#include "SmartPtr.hpp"
 #include "StamonConfig.hpp"
 #include "String.hpp"
 
@@ -26,14 +26,14 @@ namespace stamon::action {
 
 class BufferInStream {
 	// 内存输入流，引用传递
-	EasySmartPtr<byte[]> buffer;
+	SmartPtr<byte[]> buffer;
 	int buffer_size;
-	EasySmartPtr<int> read_pos;
+	SmartPtr<int> read_pos;
 
 public:
 	STMException *ex;
 
-	BufferInStream(STMException *e, EasySmartPtr<byte[]> buff, int bf_sz)
+	BufferInStream(STMException *e, SmartPtr<byte[]> buff, int bf_sz)
 		: ex(e)
 		, buffer(buff)
 		, buffer_size(bf_sz)
@@ -139,7 +139,7 @@ public:
 
 class BufferOutStream {
 	// 内存输出流，引用传递
-	EasySmartPtr<ArrayList<byte>> buffer;
+	SmartPtr<ArrayList<byte>> buffer;
 
 public:
 	STMException *ex;
@@ -169,7 +169,7 @@ public:
 
 	BufferInStream toBufferInStream() {
 		// 转换为BufferInStream，用于数据传递
-		EasySmartPtr<byte[]> buff(new byte[buffer->size()]); // 新建内存块
+		SmartPtr<byte[]> buff(new byte[buffer->size()]); // 新建内存块
 		for (int i = 0; i < buffer->size(); i++) {
 			buff[i] = buffer->at(i);
 		}

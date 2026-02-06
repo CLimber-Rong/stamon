@@ -1,5 +1,5 @@
 /*
-	Name: IEasySmartPtr.hpp
+	Name: ISmartPtr.hpp
 	License: Apache 2.0
 	Author: CLimber-Rong
 	Date: 03/10/25 12:15
@@ -13,26 +13,26 @@
 
 /*
  * 对于一些不会循环引用的数据结构，可以用智能指针来封装指针
- * 利用引用计数法，EasySmartPtr会记录有多少个数据正在使用该指针
+ * 利用引用计数法，SmartPtr会记录有多少个数据正在使用该指针
  * 当没有任何数据使用该指针时，其可以被视作垃圾内存而删除
  */
 
 namespace stamon::interface {
 
-template<typename _T, class Impl> class IEasySmartPtr : public Impl {
+template<typename _T, class Impl> class ISmartPtr : public Impl {
 	// 智能指针
 	using T = typename remove_array<_T>::type;
 
 public:
-	IEasySmartPtr(T *pointer)
+	ISmartPtr(T *pointer)
 		: Impl(pointer) {
 		// 直接传入指针，默认销毁方式为直接delete
 	}
-	IEasySmartPtr(T *pointer, void (*destroy_funcptr)(T *ptr))
+	ISmartPtr(T *pointer, void (*destroy_funcptr)(T *ptr))
 		: Impl(pointer, destroy_funcptr) {
 		// 传入指针，并指定销毁方式
 	}
-	IEasySmartPtr(Impl impl)
+	ISmartPtr(Impl impl)
 		: Impl(move(impl)) {
 		// 复制构造函数
 	}

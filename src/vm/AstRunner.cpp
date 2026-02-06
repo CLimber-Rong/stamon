@@ -79,7 +79,7 @@ namespace stamon::vm {
 	 * 利用这种方式，就能让AstRunner在运行过程中及时清理掉垃圾内存，减小内存泄漏
 	 */
 
-	using VariablePtr = EasySmartPtr<Variable>;
+	using VariablePtr = SmartPtr<Variable>;
 	//为了简写，使用using关键字定义（效果类似typedef）
 
 	class LeftVariablePtr : public VariablePtr {

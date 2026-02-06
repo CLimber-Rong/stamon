@@ -65,13 +65,38 @@ public:
 		// 将文件指针重新置于顶部
 	}
 
+	FileReader(const FileReader &reader) = delete;
+
+	FileReader &operator=(const FileReader &reader) = delete;
+
+	FileReader(FileReader &&reader)
+		: stream(reader.stream)
+		, size(reader.size)
+		, ex(reader.ex) {
+
+		reader.stream = NULL;
+		reader.size = 0;
+		reader.ex = NULL;
+
+	}
+
+	FileReader &operator=(FileReader &&reader) {
+		close();
+		stream = reader.stream;
+		size = reader.size;
+		reader.stream = NULL;
+		reader.size = 0;
+		reader.ex = NULL;
+		return *this;
+	}
+
 	int getSize() {
 		return size;
 	}
 
-	EasySmartPtr<byte[]> read() {
+	SmartPtr<byte[]> read() {
 		// 读取数据，会开辟并返回存储文件二进制数据的堆内存
-		EasySmartPtr<byte[]> buffer(new byte[size + 1]); // 根据文件大小开辟内存
+		SmartPtr<byte[]> buffer(new byte[size + 1]); // 根据文件大小开辟内存
 		buffer[size] = '\0';
 
 		if (buffer.get() == NULL) {
@@ -88,7 +113,14 @@ public:
 	}
 
 	void close() {
-		fclose(stream);
+		if (stream != NULL) {
+			fclose(stream);
+			stream = NULL;
+		}
+	}
+
+	~FileReader() {
+		close();
 	}
 };
 

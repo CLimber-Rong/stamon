@@ -9,7 +9,7 @@
 
 #include "ArrayList.hpp"
 #include "BasicPlatform.hpp"
-#include "EasySmartPtr.hpp"
+#include "SmartPtr.hpp"
 #include "IHashMap.hpp"
 
 namespace stamon::stdc {
@@ -87,7 +87,7 @@ public:
 template<typename KeyType, typename ValType> class HashMap {
 	// 采用智能指针，使用引用传递
 	using Bucket = HashMapBucket<KeyType, ValType>;
-	EasySmartPtr<Bucket> bucket;
+	SmartPtr<Bucket> bucket;
 
 public:
 	HashMap()

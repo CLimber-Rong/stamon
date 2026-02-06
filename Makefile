@@ -9,7 +9,7 @@ BASIC_LINK =	-I include/pure \
 				-I include/ArrayList/interface \
 				-I include/BasicIo/interface \
 				-I include/BasicPlatform/interface \
-				-I include/EasySmartPtr/interface \
+				-I include/SmartPtr/interface \
 				-I include/FileReader/interface \
 				-I include/FileWriter/interface \
 				-I include/HashMap/interface \
@@ -30,7 +30,7 @@ BASIC_LINK =	-I include/pure \
 STDC_LINK = 	-I include/ArrayList/stdc \
 				-I include/BasicIo/stdc \
 				-I include/BasicPlatform/stdc \
-				-I include/EasySmartPtr/stdc \
+				-I include/SmartPtr/stdc \
 				-I include/FileReader/stdc \
 				-I include/FileWriter/stdc \
 				-I include/HashMap/stdc \
@@ -42,7 +42,7 @@ STDC_LINK = 	-I include/ArrayList/stdc \
 STDCPP_LINK =	-I include/ArrayList/stdcpp \
 				-I include/BasicIo/stdcpp \
 				-I include/BasicPlatform/stdcpp \
-				-I include/EasySmartPtr/stdcpp \
+				-I include/SmartPtr/stdcpp \
 				-I include/FileReader/stdcpp \
 				-I include/FileWriter/stdcpp \
 				-I include/HashMap/stdcpp \

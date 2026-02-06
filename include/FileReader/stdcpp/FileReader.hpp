@@ -64,12 +64,27 @@ public:
 		}
 	}
 
+	FileReader(const FileReader &) = delete;
+
+	FileReader &operator=(const FileReader &) = delete;
+
+	FileReader(FileReader &&reader) : stream(stamon::move(reader.stream)), ex(reader.ex) {
+		reader.ex = NULL;
+	}
+
+	FileReader &operator=(FileReader &&reader) {
+		stream = stamon::move(reader.stream);
+		ex = reader.ex;
+		reader.ex = NULL;
+		return *this;
+	}
+
 	int getSize() const {
 		return size;
 	}
 
-	EasySmartPtr<byte[]> read() {
-		EasySmartPtr<byte[]> buffer(new byte[size + 1]);
+	SmartPtr<byte[]> read() {
+		SmartPtr<byte[]> buffer(new byte[size + 1]);
 
 		stream.read((char *) (buffer.get()), size);
 
@@ -82,6 +97,10 @@ public:
 		if (stream.is_open()) {
 			stream.close();
 		}
+	}
+
+	~FileReader() {
+		close();
 	}
 };
 

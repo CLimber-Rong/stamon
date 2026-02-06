@@ -9,7 +9,7 @@
 
 #include "ArrayList.hpp"
 #include "BasicPlatform.hpp"
-#include "EasySmartPtr.hpp"
+#include "SmartPtr.hpp"
 #include "IHashMap.hpp"
 #include "memory"
 #include "unordered_map"

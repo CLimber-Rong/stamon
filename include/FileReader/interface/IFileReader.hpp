@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BasicPlatform.hpp"
-#include "EasySmartPtr.hpp"
+#include "SmartPtr.hpp"
 #include "Exception.hpp"
 #include "StamonLib.hpp"
 #include "String.hpp"
@@ -27,11 +27,15 @@ public:
 		: Impl(e, filename) {
 		// 打开名为filename的文件
 	}
+
+	IFileReader(const IFileReader&) = delete;
+	IFileReader& operator=(const IFileReader&) = delete;
+
 	int getSize() {
 		// 获取文件大小
 		return Impl::getSize();
 	}
-	EasySmartPtr<byte[]> read() {
+	SmartPtr<byte[]> read() {
 		// 读取文件为一个字节串
 		return Impl::read();
 	}

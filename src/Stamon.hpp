@@ -35,9 +35,9 @@ namespace stamon {
 
 class Stamon {
 public:
-	EasySmartPtr<STMException> ex;
-	EasySmartPtr<ArrayList<String>> ErrorMsg;
-	EasySmartPtr<ArrayList<String>> WarningMsg;
+	SmartPtr<STMException> ex;
+	SmartPtr<ArrayList<String>> ErrorMsg;
+	SmartPtr<ArrayList<String>> WarningMsg;
 
 	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 
@@ -200,11 +200,11 @@ public:
 		return;
 	}
 
-	EasySmartPtr<ArrayList<String>> getErrorMessages() {
+	SmartPtr<ArrayList<String>> getErrorMessages() {
 		return ErrorMsg;
 	}
 
-	EasySmartPtr<ArrayList<String>> getWarningMessages() {
+	SmartPtr<ArrayList<String>> getWarningMessages() {
 		return WarningMsg;
 	}
 };

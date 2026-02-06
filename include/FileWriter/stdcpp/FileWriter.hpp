@@ -37,6 +37,20 @@ public:
 		}
 	}
 
+	FileWriter(const FileWriter&) = delete;
+	FileWriter& operator=(const FileWriter&) = delete;
+
+	FileWriter(FileWriter&& writer) : stream(stamon::move(writer.stream)), ex(writer.ex) {
+		writer.ex = NULL;
+	}
+
+	FileWriter& operator=(FileWriter&& writer) {
+		stream = stamon::move(writer.stream);
+		ex = writer.ex;
+		writer.ex = NULL;
+		return *this;
+	}
+
 	void write(byte b) {
 		if (!stream.put((char) b)) {
 			FILE_ERR("std::ofstream::put()");
@@ -48,6 +62,10 @@ public:
 		if (stream.is_open()) {
 			stream.close();
 		}
+	}
+
+	~FileWriter() {
+		close();
 	}
 };
 
