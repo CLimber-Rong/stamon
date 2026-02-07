@@ -23,7 +23,7 @@ namespace stamon::interface {
 template<class Impl> class IFileReader : public Impl {
 	// 文件读取器，引用传递
 public:
-	IFileReader(STMException *e, const String &filename)
+	IFileReader(log::Exception *e, const String &filename)
 		: Impl(e, filename) {
 		// 打开名为filename的文件
 	}

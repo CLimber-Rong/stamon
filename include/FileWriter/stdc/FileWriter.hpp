@@ -9,7 +9,7 @@
 #pragma once
 
 #define FILE_ERR(position) \
-	THROW(STMInfo("FileWriter", "FileError", \
+	THROW(log::Info("FileWriter", "FileError", \
 			String("an error has occured in ") + String(position), \
 			"FileWriter()"));
 
@@ -22,9 +22,9 @@ class FileWriter {
 	FILE *stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	FileWriter(STMException *e, String filename) {
+	FileWriter(log::Exception *e, String filename) {
 		ex = e;
 		stream = fopen(filename.getstr(), "wb");
 		if (stream == NULL) {

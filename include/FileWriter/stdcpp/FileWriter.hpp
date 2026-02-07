@@ -9,7 +9,7 @@
 #pragma once
 
 #define FILE_ERR(position) \
-	THROW(STMInfo("FileWriter", "FileError", \
+	THROW(log::Info("FileWriter", "FileError", \
 			String("an error has occured in ") + String(position), \
 			"FileWriter()"));
 
@@ -25,9 +25,9 @@ class FileWriter {
 	std::ofstream stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	FileWriter(STMException *e, const String &filename)
+	FileWriter(log::Exception *e, const String &filename)
 		: ex(e) {
 		stream.open(std::string(filename.getstr()), std::ios::binary);
 

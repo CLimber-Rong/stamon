@@ -9,7 +9,7 @@
 #pragma once
 
 #define FILE_ERR(position) \
-	THROW(STMInfo("FileReader", "FileError", \
+	THROW(log::Info("FileReader", "FileError", \
 			String("an error has occured in ") + String(position), \
 			"FileReader()"));
 
@@ -23,9 +23,9 @@ class FileReader {
 	int size;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	FileReader(STMException *e, String filename) {
+	FileReader(log::Exception *e, String filename) {
 		ex = e;
 
 		stream = fopen(filename.getstr(), "rb");

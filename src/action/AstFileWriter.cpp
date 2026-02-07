@@ -28,9 +28,9 @@ class AstFileWriter {
 	BufferOutStream& stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	AstFileWriter(STMException *e, BufferOutStream &outstream)
+	AstFileWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
 		WRITE(0xAB);

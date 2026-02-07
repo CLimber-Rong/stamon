@@ -11,20 +11,20 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::objectmanager {
-inline STMInfo MemoryError(String position) {
-	return STMInfo(String("objectmanager"), String("MemoryError"), String("out of memory"), position);
+inline log::Info MemoryError(String position) {
+	return log::Info(String("objectmanager"), String("MemoryError"), String("out of memory"), position);
 }
 
-inline STMInfo PhysicalMemoryError(String position) {
-	return STMInfo(String("objectmanager"), String("PhysicalMemoryError"), String("out of physical memory"), position);
+inline log::Info PhysicalMemoryError(String position) {
+	return log::Info(String("objectmanager"), String("PhysicalMemoryError"), String("out of physical memory"), position);
 }
 
-inline STMInfo IdentifierError(String position) {
-	return STMInfo(String("objectmanager"), String("IdentifierError"), String("undefined identifier"), position);
+inline log::Info IdentifierError(String position) {
+	return log::Info(String("objectmanager"), String("IdentifierError"), String("undefined identifier"), position);
 }
 
-inline STMInfo ObjectError(String position) {
-	return STMInfo(String("objectmanager"), String("ObjectError"), String("unknown object"), position);
+inline log::Info ObjectError(String position) {
+	return log::Info(String("objectmanager"), String("ObjectError"), String("unknown object"), position);
 }
 
 }

@@ -18,12 +18,12 @@ class TokenFileWriter {
 	BufferOutStream& stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
 	TokenFileWriter() {
 	}
 
-	TokenFileWriter(STMException *e, BufferOutStream &outstream)
+	TokenFileWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
 		stream.writeArray((byte) 0xAB);

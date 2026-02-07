@@ -29,7 +29,7 @@ setting_list = [
 
 def gen_exception_func(f, sender: str) -> str:
     # 生成函数头
-    code = "inline STMInfo " + f["type"] + "(String position"
+    code = "inline log::Info " + f["type"] + "(String position"
 
     for arg in f["arg"]:
         code += ", String " + arg
@@ -51,7 +51,7 @@ def gen_exception_func(f, sender: str) -> str:
 
     # 整理并生成整个函数
     code += (
-        "return STMInfo("
+        "return log::Info("
         + 'String("'
         + sender
         + '"), '

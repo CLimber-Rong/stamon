@@ -9,7 +9,7 @@
 #pragma once
 
 #define FILE_ERR(position) \
-	THROW(STMInfo("FileReader", "FileError", \
+	THROW(log::Info("FileReader", "FileError", \
 			String("an error has occured in ") + String(position), \
 			"FileReader()"));
 
@@ -28,9 +28,9 @@ class FileReader {
 	size_t size;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	FileReader(STMException *e, const String &filename)
+	FileReader(log::Exception *e, const String &filename)
 		: ex(e) {
 		// 首先尝试直接打开文件
 		stream.open(std::string(filename.getstr()), std::ios::binary);

@@ -25,12 +25,12 @@ class TokenFileReader {
 	BufferInStream stream;
 	int lineno; // 当前行数
 	bool ismore; // 是否读完
-	STMException *ex;
+	log::Exception *ex;
 
 public:
 	TokenFileReader() {
 	}
-	TokenFileReader(STMException *e, const BufferInStream &instream)
+	TokenFileReader(log::Exception *e, const BufferInStream &instream)
 		: ex(e)
 		, stream(instream)
 		, ismore(true) {

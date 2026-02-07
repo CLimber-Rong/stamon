@@ -109,12 +109,12 @@ namespace stamon::vm {
 		public:
 
 			ArrayList<datatype::DataType*> OPND; //正在计算中的数据，也是GcRoot
-			STMException* ex;
+			log::Exception* ex;
 			bool is_gc;
 
 			ObjectManager(
 			    bool isGC, unsigned long long mem_limit,
-				int pool_cache_size, STMException* e
+				int pool_cache_size, log::Exception* e
 			) : Pool(e, mem_limit, pool_cache_size) {
 				//构造函数，mem_limit表示最大内存限制，按字节计
 				MemConsumeSize = 0;

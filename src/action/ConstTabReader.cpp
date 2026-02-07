@@ -25,10 +25,10 @@ class ConstTabReader {
 	BufferInStream stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 	ArrayList<datatype::DataType *> tableConst; // 常量表
 
-	ConstTabReader(STMException *e, const BufferInStream &instream)
+	ConstTabReader(log::Exception *e, const BufferInStream &instream)
 		: ex(e)
 		, stream(instream) {
 	}

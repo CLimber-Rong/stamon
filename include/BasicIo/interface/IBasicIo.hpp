@@ -12,9 +12,9 @@
 
 namespace stamon {
 
-void platform_exit(int code);   //退出
-int platform_system(String cmd);    //调用系统命令
+void platform_exit(int);   //退出
+int platform_system(String);    //调用系统命令
 String platform_input();    //输入
-int platform_print(String s);   //输出
+int platform_print(String);   //输出
 
 }

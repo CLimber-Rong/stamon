@@ -10,7 +10,7 @@
 
 首先是二进制文件读取为AstIr，这部分的实现位于``src/action/AstIrReader.cpp``，AstIrReader类的主要接口有：
 
-* ``AstIrReader(STMException *e, String filename)``：构造函数，filename为文件名
+* ``AstIrReader(log::Exception *e, String filename)``：构造函数，filename为文件名
 * ``bool readHeader()``：读取字节码头，读取失败则抛出异常并返回false，否则返回true
 * ``ArrayList<AstIr> ReadIR()``：读取AstIr，返回由AstIr组成的ArrayList
 
@@ -57,7 +57,7 @@ AstRunner的主要接口有：
 RetStatus execute(
     AstNode* main_node, bool isGC, int vm_mem_limit,
     ArrayList<DataType*> tableConst, ArrayList<String> args,
-    STMException* e
+    log::Exception* e
 );
 ```
 

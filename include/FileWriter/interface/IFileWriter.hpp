@@ -18,7 +18,7 @@ namespace stamon::interface {
 template<class Impl> class IFileWriter : public Impl {
 	//文件写入器，引用传递
 public:
-	IFileWriter(STMException *e, const String& filename)
+	IFileWriter(log::Exception *e, const String& filename)
 		: Impl(e, filename) {
 		// 打开名为filename的文件
 	}

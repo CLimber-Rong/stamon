@@ -29,9 +29,9 @@ public:
 	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 	ArrayList<datatype::DataType *> tableConst; // 常量表
 
-	STMException *ex;
+	log::Exception *ex;
 
-	AstIrReader(STMException *e, const BufferInStream &instream)
+	AstIrReader(log::Exception *e, const BufferInStream &instream)
 		: ex(e)
 		, stream(instream) {
 	}

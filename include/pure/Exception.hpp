@@ -23,28 +23,29 @@
 */
 
 /*
- * 开发者只需要在当前代码所在的作用域中定义STMException* ex
+ * 开发者只需要在当前代码所在的作用域中定义log::Exception* ex
  * 即可使用以下的宏
  */
 
 #define THROW(info) ex->Throw(info);
 #define CATCH if (ex->isError)
 
+
 #define WARN(info) ex->Warn(info);
 #define ISWARNING (ex->isWarning)
 
-namespace stamon {
+namespace stamon::log {
 
-class STMInfo {
+class Info {
 	// 一个信息的组成，通常用于异常和日志系统
 public:
 	String sender; // 信息发送者
 	String type; // 信息类型
 	String message; // 信息内容
 	String position; // 信息位置
-	STMInfo() {
+	Info() {
 	}
-	STMInfo(const String &Sender, const String &Type, const String &Message,
+	Info(const String &Sender, const String &Type, const String &Message,
 			const String &Position)
 		: sender(Sender)
 		, type(Type)
@@ -57,28 +58,28 @@ public:
 	}
 };
 
-class STMException {
+class Exception {
 public:
-	STMInfo Exception; // 异常
-	ArrayList<STMInfo> Warning; // 一系列的警告
+	Info Exception; // 异常
+	ArrayList<Info> Warning; // 一系列的警告
 	bool isError = false;
 	bool isWarning = false;
 
-	void Throw(STMInfo info) {
+	void Throw(Info info) {
 		Exception = info;
 		isError = true;
 	}
 
-	void Warn(STMInfo info) {
+	void Warn(Info info) {
 		Warning.add(info);
 		isWarning = true;
 	}
 
-	STMInfo getError() {
+	Info getError() {
 		return Exception;
 	}
 
-	ArrayList<STMInfo> getWarning() {
+	ArrayList<Info> getWarning() {
 		return Warning;
 	}
 };

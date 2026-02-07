@@ -14,12 +14,12 @@
 
 namespace stamon::c {
 
-ArrayList<SourceSyntax> *ParseTargetProject(STMException *e,
+ArrayList<SourceSyntax> *ParseTargetProject(log::Exception *e,
 		ArrayList<String> *error_msg, ArrayList<String> *warning_msg,
 		String filename, bool is_support_import, ArrayList<SourceSyntax> *src,
 		HashMap<String, bool> filemap, SyntaxScope global_scope) {
 
-	STMException *ex = e;
+	log::Exception *ex = e;
 
 	filemap.put(filename, true);
 

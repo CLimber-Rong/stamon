@@ -68,11 +68,11 @@ namespace stamon::c {
 
 		public:
 
-			STMException* ex;
+			log::Exception* ex;
 
 			Matcher() {}
 
-			Matcher(Lexer lex, STMException* e) {
+			Matcher(Lexer lex, log::Exception* e) {
 				lexer = lex;
 				ex = e;
 			}
@@ -140,11 +140,11 @@ namespace stamon::c {
 			 * 这样就防止一个函数使用另外一个函数的变量，但是并未报错
 			 */
 
-			STMException* ex;
+			log::Exception* ex;
 
 			SyntaxScope() {}
 
-			SyntaxScope(STMException* e) {
+			SyntaxScope(log::Exception* e) {
 				ex = e;
 			}
 
@@ -180,7 +180,7 @@ namespace stamon::c {
 	};
 
 	ArrayList<SourceSyntax>* ParseTargetProject(
-		STMException *e, ArrayList<String> *error_msg,
+		log::Exception *e, ArrayList<String> *error_msg,
 		ArrayList<String> *warning_msg, String filename, bool isSupportImport, 
 		ArrayList<SourceSyntax>* src, HashMap<String, bool> filemap,
 		SyntaxScope global_scope
@@ -229,7 +229,7 @@ namespace stamon::c {
 
 			int ParsingLineNo = 1;	//当前正在分析的行号
 			bool ImportFlag = config::isSupportImport;	//表示是否支持引用代码
-			STMException* ex = NULL;
+			log::Exception* ex = NULL;
 			String ParsingFileName;
 
 			HashMap<String, bool> filemap;
@@ -247,7 +247,7 @@ namespace stamon::c {
 			 */
 
 			Parser(
-			    Matcher matcher, STMException* e,
+			    Matcher matcher, log::Exception* e,
 			    SyntaxScope global_scope, String filename,
 			    ArrayList<SourceSyntax>* src, HashMap<String, bool> map,
 			    ArrayList<String>* error_msg, ArrayList<String>* warning_msg,

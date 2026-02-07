@@ -11,20 +11,20 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::astir {
-inline STMInfo RootNodeError(String position) {
-	return STMInfo(String("astir"), String("RootNodeError"), String("expect ast-ir root node"), position);
+inline log::Info RootNodeError(String position) {
+	return log::Info(String("astir"), String("RootNodeError"), String("expect ast-ir root node"), position);
 }
 
-inline STMInfo RedundantEndNodeError(String position) {
-	return STMInfo(String("astir"), String("RedundantEndNodeError"), String("redundant ast-ir end node"), position);
+inline log::Info RedundantEndNodeError(String position) {
+	return log::Info(String("astir"), String("RedundantEndNodeError"), String("redundant ast-ir end node"), position);
 }
 
-inline STMInfo RedundantRootNodeError(String position) {
-	return STMInfo(String("astir"), String("RedundantRootNodeError"), String("redundant ast-ir end node"), position);
+inline log::Info RedundantRootNodeError(String position) {
+	return log::Info(String("astir"), String("RedundantRootNodeError"), String("redundant ast-ir end node"), position);
 }
 
-inline STMInfo EndNodeError(String position) {
-	return STMInfo(String("astir"), String("EndNodeError"), String("expect ast-ir end node"), position);
+inline log::Info EndNodeError(String position) {
+	return log::Info(String("astir"), String("EndNodeError"), String("expect ast-ir end node"), position);
 }
 
 }

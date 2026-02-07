@@ -28,13 +28,16 @@ class MemoryPool {
 	// 目前空闲内存总大小为多少
 	int PoolCacheSize;
 	// 内存池缓存大小，如果超过限制则把空闲内存全部释放
-	STMException *ex;
+	log::Exception *ex;
 
 public:
-	MemoryPool(STMException *e, int mem_limit, int pool_cache_size) {
+	MemoryPool(log::Exception *e, int mem_limit, int pool_cache_size) {
 		ex = e;
 		PoolCacheSize = pool_cache_size;
 	}
+
+	MemoryPool(const MemoryPool&) = delete;
+	MemoryPool& operator=(const MemoryPool&) = delete;
 
 	template<typename T, typename... Types> T *NewObject(Types &&...args) {
 		if (PoolCacheSize <= 0) {

@@ -26,9 +26,9 @@ class AstFileReader {
 	BufferInStream stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	AstFileReader(STMException *e, const BufferInStream &instream)
+	AstFileReader(log::Exception *e, const BufferInStream &instream)
 		: ex(e)
 		, stream(instream) {
 		ex = e;

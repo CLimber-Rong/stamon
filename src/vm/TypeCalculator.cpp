@@ -58,12 +58,12 @@ namespace stamon::vm {
 			(datatype::DataType* a, datatype::DataType* b);
             //由类方法所组成的数组
 
-            STMException* ex;
+            log::Exception* ex;
             ObjectManager* manager;
 
             TypeCalculator() {}
 
-            TypeCalculator(STMException* e, ObjectManager* man) {
+            TypeCalculator(log::Exception* e, ObjectManager* man) {
                 ex = e;
                 manager = man;
 

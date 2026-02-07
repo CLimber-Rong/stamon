@@ -79,11 +79,11 @@ public:
 	HashMap<String, int> tableConstString;
 	HashMap<String, int> tableConstIden;
 
-	STMException *ex;
+	log::Exception *ex;
 
 	AstIrConverter() {
 	}
-	AstIrConverter(STMException *e) {
+	AstIrConverter(log::Exception *e) {
 		ex = e;
 	}
 

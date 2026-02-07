@@ -16,10 +16,14 @@ namespace stamon::interface {
 template<class Impl> class IMemoryPool : public Impl {
 	// 内存池，请用智能指针托管该类对象，或手动创建并释放
 public:
-	IMemoryPool(STMException *e, int mem_limit, int pool_cache_size)
+	IMemoryPool(log::Exception *e, int mem_limit, int pool_cache_size)
 		: Impl(e, mem_limit, pool_cache_size) {
         //mem_limit为内存极限，pool_cache_size为内存池缓存大小
 	}
+
+	IMemoryPool(const IMemoryPool&) = delete;
+	IMemoryPool& operator=(const IMemoryPool&) = delete;
+	
 	template<typename T, typename... Types> T *NewObject(Types &&...args) {
         //向内存池申请一个对象，用法：NewObject<申请类型>(构造参数...)
 		return Impl::template NewObject<T>(forward<Types>(args)...);

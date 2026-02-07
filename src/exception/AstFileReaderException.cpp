@@ -11,28 +11,28 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::astfilereader {
-inline STMInfo FormatError(String position) {
-	return STMInfo(String("astfilereader"), String("FormatError"), String("non-standardized ast-file"), position);
+inline log::Info FormatError(String position) {
+	return log::Info(String("astfilereader"), String("FormatError"), String("non-standardized ast-file"), position);
 }
 
-inline STMInfo NodeError(String position) {
-	return STMInfo(String("astfilereader"), String("NodeError"), String("unknown ast-node"), position);
+inline log::Info NodeError(String position) {
+	return log::Info(String("astfilereader"), String("NodeError"), String("unknown ast-node"), position);
 }
 
-inline STMInfo RedundantRootNodeError(String position) {
-	return STMInfo(String("astfilereader"), String("RedundantRootNodeError"), String("redundant ast root node"), position);
+inline log::Info RedundantRootNodeError(String position) {
+	return log::Info(String("astfilereader"), String("RedundantRootNodeError"), String("redundant ast root node"), position);
 }
 
-inline STMInfo RootNodeError(String position) {
-	return STMInfo(String("astfilereader"), String("RootNodeError"), String("expect ast root node"), position);
+inline log::Info RootNodeError(String position) {
+	return log::Info(String("astfilereader"), String("RootNodeError"), String("expect ast root node"), position);
 }
 
-inline STMInfo RedundantEndNodeError(String position) {
-	return STMInfo(String("astfilereader"), String("RedundantEndNodeError"), String("redundant ast end node"), position);
+inline log::Info RedundantEndNodeError(String position) {
+	return log::Info(String("astfilereader"), String("RedundantEndNodeError"), String("redundant ast end node"), position);
 }
 
-inline STMInfo EndNodeError(String position) {
-	return STMInfo(String("astfilereader"), String("EndNodeError"), String("expect ast end node"), position);
+inline log::Info EndNodeError(String position) {
+	return log::Info(String("astfilereader"), String("EndNodeError"), String("expect ast end node"), position);
 }
 
 }

@@ -23,7 +23,7 @@ namespace stamon::sfn {
 class SFN;
 } // namespace stamon::sfn
 
-stamon::String DataType2String(stamon::STMException *ex, stamon::datatype::DataType *dt);
+stamon::String DataType2String(stamon::log::Exception *ex, stamon::datatype::DataType *dt);
 
 void sfn_input(SFN_PARA_LIST);
 void sfn_print(SFN_PARA_LIST);
@@ -43,14 +43,14 @@ class SFN {
 	HashMap<String, void(*)(SFN_PARA_LIST)> sfn_functions;
 	// 定义一个函数指针map
 public:
-	STMException *ex;
+	log::Exception *ex;
 
 	vm::ObjectManager *manager;
 
 	SFN() {
 	}
 
-	SFN(STMException *e, vm::ObjectManager *objman) {
+	SFN(log::Exception *e, vm::ObjectManager *objman) {
 		ex = e;
 
 		manager = objman;
@@ -77,7 +77,7 @@ public:
 };
 } // namespace stamon::sfn
 
-stamon::String DataType2String(stamon::STMException *ex, stamon::datatype::DataType *dt) {
+stamon::String DataType2String(stamon::log::Exception *ex, stamon::datatype::DataType *dt) {
 
 	using namespace stamon;
 
@@ -141,7 +141,7 @@ void sfn_print(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 	if (val->getType() != datatype::StringTypeID) {
 		THROW(exception::sfn::SFNError(
@@ -156,7 +156,7 @@ void sfn_int(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 
 	switch (val->getType()) {
@@ -207,7 +207,7 @@ void sfn_str(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 
 	if (arg->data->getType() == datatype::StringTypeID) {
@@ -224,7 +224,7 @@ void sfn_len(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 
 	if (val->getType() == datatype::SequenceTypeID) {
@@ -246,7 +246,7 @@ void sfn_input(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 
 	String s = platform_input();
@@ -265,7 +265,7 @@ void sfn_typeof(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 	String rst;
 
@@ -288,7 +288,7 @@ void sfn_throw(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	String err_msg = ((datatype::StringType *) arg->data)->getVal();
 	THROW(exception::sfn::SFNError("sfn_throw()", err_msg));
 	return;
@@ -298,7 +298,7 @@ void sfn_system(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	int status = platform_system(
 			((datatype::StringType *) arg->data)->getVal());
 	arg->data = manager->MallocObject<datatype::IntegerType>(status);

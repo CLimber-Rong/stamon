@@ -129,13 +129,13 @@ namespace stamon::c {   //编译器命名空间
 
 		public:
 
-			STMException* ex;
+			log::Exception* ex;
 
 			String filename;
 
 			Lexer() {}
 
-			Lexer(STMException* e, String Filename) {
+			Lexer(log::Exception* e, String Filename) {
 				ex = e;
 				filename = Filename;
 			}

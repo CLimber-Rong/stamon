@@ -11,12 +11,12 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::consttabreader {
-inline STMInfo ConstantsError(String position) {
-	return STMInfo(String("consttabreader"), String("ConstantsError"), String("unknown constants"), position);
+inline log::Info ConstantsError(String position) {
+	return log::Info(String("consttabreader"), String("ConstantsError"), String("unknown constants"), position);
 }
 
-inline STMInfo FormatError(String position) {
-	return STMInfo(String("consttabreader"), String("FormatError"), String("not stvc"), position);
+inline log::Info FormatError(String position) {
+	return log::Info(String("consttabreader"), String("FormatError"), String("not stvc"), position);
 }
 
 }

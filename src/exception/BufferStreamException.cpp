@@ -11,8 +11,8 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::bufferstream {
-inline STMInfo DataSizeError(String position) {
-	return STMInfo(String("bufferstream"), String("DataSizeError"), String("the size of data is too small"), position);
+inline log::Info DataSizeError(String position) {
+	return log::Info(String("bufferstream"), String("DataSizeError"), String("the size of data is too small"), position);
 }
 
 }

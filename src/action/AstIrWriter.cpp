@@ -18,9 +18,9 @@ class AstIrWriter {
 	BufferOutStream& stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	AstIrWriter(STMException *e, BufferOutStream &outstream)
+	AstIrWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
 		stream.write((byte) 0xAB);

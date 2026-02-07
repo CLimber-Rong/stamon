@@ -11,12 +11,12 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::sfn {
-inline STMInfo SFNError(String position, String msg) {
-	return STMInfo(String("sfn"), String("SFNError"), msg, position);
+inline log::Info SFNError(String position, String msg) {
+	return log::Info(String("sfn"), String("SFNError"), msg, position);
 }
 
-inline STMInfo SFNWarning(String position, String msg) {
-	return STMInfo(String("sfn"), String("SFNWarning"), msg, position);
+inline log::Info SFNWarning(String position, String msg) {
+	return log::Info(String("sfn"), String("SFNWarning"), msg, position);
 }
 
 }

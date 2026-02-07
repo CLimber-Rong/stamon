@@ -31,9 +31,9 @@ class BufferInStream {
 	SmartPtr<int> read_pos;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	BufferInStream(STMException *e, SmartPtr<byte[]> buff, int bf_sz)
+	BufferInStream(log::Exception *e, SmartPtr<byte[]> buff, int bf_sz)
 		: ex(e)
 		, buffer(buff)
 		, buffer_size(bf_sz)
@@ -42,7 +42,7 @@ public:
 		// 给定内存块，进行读取
 	}
 
-	BufferInStream(STMException *e, String filename)
+	BufferInStream(log::Exception *e, String filename)
 		: ex(e)
 		, read_pos(new int(0)) // 从起始处读
 		, buffer(NULL, stamon::DestroyNothing) {
@@ -142,9 +142,9 @@ class BufferOutStream {
 	SmartPtr<ArrayList<byte>> buffer;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	BufferOutStream(STMException *e)
+	BufferOutStream(log::Exception *e)
 		: ex(e)
 		, buffer(new ArrayList<byte>()) {
 	}

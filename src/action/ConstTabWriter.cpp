@@ -19,9 +19,9 @@ class ConstTabWriter {
 	BufferOutStream &stream;
 
 public:
-	STMException *ex;
+	log::Exception *ex;
 
-	ConstTabWriter(STMException *e, BufferOutStream &outstream)
+	ConstTabWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
 	}

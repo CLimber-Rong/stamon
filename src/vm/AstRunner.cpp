@@ -130,7 +130,7 @@ namespace stamon::vm {
 			int gc_mem_limit;	//对象内存最大限制
 			ArrayList<datatype::DataType*> tabconst;	//常量表
 			ArrayList<String> vm_args;	//虚拟机参数
-			STMException* ex;	//异常
+			log::Exception* ex;	//异常
 			sfn::SFN sfn;
 			TypeCalculator typecalculator;
 
@@ -168,7 +168,7 @@ namespace stamon::vm {
 			RetStatus execute(
 			    ast::AstNode* main_node, bool isGC, int vm_mem_limit,
 			    ArrayList<datatype::DataType*> tableConst,
-			    ArrayList<String> args, int pool_cache_size, STMException* e
+			    ArrayList<String> args, int pool_cache_size, log::Exception* e
 			) {
 
 				//初始化参数

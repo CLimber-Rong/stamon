@@ -11,12 +11,12 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::tokenfilereader {
-inline STMInfo FormatError(String position) {
-	return STMInfo(String("tokenfilereader"), String("FormatError"), String("non-standardized token-file"), position);
+inline log::Info FormatError(String position) {
+	return log::Info(String("tokenfilereader"), String("FormatError"), String("non-standardized token-file"), position);
 }
 
-inline STMInfo TokenError(String position) {
-	return STMInfo(String("tokenfilereader"), String("TokenError"), String("unknown token"), position);
+inline log::Info TokenError(String position) {
+	return log::Info(String("tokenfilereader"), String("TokenError"), String("unknown token"), position);
 }
 
 }

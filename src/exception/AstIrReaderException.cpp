@@ -11,12 +11,12 @@
 #include "Exception.hpp"
 
 namespace stamon::exception::astirreader {
-inline STMInfo FormatError(String position) {
-	return STMInfo(String("astirreader"), String("FormatError"), String("not stvc"), position);
+inline log::Info FormatError(String position) {
+	return log::Info(String("astirreader"), String("FormatError"), String("not stvc"), position);
 }
 
-inline STMInfo NodeError(String position) {
-	return STMInfo(String("astirreader"), String("NodeError"), String("unknown ast-ir node"), position);
+inline log::Info NodeError(String position) {
+	return log::Info(String("astirreader"), String("NodeError"), String("unknown ast-ir node"), position);
 }
 
 }

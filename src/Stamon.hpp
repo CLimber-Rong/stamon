@@ -35,14 +35,14 @@ namespace stamon {
 
 class Stamon {
 public:
-	SmartPtr<STMException> ex;
+	SmartPtr<log::Exception> ex;
 	SmartPtr<ArrayList<String>> ErrorMsg;
 	SmartPtr<ArrayList<String>> WarningMsg;
 
 	int VerX, VerY, VerZ; // 这三个变量代表版本为X.Y.Z
 
 	Stamon()
-		: ex(new STMException)
+		: ex(new log::Exception)
 		, ErrorMsg(new ArrayList<String>())
 		, WarningMsg(new ArrayList<String>())
 		, VerX(config::STAMON_VER_X)
@@ -149,7 +149,7 @@ public:
 		CE;
 		// 利用转换器来销毁常量表
 
-		ArrayList<STMInfo> runner_warning = runner.ex->getWarning();
+		ArrayList<log::Info> runner_warning = runner.ex->getWarning();
 		CE;
 
 		return;

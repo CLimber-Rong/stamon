@@ -12,7 +12,7 @@ SFN在Stamon中的语法规定为``sfn port, arg;``，其中port必须为字符�
 
 SFN类的主要接口有：
 
-* ``SFN(STMException *e, vm::ObjectManager *objman)``：构造函数objman为当前运行时的ObjectManager对象。
+* ``SFN(log::Exception *e, vm::ObjectManager *objman)``：构造函数objman为当前运行时的ObjectManager对象。
 * ``void call(String port, datatype::Variable *arg)``：根据端口号调用本地库。
 
 ### 自定义外部功能
@@ -52,7 +52,7 @@ void sfn_print(SFN_PARA_LIST) {
 
 	using namespace stamon;
 
-	STMException *ex = sfn.ex;
+	log::Exception *ex = sfn.ex;
 	datatype::DataType *val = arg->data;
 	if (val->getType() != datatype::StringTypeID) {
 		THROW(exception::sfn::SFNError(
@@ -71,7 +71,7 @@ void sfn_print(SFN_PARA_LIST) {
 实现完外部函数后，就要将其绑定在SFN上，以便调用时能找到并调用该外部函数。外部函数需要绑定在SFN的构造函数中。SFN的构造函数代码以如下为例：
 
 ```C++
-SFN(STMException *e, vm::ObjectManager *objman) {
+SFN(log::Exception *e, vm::ObjectManager *objman) {
     ex = e;
 
     manager = objman;
