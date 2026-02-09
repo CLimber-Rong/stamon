@@ -60,7 +60,7 @@ LINK ?= 		$(BASIC_LINK) \
 release_win:
 #	编译Windows版本
 
-	xcopy src\bin-include bin\include /s /e /y /i
+	xcopy src\bin-include bin\include /e /y /i
 	$(COMPILER) src/Main.cpp \
 	-o bin/stamon.exe \
 	-O2 \
