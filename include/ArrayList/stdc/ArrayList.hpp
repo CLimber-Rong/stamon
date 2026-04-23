@@ -24,16 +24,16 @@ template<typename T> class ArrayList {
 	 */
 
 	T *cache = NULL;
-	int cache_length = 0;
-	int length = 0;
+	unsigned int cache_length = 0;
+	unsigned int length = 0;
 
-	void reallocList(int len) {
+	void reallocList(unsigned int len) {
 		if (len < (cache_length / 4)) {
 			// 小于缓存的四分之一后，缓存才能缩小至二分之一
 			// 之所以要小于四分之一的容量才缩小二分之一，是为了防止出现临界震荡
 
 			T *temp = new T[cache_length / 2];
-			for (int i = 0; i < len; i++) {
+			for (unsigned int i = 0; i < len; i++) {
 				temp[i] = move(cache[i]);
 				// 尽可能地复制
 			}
@@ -46,7 +46,7 @@ template<typename T> class ArrayList {
 			// 扩容至两倍
 
 			T *temp = new T[cache_length * 2];
-			for (int i = 0; i < length; i++) {
+			for (unsigned int i = 0; i < length; i++) {
 				temp[i] = move(cache[i]);
 			}
 
@@ -64,31 +64,6 @@ template<typename T> class ArrayList {
 		}
 	}
 
-	void deepCopy(const ArrayList<T> &list) {
-		// 深拷贝
-		if (list.size() == 0) {
-			// 缓冲区至少要有一个元素
-			cache_length = 1;
-		} else {
-			cache_length = list.length;
-		}
-
-		cache = new T[cache_length];
-		length = list.length;
-
-		for (int i = 0, len = list.size(); i < len; i++) {
-			cache[i] = list[i];
-		}
-	}
-
-	void shallowCopy(ArrayList<T> &&list) {
-		// 浅拷贝
-		cache = list.cache;
-		list.cache = NULL;
-		cache_length = list.cache_length;
-		length = list.length;
-	}
-
 public:
 	ArrayList() {
 		cache = new T[1];
@@ -96,7 +71,7 @@ public:
 		length = 0;
 	}
 
-	ArrayList(int size) {
+	ArrayList(unsigned int size) {
 		if (size == 0) {
 			cache_length = 1;
 		} else {
@@ -107,22 +82,32 @@ public:
 	}
 
 	ArrayList(const ArrayList<T> &list) {
-		deepCopy(list);
+		if (list.size() == 0) {
+			// 缓冲区至少要有一个元素
+			cache_length = 1;
+		} else {
+			cache_length = list.length;
+		}
+
+		cache = new T[cache_length];
+		length = list.length;
+
+		for (unsigned int i = 0, len = list.size(); i < len; i++) {
+			cache[i] = list[i];
+		}
 	}
 
 	ArrayList(ArrayList<T> &&list) {
-		shallowCopy(move(list));
+		cache = list.cache;
+		list.cache = NULL;
+		cache_length = list.cache_length;
+		length = list.length;
 	}
 
-	ArrayList<T> &operator=(const ArrayList<T> &list) {
-		destroyCache();
-		deepCopy(list);
-		return *this;
-	}
-
-	ArrayList<T> &operator=(ArrayList<T> &&list) {
-		destroyCache();
-		shallowCopy(move(list));
+	ArrayList<T> &operator=(ArrayList<T> list) {
+		swap(cache, list.cache);
+		swap(cache_length, list.cache_length);
+		swap(length, list.length);
 		return *this;
 	}
 
@@ -132,19 +117,19 @@ public:
 		length++;
 	} // 末尾添加值
 
-	void insert(int index, T value) {
+	void insert(unsigned int index, T value) {
 		reallocList(length + 1); // 重新分配内存
 
-		for (int i = length - 1; i >= index; i--) {
-			cache[i + 1] = cache[i];
+		for (unsigned int i = length; i > index; i--) {
+			cache[i] = cache[i - 1];
 		}
 
 		cache[index] = move(value);
 		length++;
 	} // 将value插入到[index]
 
-	void erase(int index) {
-		for (int i = index; i < length - 1; i++) {
+	void erase(unsigned int index) {
+		for (unsigned int i = index; i < length - 1; i++) {
 			cache[i] = cache[i + 1];
 		}
 
@@ -152,7 +137,7 @@ public:
 		reallocList(length); // 重新分配内存
 	} // 删除[index]
 
-	T at(int index) const {
+	T at(unsigned int index) const {
 		return cache[index];
 	} // 获取[index]
 
@@ -167,18 +152,19 @@ public:
 		length = 0; // 长度清零
 	} // 清空列表
 
-	int size() const {
+	unsigned int size() const {
 		return length;
 	} // 获得元素个数
 
 	ArrayList<T> operator+(ArrayList<T> src) const {
 		ArrayList<T> rst(size() + src.size());
 
-		for (int i = 0, len = size(); i < len; i++) {
+		for (unsigned int i = 0, len = size(); i < len; i++) {
 			rst.cache[i] = cache[i];
 		}
 
-		for (int i = 0, offset = size(), len = src.size(); i < len; i++) {
+		for (unsigned int i = 0, offset = size(), len = src.size(); i < len;
+				i++) {
 			rst.cache[offset + i] = move(src.cache[i]);
 		}
 
@@ -188,17 +174,17 @@ public:
 	}
 
 	ArrayList<T> &operator+=(ArrayList<T> src) {
-		for (int i = 0, len = src.size(); i < len; i++) {
+		for (unsigned int i = 0, len = src.size(); i < len; i++) {
 			add(move(src[i]));
 		}
 		return *this;
 	}
 
-	T &operator[](int index) {
+	T &operator[](unsigned int index) {
 		return cache[index];
 	}
 
-	T operator[](int index) const {
+	T operator[](unsigned int index) const {
 		return cache[index];
 	}
 

@@ -17,15 +17,15 @@ public:
 		// 清空
 		Impl::clear();
 	}
-	bool empty() {
+	bool empty() const {
 		// 是否为空
 		return Impl::empty();
 	}
-	int size() {
+	unsigned int size() const {
 		// 元素个数
 		return Impl::size();
 	}
-	T peek() {
+	T peek() const {
 		// 获取栈顶元素
 		return Impl::peek();
 	}

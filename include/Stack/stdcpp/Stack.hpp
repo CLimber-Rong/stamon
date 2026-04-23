@@ -22,13 +22,13 @@ public:
 	void clear() {
 		stk.clear();
 	}
-	bool empty() {
+	bool empty() const {
 		return stk.empty();
 	}
-	int size() {
+	unsigned int size() const {
 		return stk.size();
 	}
-	T peek() {
+	T peek() const {
 		return stk.top();
 	}
 	void push(T data) {

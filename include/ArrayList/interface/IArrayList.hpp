@@ -51,7 +51,7 @@ public:
 		// 清空
 		return Impl::clear();
 	}
-	int size() const {
+	unsigned int size() const {
 		// 获取大小
 		return Impl::size();
 	}

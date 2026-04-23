@@ -61,7 +61,7 @@ public:
 					stream.write(lineNo);
 				}
 
-				if (filename.equals(ir_list[i].filename) == false
+				if (filename != ir_list[i].filename == false
 						&& ir_list[i].type != -1) {
 					// 检查文件名，原理同上
 					filename = ir_list[i].filename;

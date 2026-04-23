@@ -18,21 +18,21 @@ namespace stamon::stdc {
 class String {
 	/*
 	 * 利用了缓存技术
-	 * 对于短字符串（长度小于32字符），采用栈数组存储，减少内存申请次数
+	 * 对于短字符串（长度小于32字符），采用SSO（Small String Optimization，短字符串优化）
+	 * 可有效减少减少内存申请次数
 	 */
 public:
 	typedef char char_type;
-	constexpr static int cache_size
+	constexpr static unsigned int cache_size
 			= 32; // 缓冲区长度，按sizeof(char_type)字节计
 
 private:
 	char_type *str = NULL;
 	char_type cache[cache_size]{};
 
-	void callocStr(int size) {
+	void callocStr(unsigned int size) {
 		// 直接分配内存，分配的内存置零
 		if (size <= cache_size) {
-			int i = 0;
 			memset(cache, 0, sizeof(cache));
 			str = cache;
 		} else {
@@ -40,57 +40,57 @@ private:
 		}
 	}
 
-	void reallocStr(int size) {
+	void reallocStr(unsigned int size) {
 		// 重分配内存，扩展出的内存置零
 		if (size <= cache_size) {
-			// 栈转移到栈，什么都不用做
+			// 缓存转移到缓存，什么都不用做
 			if (str != cache) {
-				// 堆转移到栈
+				// 堆转移到缓存
 				strcpy(cache, str);
 				free(str);
 				str = cache;
 			}
 		} else {
 			if (str == cache) {
-				// 栈转移到堆
+				// 缓存转移到堆
 				str = (char_type *) calloc(size, sizeof(char_type));
 				strcpy(str, cache);
 			} else {
 				// 堆转移到堆
-				int len = strlen(str); // 保留的原内容长度
-				if (size < len) {
-					len = size;
-				}
+				unsigned int len = strlen(str); // 保留的原内容长度
 				str = (char_type *) realloc(str, size * sizeof(char_type));
-				for (int i = len; i < size; i++) {
-					// 将扩展出的内存全部置零
+				for (unsigned int i = len; i < size; i++) {
+					// 如有扩展，则扩展部分全部置零
 					str[i] = 0;
 				}
 			}
 		}
 	}
 
-	void freeStr() {
-		if (str != cache) {
-			free(str);
-		}
-	}
-
-	void deepCopy(const String &s) {
-		// 深拷贝
-		callocStr(s.length() + 1);
-		strcpy(str, s.getstr());
-	}
-
-	void shallowCopy(String &&s) {
+	void shallowCopy(String&& s) {
 		// 浅拷贝
 		if (s.getstr() != s.cache) {
 			// 如果目标的字符串创建在堆上，直接转移
 			str = s.getstr();
 		} else {
-			deepCopy(s);
+			// 如果目标的字符串创建在缓存上
+			strcpy(cache, s.cache);
+			str = cache;
 		}
-		s.str = s.cache; // 指向栈缓存，这样就不会释放掉
+		s.str = s.cache; // 指向缓存，这样就不会释放掉
+	}
+
+	String &append(const char_type *s) {
+		unsigned int len = strlen(str) + strlen(s);
+
+		reallocStr(len + 1);
+		strcat(str, s);
+
+		return *this;
+	} // 将s追加到this末尾
+
+	String &append(const String& s) {
+		return append(s.getstr());
 	}
 
 public:
@@ -114,35 +114,35 @@ public:
 	} // 将s解析为字符串，但只复制len个字符
 
 	String(const String &s) {
-		deepCopy(s);
+		callocStr(s.length() + 1);
+		strcpy(str, s.getstr());
 	}
 
 	String(String &&s) {
 		shallowCopy(move(s));
 	}
 
-	bool equals(const char_type *s) const {
-		return strcmp(str, s) == 0;
+	String& operator=(const String& right) {
+		reallocStr(right.length()+1);
+		strcpy(str, right.getstr());
+		return *this;
 	}
 
-	bool equals(String s) const {
-		return strcmp(str, s.getstr()) == 0;
-	} // 判断this的内容是否与s相等，是则返回true，否则返回false
-
-	String &append(const char_type *s) {
-		unsigned int len = strlen(str) + strlen(s);
-
-		reallocStr(len + 1);
-		strcat(str, s);
-
+	String& operator=(String&& right) {
+		if(str!=cache) {
+			free(str);
+		}
+		shallowCopy(move(right));
 		return *this;
-	} // 将s追加到this末尾
-
-	String &append(String s) {
-		return append(s.getstr());
 	}
 
 	// 以下的一系列toString函数会将不同的数据类型转为String后保存到this当中，返回this
+	String &toString(unsigned int value) {
+		reallocStr(16);
+		snprintf(str, 16, "%u", value);
+		return *this;
+	}
+
 	String &toString(int value) {
 		reallocStr(16);
 		snprintf(str, 16, "%d", value);
@@ -226,52 +226,39 @@ public:
 		return String(str + start, end - start);
 	}
 
-	String &operator=(String right) {
-		freeStr();
-		shallowCopy(move(right));
-		return *this;
-	}
-
-	String &operator=(const char_type *right) {
-		freeStr();
-		callocStr(strlen(right) + 1);
-		strcpy(str, right);
-		return *this;
-	}
-
-	String operator+(String right) const {
-		return String(str).append(move(right));
+	String operator+(const String& right) const {
+		return String(str).append(right);
 	}
 
 	String operator+(const char_type *right) const {
 		return String(str).append(right);
 	}
 
-	String &operator+=(String right) {
-		return append(move(right));
+	String &operator+=(const String& right) {
+		return append(right);
 	}
 
 	String &operator+=(const char_type *right) {
 		return append(right);
 	}
 
-	bool operator==(String right) const {
-		return equals(move(right));
+	bool operator==(const String& right) const {
+		return strcmp(str, right.getstr()) == 0;
 	}
 
 	bool operator==(const char_type *right) const {
-		return equals(right);
+		return strcmp(str, right) == 0;
 	}
 
-	bool operator!=(String right) const {
-		return !equals(move(right));
+	bool operator!=(const String& right) const {
+		return strcmp(str, right.getstr()) != 0;
 	}
 
 	bool operator!=(const char_type *right) const {
-		return !equals(right);
+		return strcmp(str, right) != 0;
 	}
 
-	bool operator<(String right) const {
+	bool operator<(const String& right) const {
 		return strcmp(str, right.getstr()) < 0;
 	}
 
@@ -279,7 +266,7 @@ public:
 		return strcmp(str, right) < 0;
 	}
 
-	bool operator>(String right) const {
+	bool operator>(const String& right) const {
 		return strcmp(str, right.getstr()) > 0;
 	}
 
@@ -287,16 +274,16 @@ public:
 		return strcmp(str, right) > 0;
 	}
 
-	bool operator<=(String right) const {
-		return !(*this > move(right));
+	bool operator<=(const String& right) const {
+		return !(*this > right);
 	}
 
 	bool operator<=(const char_type *right) const {
 		return !(*this > right);
 	}
 
-	bool operator>=(String right) const {
-		return !(*this > move(right));
+	bool operator>=(const String& right) const {
+		return !(*this > right);
 	}
 
 	bool operator>=(const char_type *right) const {
@@ -312,11 +299,13 @@ public:
 	}
 
 	bool empty() const {
-		return length() == 0;
+		return str[0] == '\0';
 	}
 
 	~String() {
-		freeStr();
+		if (str != cache) {
+			free(str);
+		}
 	}
 };
 

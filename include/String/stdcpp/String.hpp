@@ -64,25 +64,12 @@ public:
 		return *this;
 	}
 
-	bool equals(const char_type *s) const {
-		return str == std::string((const char *) s);
-	}
-
-	bool equals(String s) const {
-		return str == s.str;
-	} // 判断this的内容是否与s相等，是则返回true，否则返回false
-
-	String &append(const char_type *s) {
-		str += std::string((const char *) s);
-		return *this;
-	} // 将s追加到this末尾
-
-	String &append(String s) {
-		str += s.str;
-		return *this;
-	}
-
 	// 以下的一系列toString函数会将不同的数据类型转为String后保存到this当中，返回this
+	String &toString(unsigned int value) {
+		str = std::to_string(value);
+		return *this;
+	}
+
 	String &toString(int value) {
 		str = std::to_string(value);
 		return *this;
@@ -143,7 +130,7 @@ public:
 		return String(str.substr(start, end-start));
 	}
 
-	String operator+(String right) const {
+	String operator+(const String& right) const {
 		return str + stamon::move(right.str);
 	}
 
@@ -151,31 +138,33 @@ public:
 		return str + std::string(right);
 	}
 
-	String &operator+=(String right) {
-		return append(stamon::move(right));
+	String &operator+=(const String& right) {
+		str += right.str;
+		return *this;
 	}
 
 	String &operator+=(const char_type *right) {
-		return append(right);
+		str += std::string(right);
+		return *this;
 	}
 
-	bool operator==(String right) const {
-		return equals(stamon::move(right));
+	bool operator==(const String& right) const {
+		return str == right.str;
 	}
 
 	bool operator==(const char_type *right) const {
-		return equals(right);
+		return str == right;
 	}
 
-	bool operator!=(String right) const {
-		return !equals(stamon::move(right));
+	bool operator!=(const String& right) const {
+		return str != right.str;
 	}
 
 	bool operator!=(const char_type *right) const {
-		return !equals(right);
+		return str != right;
 	}
 
-	bool operator<(String right) const {
+	bool operator<(const String& right) const {
 		return str < right.str;
 	}
 
@@ -183,7 +172,7 @@ public:
 		return str < std::string(right);
 	}
 
-	bool operator>(String right) const {
+	bool operator>(const String& right) const {
 		return str > right.str;
 	}
 
@@ -191,7 +180,7 @@ public:
 		return str > std::string(right);
 	}
 
-	bool operator<=(String right) const {
+	bool operator<=(const String& right) const {
 		return str <= right.str;
 	}
 
@@ -199,7 +188,7 @@ public:
 		return str <= std::string(right);
 	}
 
-	bool operator>=(String right) const {
+	bool operator>=(const String& right) const {
 		return str >= right.str;
 	}
 

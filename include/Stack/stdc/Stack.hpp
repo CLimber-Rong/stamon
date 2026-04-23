@@ -21,13 +21,13 @@ public:
 	void clear() {
 		list.clear();
 	}
-	bool empty() {
+	bool empty() const {
 		return list.empty();
 	}
-	int size() {
+	unsigned int size() const {
 		return list.size();
 	}
-	T peek() {
+	T peek() const {
 		return list[list.size() - 1];
 	}
 	void push(T data) {

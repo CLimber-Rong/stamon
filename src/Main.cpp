@@ -46,24 +46,19 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	if (args[0].equals(String("build"))
-			|| args[0].equals(String("-b"))) {
+	if (args[0] == String("build") || args[0] == String("-b")) {
 		return StamonBuildCommand(args);
 
-	} else if (args[0].equals(String("run"))
-			   || args[0].equals(String("-r"))) {
+	} else if (args[0] == String("run") || args[0] == String("-r")) {
 		return StamonRunCommand(args);
 
-	} else if (args[0].equals(String("strip"))
-			   || args[0].equals(String("-s"))) {
+	} else if (args[0] == String("strip") || args[0] == String("-s")) {
 		return StamonStripCommand(args);
 
-	} else if (args[0].equals(String("help"))
-			   || args[0].equals(String("-h"))) {
+	} else if (args[0] == String("help") || args[0] == String("-h")) {
 		return StamonHelpCommand();
 
-	} else if (args[0].equals(String("version"))
-			   || args[0].equals(String("-v"))) {
+	} else if (args[0] == String("version") || args[0] == String("-v")) {
 		return StamonVersionCommand();
 
 	} else {
@@ -160,44 +155,43 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 			dst = args[2];
 
 			for (int i = 3; i < args.size(); i++) {
-				if (args[i].equals(String("--import=false"))) {
+				if (args[i] == String("--import=false")) {
 					isSupportImport = false;
 
-				} else if (args[i].equals(String("--import=true"))) {
+				} else if (args[i] == String("--import=true")) {
 					isSupportImport = true;
 
-				} else if (args[i].equals(String("--strip=false"))) {
+				} else if (args[i] == String("--strip=false")) {
 					isStrip = false;
 
-				} else if (args[i].equals(String("--strip=true"))) {
+				} else if (args[i] == String("--strip=true")) {
 					isStrip = true;
 
-				} else if (args[i].equals(String("--IgnoreWarning"))) {
+				} else if (args[i] == String("--IgnoreWarning")) {
 					warning_level = StamonWarningSafeLevel_IgnoreWarning;
 
-				} else if (args[i].equals(String("--JustWarn"))) {
+				} else if (args[i] == String("--JustWarn")) {
 					warning_level = StamonWarningSafeLevel_JustWarn;
 
-				} else if (args[i].equals(String("--FatalWarning"))) {
+				} else if (args[i] == String("--FatalWarning")) {
 					warning_level = StamonWarningSafeLevel_FatalWarning;
 
 				} else if (args[i].length() >= 3
-						   && args[i].substring(0, 2).equals("-I")) {
+						   && args[i].substring(0, 2) == "-I") {
 					// 添加引用路径
 					ImportPaths.add(getNoEndingSeparatorPath(args[i].substring(
 											2, args[i].length()))
 									+ String("/"));
 
 				} else if (args[i].length() >= 10
-						   && args[i].substring(0, 9).equals(
-								   "--locale=")) {
+						   && args[i].substring(0, 9) == "--locale=") {
 					// 设置语言环境
 					setlocale(LC_ALL,
 							args[i].substring(9, args[i].length()).getstr());
 
 				} else {
 					// 错误参数
-					printf("stamon: compile: bad command\n"
+					printf("stamon: build: bad command\n"
 						   "please enter \'stamon help\' "
 						   "to get more information.\n");
 
@@ -226,13 +220,13 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 			&& warning_level != StamonWarningSafeLevel_IgnoreWarning) {
 		if (warning_level == StamonWarningSafeLevel_JustWarn) {
 			printf(
-				"stamon: compile: %d warning(s):\n",
+				"stamon: build: %d warning(s):\n",
 				stamon.WarningMsg->size()
 			);
 		} else if (warning_level
 				   == stamon::config::StamonWarningSafeLevel_FatalWarning) {
 			printf(
-				"stamon: compile: %d fatal warning(a):\n",
+				"stamon: build: %d fatal warning(a):\n",
 				stamon.WarningMsg->size()
 			);
 		}
@@ -246,7 +240,7 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 	}
 
 	if (!stamon.ErrorMsg->empty()) {
-		printf("stamon: compile: %d fatal error(s):\n", stamon.ErrorMsg->size());
+		printf("stamon: build: %d fatal error(s):\n", stamon.ErrorMsg->size());
 		for (int i = 0, len = stamon.ErrorMsg->size(); i < len; i++) {
 			printf("%s\n", stamon.ErrorMsg->at(i).getstr());
 		}
@@ -276,29 +270,31 @@ int StamonRunCommand(const ArrayList<String>& args) {
 		src = args[1];
 
 		for (int i = 2, len = args.size(); i < len; i++) {
-			if (args[i].equals(String("--GC=true"))) {
+			if (args[i] == String("--GC=true")) {
 				isGC = true;
-			} else if (args[i].equals(String("--GC=false"))) {
+
+			} else if (args[i] == String("--GC=false")) {
 				isGC = false;
+
 			} else if (args[i].length() > 11
-					   && args[i].substring(0, 11).equals(
-							   String("--MemLimit="))) {
+					   && args[i].substring(0, 11) == String("--MemLimit=")) {
 				MemLimit = args[i].substring(11, args[i].length()).toInt();
+
 			} else if (args[i].length() > 15
-					   && args[i].substring(0, 15).equals(
-							   String("--MemPoolCache="))) {
+					   && args[i].substring(0, 15) == String("--MemPoolCache=")) {
 				PoolCacheSize = args[i].substring(15, args[i].length()).toInt();
-			} else if (args[i].equals(String("--IgnoreWarning"))) {
+				
+			} else if (args[i] == String("--IgnoreWarning")) {
 				warning_level = StamonWarningSafeLevel_IgnoreWarning;
 
-			} else if (args[i].equals(String("--JustWarn"))) {
+			} else if (args[i] == String("--JustWarn")) {
 				warning_level = StamonWarningSafeLevel_JustWarn;
 
-			} else if (args[i].equals(String("--FatalWarning"))) {
+			} else if (args[i] == String("--FatalWarning")) {
 				warning_level = StamonWarningSafeLevel_FatalWarning;
 
 			} else if (args[i].length() >= 10
-					   && args[i].substring(0, 9).equals("--locale=")) {
+					   && args[i].substring(0, 9) == "--locale=") {
 				// 设置语言环境
 				setlocale(
 						LC_ALL, args[i].substring(9, args[i].length()).getstr());
@@ -364,13 +360,13 @@ int StamonStripCommand(const ArrayList<String>& args) {
 	} else {
 		src = args[1];
 		for (int i = 2; i < args.size(); i++) {
-			if (args[i].equals(String("--IgnoreWarning"))) {
+			if (args[i] == String("--IgnoreWarning")) {
 				warning_level = StamonWarningSafeLevel_IgnoreWarning;
 
-			} else if (args[i].equals(String("--JustWarn"))) {
+			} else if (args[i] == String("--JustWarn")) {
 				warning_level = StamonWarningSafeLevel_JustWarn;
 
-			} else if (args[i].equals(String("--FatalWarning"))) {
+			} else if (args[i] == String("--FatalWarning")) {
 				warning_level = StamonWarningSafeLevel_FatalWarning;
 			}
 		}

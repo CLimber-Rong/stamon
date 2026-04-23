@@ -89,6 +89,16 @@ template<typename T> void DestroyNothing(T *p) {
 	return;
 }
 
+//交换函数
+template<typename T> void swap(T& a, T& b) {
+	T c = move(a);
+	a = move(b);
+	b = move(c);
+}
+
+// size_t的定义
+using size_t = decltype(sizeof(0));
+
 } // namespace stamon
 
 // 用于简化宏

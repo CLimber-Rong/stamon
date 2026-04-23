@@ -36,27 +36,12 @@ public:
 		: Impl(move(s)) {
 	}
 
-	bool equals(const typename Impl::char_type *s) const {
-		// 判断this的内容是否与s相等，是则返回true，否则返回false
-		return Impl::equals(s);
-	}
-
-	bool equals(IString s) const {
-		return Impl::equals(move(s));
-	}
-
-	IString &append(const typename Impl::char_type *s) {
-		// 将s追加到this末尾
-		Impl::append(s);
-        return *this;
-	}
-
-	IString &append(IString s) {
-		Impl::append(move(s));
-        return *this;
-	}
-
 	// 以下的一系列toString函数会将不同的数据类型转为IString后保存到this当中，返回this
+	IString &toString(unsigned int value) {
+        Impl::toString(value);
+		return *this;
+	}
+
 	IString &toString(int value) {
         Impl::toString(value);
 		return *this;
@@ -77,8 +62,8 @@ public:
 		return *this;
 	}
 
-	IString &toString(IString value) {
-		Impl::toString(move(value));
+	IString &toString(const IString& value) {
+		Impl::toString(value);
 		return *this;
 	}
 
@@ -123,16 +108,16 @@ public:
         return *this;
 	}
 
-	IString operator+(IString right) const {
-		return Impl::operator+(move(right));
+	IString operator+(const IString& right) const {
+		return Impl::operator+(right);
 	}
 
 	IString operator+(const typename Impl::char_type *right) const {
 		return Impl::operator+(right);
 	}
 
-	IString &operator+=(IString right) {
-		Impl::operator+=(move((Impl)right));
+	IString &operator+=(const IString& right) {
+		Impl::operator+=(right);
         return *this;
 	}
 
@@ -141,48 +126,48 @@ public:
         return *this;
 	}
 
-	bool operator==(IString right) const {
-		return Impl::operator==(move((Impl)right));
+	bool operator==(const IString& right) const {
+		return Impl::operator==(right);
 	}
 
 	bool operator==(const typename Impl::char_type *right) const {
 		return Impl::operator==(right);
 	}
 
-	bool operator!=(IString right) const {
-		return Impl::operator!=(move((Impl)right));
+	bool operator!=(const IString& right) const {
+		return Impl::operator!=(right);
 	}
 
 	bool operator!=(const typename Impl::char_type *right) const {
 		return Impl::operator!=(right);
 	}
 
-	bool operator<(IString right) const {
-		return Impl::operator<(move((Impl)right));
+	bool operator<(const IString& right) const {
+		return Impl::operator<(right);
 	}
 
 	bool operator<(const typename Impl::char_type *right) const {
 		return Impl::operator<(right);
 	}
 
-	bool operator>(IString right) const {
-		return Impl::operator>(move((Impl)right));
+	bool operator>(const IString& right) const {
+		return Impl::operator>(right);
 	}
 
 	bool operator>(const typename Impl::char_type *right) const {
 		return Impl::operator>(right);
 	}
 
-	bool operator<=(IString right) const {
-		return Impl::operator<=(move((Impl)right));
+	bool operator<=(const IString& right) const {
+		return Impl::operator<=(right);
 	}
 
 	bool operator<=(const typename Impl::char_type *right) const {
 		return Impl::operator<=(right);
 	}
 
-	bool operator>=(IString right) const {
-		return Impl::operator>=(move((Impl)right));
+	bool operator>=(const IString& right) const {
+		return Impl::operator>=(right);
 	}
 
 	bool operator>=(const typename Impl::char_type *right) const {
@@ -206,6 +191,6 @@ template<class T, class Impl> IString<Impl> toString(const T &t) {
 	return IString<Impl>().toString(t);
 }
 
-template<class Impl> unsigned int toHash(IString<Impl> s);
+template<class Impl> unsigned int toHash(const IString<Impl>& s);
 
 } // namespace stamon

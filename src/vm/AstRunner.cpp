@@ -1251,7 +1251,7 @@ namespace stamon::vm {
 	}
 
 	inline String AstRunner::getExecutePosition() {
-		if (RunningFileName.equals("") && RunningLineNo == -1) {
+		if (RunningFileName.empty() && RunningLineNo == -1) {
 			// 字节码中被没有调试信息，即被字节码被strip过
 			return String("");
 		} else {
