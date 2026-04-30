@@ -24,14 +24,14 @@ String getNoEndingSeparatorPath(String path); // 获取末尾没有分隔符的�
 void checkEnvironmentVariableWarning(); // 检查环境变量是否存在，不存在则输出警告
 int StamonVersionCommand();
 int StamonHelpCommand();
-int StamonBuildCommand(const ArrayList<String>& args);
-int StamonRunCommand(const ArrayList<String>& args);
-int StamonStripCommand(const ArrayList<String>& args);
+int StamonBuildCommand(const ArrayList<String> &args);
+int StamonRunCommand(const ArrayList<String> &args);
+int StamonStripCommand(const ArrayList<String> &args);
 
 int main(int argc, char *argv[]) {
 	// 参数表
 	ArrayList<String> args;
-	
+
 	// 获取可执行文件路径
 	String s(argv[0]);
 
@@ -99,7 +99,10 @@ int StamonVersionCommand() {
 
 int StamonHelpCommand() {
 	checkEnvironmentVariableWarning();
-	printf("Usage: stamon options [arguments..]\n"
+	printf("Before Use: "
+		   "Set an environment variable named \"STAMON\""
+		   "to the path where the Stamon program is located\n"
+		   "Usage: stamon options [arguments..]\n"
 		   "Options:\n"
 		   "\tversion | -v\t\t\tDisplay this version.\n"
 		   "\thelp | -h\t\t\tDisplay this information.\n"
@@ -127,7 +130,7 @@ int StamonHelpCommand() {
 	return 0;
 }
 
-int StamonBuildCommand(const ArrayList<String>& args) {
+int StamonBuildCommand(const ArrayList<String> &args) {
 	if (getenv("STAMON") == NULL) {
 		printf("stamon: fatal error: missing enviroment variable \"STAMON\"\n"
 			   "please enter \'stamon help\' to get more information.\n");
@@ -207,8 +210,8 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 	}
 
 	if (isSupportImport) {
-		ImportPaths.insert(0, getNoEndingSeparatorPath(program_path)
-									  + String("/include/"));
+		ImportPaths.insert(0,
+				getNoEndingSeparatorPath(program_path) + String("/include/"));
 		// 加入标准库路径
 	}
 
@@ -219,16 +222,12 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 	if (stamon.WarningMsg->empty() == false
 			&& warning_level != StamonWarningSafeLevel_IgnoreWarning) {
 		if (warning_level == StamonWarningSafeLevel_JustWarn) {
-			printf(
-				"stamon: build: %d warning(s):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: build: %d warning(s):\n",
+					stamon.WarningMsg->size());
 		} else if (warning_level
 				   == stamon::config::StamonWarningSafeLevel_FatalWarning) {
-			printf(
-				"stamon: build: %d fatal warning(a):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: build: %d fatal warning(a):\n",
+					stamon.WarningMsg->size());
 		}
 
 		for (int i = 0, len = stamon.WarningMsg->size(); i < len; i++) {
@@ -250,7 +249,7 @@ int StamonBuildCommand(const ArrayList<String>& args) {
 	return 0;
 }
 
-int StamonRunCommand(const ArrayList<String>& args) {
+int StamonRunCommand(const ArrayList<String> &args) {
 	checkEnvironmentVariableWarning();
 
 	String src;
@@ -281,9 +280,10 @@ int StamonRunCommand(const ArrayList<String>& args) {
 				MemLimit = args[i].substring(11, args[i].length()).toInt();
 
 			} else if (args[i].length() > 15
-					   && args[i].substring(0, 15) == String("--MemPoolCache=")) {
+					   && args[i].substring(0, 15)
+								  == String("--MemPoolCache=")) {
 				PoolCacheSize = args[i].substring(15, args[i].length()).toInt();
-				
+
 			} else if (args[i] == String("--IgnoreWarning")) {
 				warning_level = StamonWarningSafeLevel_IgnoreWarning;
 
@@ -296,8 +296,8 @@ int StamonRunCommand(const ArrayList<String>& args) {
 			} else if (args[i].length() >= 10
 					   && args[i].substring(0, 9) == "--locale=") {
 				// 设置语言环境
-				setlocale(
-						LC_ALL, args[i].substring(9, args[i].length()).getstr());
+				setlocale(LC_ALL,
+						args[i].substring(9, args[i].length()).getstr());
 
 			} else {
 				printf("stamon: run: bad command\n"
@@ -315,15 +315,10 @@ int StamonRunCommand(const ArrayList<String>& args) {
 	if (stamon.WarningMsg->empty() == false
 			&& warning_level != StamonWarningSafeLevel_IgnoreWarning) {
 		if (warning_level == StamonWarningSafeLevel_JustWarn) {
-			printf(
-				"stamon: run: %d warning(s):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: run: %d warning(s):\n", stamon.WarningMsg->size());
 		} else if (warning_level == StamonWarningSafeLevel_FatalWarning) {
-			printf(
-				"stamon: compile: %d fatal warning(s):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: compile: %d fatal warning(s):\n",
+					stamon.WarningMsg->size());
 		}
 		for (int i = 0, len = stamon.WarningMsg->size(); i < len; i++) {
 			printf("%s\n", stamon.WarningMsg->at(i).getstr());
@@ -344,7 +339,7 @@ int StamonRunCommand(const ArrayList<String>& args) {
 	return 0;
 }
 
-int StamonStripCommand(const ArrayList<String>& args) {
+int StamonStripCommand(const ArrayList<String> &args) {
 	checkEnvironmentVariableWarning();
 
 	String src;
@@ -379,15 +374,11 @@ int StamonStripCommand(const ArrayList<String>& args) {
 	if (stamon.WarningMsg->empty() == false
 			&& warning_level != StamonWarningSafeLevel_IgnoreWarning) {
 		if (warning_level == StamonWarningSafeLevel_JustWarn) {
-			printf(
-				"stamon: strip: %d warning(s):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: strip: %d warning(s):\n",
+					stamon.WarningMsg->size());
 		} else if (warning_level == StamonWarningSafeLevel_FatalWarning) {
-			printf(
-				"stamon: strip: %d fatal warning(s):\n",
-				stamon.WarningMsg->size()
-			);
+			printf("stamon: strip: %d fatal warning(s):\n",
+					stamon.WarningMsg->size());
 		}
 		for (int i = 0, len = stamon.WarningMsg->size(); i < len; i++) {
 			printf("%s\n", stamon.WarningMsg->at(i).getstr());
