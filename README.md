@@ -3,7 +3,7 @@
 ## 关于Stamon2（Adventure分支 - 开发中）
 
 * CLimber-Rong在2023年二月份开发了第一代Stamon。在2023年7月份，CLimber-Rong决定开发第二代——Stamon2（以下简称Stamon）。
-* 2026年7月，CLimber-Rong重构了第二代的底层设计。其重构版本号为**2.5**及以上，该重构分支被命名为 **“Adventure”**。
+* 2026年7月，CLimber-Rong重构了第二代的底层设计。其重构版本号为**2.5**及以上，该重构分支被命名为 **“adventure”**。
 * Stamon是一门面向对象的动态编程语言。
 * Stamon可移植性极高，只需要实现为数不多的移植接口，Stamon就可以在你的平台上运行。
 
