@@ -54,7 +54,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: test-results/**/*.xml
+          path: bin/test_ci_result/*.xml
           retention-days: 30
 
       - name: Check test outcome
