@@ -34,7 +34,7 @@ jobs:
       - name: Run all unit tests
         id: run_tests
         run: |
-          make --keep-going ci-test
+          make --keep-going test-ci
         continue-on-error: true
 
       - name: Publish Test Results
