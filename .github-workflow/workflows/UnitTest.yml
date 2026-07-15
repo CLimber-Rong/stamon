@@ -1,0 +1,64 @@
+#由AI生成
+name: Unit Tests
+
+on:
+  push:
+    branches: [ Adventure ]
+  pull_request:
+    branches: [ Adventure ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make
+
+      - name: Verify compiler version
+        run: |
+          g++ --version
+          make --version
+
+      - name: Run all unit tests
+        id: run_tests
+        run: |
+          make --keep-going ci-test
+        continue-on-error: true
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results/**/*.xml
+          check_name: "Unit Test Results"
+          comment_title: "Unit Test Report"
+          comment_mode: always
+          report_individual_runs: true
+          deduplicate_classes_by_file_name: false
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/**/*.xml
+          retention-days: 30
+
+      - name: Check test outcome
+        if: steps.run_tests.outcome == 'failure'
+        run: |
+          echo "[ERROR] Unit tests FAILED. Check the test report above for details."
+          exit 1

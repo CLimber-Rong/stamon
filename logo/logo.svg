@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="600mm"
+   height="600mm"
+   viewBox="0 0 600 600"
+   version="1.1"
+   id="svg1"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient40">
+      <stop
+         style="stop-color:#00d4ff;stop-opacity:1;"
+         offset="0.1678943"
+         id="stop39" />
+      <stop
+         style="stop-color:#00d4ff;stop-opacity:0;"
+         offset="0.82801992"
+         id="stop40" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient40"
+       id="linearGradient37"
+       x1="360"
+       y1="410"
+       x2="430"
+       y2="410"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       xlink:href="#linearGradient40"
+       id="linearGradient45"
+       gradientUnits="userSpaceOnUse"
+       x1="360"
+       y1="410"
+       x2="430"
+       y2="410"
+       gradientTransform="matrix(-1,0,0,1,598.93555,0.95095472)" />
+  </defs>
+  <path
+     id="rect34"
+     style="fill:#2c2c34;stroke-width:6.50413;stroke-linejoin:bevel"
+     d="M 0,0 H 600 V 600 H 0 Z" />
+  <g
+     id="layer1">
+    <g
+       id="g1"
+       transform="matrix(1.25,0,0,1.25,-75,-75)">
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="m 100,260 h 400 v 20 H 100 Z"
+         id="path20" />
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 240,275 V 380 H 360 V 275 Z"
+         id="path21" />
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="m 500,100 v 20 H 180.9 l -0.9,40 h 320 v 80 H 100 V 220 H 440 V 180 H 100 v -80 z"
+         id="path27" />
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 100,320 V 500 H 200 V 320 Z"
+         id="path28" />
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 240,400 V 500 H 360 V 400 Z"
+         id="path29" />
+      <path
+         style="fill:#00d4ff;stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 400,320 V 500 H 500 V 320 Z"
+         id="path30" />
+      <path
+         style="fill:url(#linearGradient37);stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 430,320 360,500 400,320 Z"
+         id="path31" />
+      <path
+         style="fill:url(#linearGradient45);stroke-width:10.433;stroke-linejoin:bevel"
+         d="M 170,320 240,500 200,320 Z"
+         id="path31-3" />
+    </g>
+  </g>
+</svg>

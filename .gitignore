@@ -1,0 +1,8 @@
+.cache
+bin
+build
+CMakeFiles
+CMakeCache.txt
+.xmake
+.vscode
+compile_commands.json

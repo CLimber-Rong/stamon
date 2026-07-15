@@ -1,0 +1,17 @@
+-std=c++20
+-Iinclude/Basic
+-Iinclude/ArrayList/trait
+-Iinclude/ArrayList/stdcpp
+-Iinclude/String/trait
+-Iinclude/String/stdcpp
+-Iinclude/HashMap/trait
+-Iinclude/HashMap/stdcpp
+-Iinclude/SmartPtr/trait
+-Iinclude/SmartPtr/stdcpp
+-Iinclude/HeapAllocator/stdcpp
+-Iinclude/HeapDeleter/stdcpp
+-Iinclude/AllocatorAdapter/stdcpp
+-Iconfig
+-Itest/doctest
+-Iinclude/Example/trait
+-Iinclude/Example/stdcpp
