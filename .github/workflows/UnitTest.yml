@@ -3,9 +3,9 @@ name: Unit Tests
 
 on:
   push:
-    branches: [ Adventure ]
+    branches: [ adventure ]
   pull_request:
-    branches: [ Adventure ]
+    branches: [ adventure ]
 
 permissions:
   contents: read
