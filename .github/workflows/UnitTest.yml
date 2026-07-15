@@ -42,7 +42,7 @@ jobs:
         if: always()
         with:
           files: |
-            test-results/**/*.xml
+            bin/test_ci_result/*.xml
           check_name: "Unit Test Results"
           comment_title: "Unit Test Report"
           comment_mode: always
