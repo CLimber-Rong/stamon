@@ -1,5 +1,8 @@
 # Stamon2
 
+## 注意：此分支已过时，相关重构分支为“adventure”
+## 此分支只接受致命错误的漏洞修复维护
+
 ![stamon logo](logo/logo.svg)
 
 ## 关于Stamon2
