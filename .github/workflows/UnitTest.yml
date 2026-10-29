@@ -42,7 +42,7 @@ jobs:
         if: always()
         with:
           files: |
-            bin/test_ci_result/*.xml
+            bin/test_ci_results/*.xml
           check_name: "Unit Test Results"
           comment_title: "Unit Test Report"
           comment_mode: always
@@ -54,7 +54,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: bin/test_ci_result/*.xml
+          path: bin/test_ci_results/*.xml
           retention-days: 30
 
       - name: Check test outcome

@@ -34,18 +34,18 @@ TEST_TARGETS = $(addprefix test_,$(TEST_LIST))
 test: $(TEST_TARGETS)
 
 $(TEST_TARGETS): test_%:
-	$(COMPILER) test/$* \
+	$(COMPILER) tests/$* \
 	-o bin/stamon_test \
 	-O0 -g \
 	-std=$(STD) \
 	-static \
 	$(LINK) \
-	-I test/doctest
+	-I tests/doctest
 
 	-./bin/stamon_test
 
 # CI Test 测试
-TEST_XML_DIR = bin/test_ci_result
+TEST_XML_DIR = bin/test_ci_results
 
 TEST_CI_TARGETS = $(addprefix test_ci_,$(TEST_LIST))
 
@@ -55,13 +55,13 @@ test_ci: $(TEST_CI_TARGETS)
 
 $(TEST_CI_TARGETS): test_ci_%:
 	mkdir -p $(TEST_XML_DIR)
-	$(COMPILER) test/$* \
+	$(COMPILER) tests/$* \
 	-o bin/stamon_test \
 	-O0 -g \
 	-std=$(STD) \
 	-static \
 	$(LINK) \
-	-I test/doctest
+	-I tests/doctest
 
 	./bin/stamon_test \
 		--reporters=junit \

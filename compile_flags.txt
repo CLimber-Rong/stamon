@@ -11,7 +11,6 @@
 -Iinclude/HeapAllocator/stdcpp
 -Iinclude/HeapDeleter/stdcpp
 -Iinclude/AllocatorAdapter/stdcpp
+-Isrc/compiler
 -Iconfig
--Itest/doctest
--Iinclude/Example/trait
--Iinclude/Example/stdcpp
+-Itests/doctest

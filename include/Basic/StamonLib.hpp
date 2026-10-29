@@ -104,14 +104,16 @@ template<typename T> struct isSame<T, T> {
 template<typename T, typename U>
 concept SameAs = isSame<T, U>::value && isSame<T, U>::value;
 
+//用于判定RAII
+
 template<typename T> concept Copyable = requires(T lvalue, const T &rvalue) {
 	T(rvalue);
 	{ lvalue = rvalue }->SameAs<T &>;
 };
 
-template<typename T> concept Movable = requires(T lvalue, T &&rvalue) {
-	T(rvalue);
-	{ lvalue = rvalue }->SameAs<T &>;
+template<typename T> concept Movable = requires(T lvalue, T rvalue) {
+	T(move(rvalue));
+	{ lvalue = move(rvalue) }->SameAs<T &>;
 };
 
 template<typename T, bool Result> struct TraitChecker {
