@@ -52,7 +52,7 @@ jobs:
             c_compiler: cl
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set reusable strings
         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -82,7 +82,7 @@ jobs:
         run: ctest --build-config ${{ matrix.build_type }}
 
       - name: Upload executable for Windows
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'windows-latest' && matrix.c_compiler == 'cl'
         with:
           name: stamon-for-windows
@@ -96,7 +96,7 @@ jobs:
           compression-level: 9
 
       - name: Upload executable for Linux
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'ubuntu-latest' && matrix.c_compiler == 'clang'
         with:
           name: stamon-for-linux
@@ -110,7 +110,7 @@ jobs:
           compression-level: 9
 
       - name: Upload executable for macOS
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'macos-latest'
         with:
           name: stamon-for-macos

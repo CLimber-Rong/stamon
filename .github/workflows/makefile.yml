@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # build project
 
@@ -36,7 +36,7 @@ jobs:
         run: make release_macos
       
       - name: Upload executable for Windows
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'windows-latest'
         with:
           name: stamon-for-windows
@@ -49,7 +49,7 @@ jobs:
       # upload executable
 
       - name: Upload executable for Linux
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'ubuntu-latest'
         with:
           name: stamon-for-linux
@@ -60,7 +60,7 @@ jobs:
           compression-level: 9
 
       - name: Upload executable for macOS
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: matrix.os == 'macos-latest'
         with:
           name: stamon-for-macos
