@@ -100,9 +100,13 @@ namespace stamon::c {   //编译器命名空间
 				CHECK_ESCAPE_CHAR('t', "\t")
 				if (tmp[i] == 'x') {
 					i++;
+
 					String data = tmp.substring(i, i + 2);
-					byte c = data.toIntX();
-					val += String(&c);
+					byte c = data.toIntX();	//获取转义值
+
+					//按长度为1构造字符串，防止后续的非'\0'内存也被读进来
+					val += String(((const char*)&c), 1);
+					
 					i += 2;
 				}
 			} else {
@@ -160,6 +164,7 @@ namespace stamon::c {   //编译器命名空间
 				bool warnflag = false;
 				int integer = 0;
 				double decimal = 0.0;
+				double weight = 0.1;	//当前小数位
 				int i = 0;
 
 				while(s[i]!='.') {
@@ -177,12 +182,8 @@ namespace stamon::c {   //编译器命名空间
 
 				while(i<s.length()) {
 					//分析小数部分
-					decimal /= 10;
-					decimal += (double)(s[i]-'0');
-					if(decimal<0 && warnflag==false) {
-						WARN(exception::compiler::LargeFloatWarning(POSITION));
-						warnflag = true;
-					}
+					decimal += (double)(s[i]-'0')*weight;
+					weight /= 10;
 					i++;
 				}
 

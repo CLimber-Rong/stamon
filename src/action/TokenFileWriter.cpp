@@ -20,14 +20,11 @@ class TokenFileWriter {
 public:
 	log::Exception *ex;
 
-	TokenFileWriter() {
-	}
-
 	TokenFileWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
-		stream.writeArray((byte) 0xAB);
-		stream.write((byte) 0xDC);
+		stream.writeByte(0xAB);
+		stream.writeByte(0xDC);
 	}
 
 	void writeToken(c::Token *tok) {

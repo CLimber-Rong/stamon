@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include "ObjectManager.cpp"
 #include "SFNException.cpp"
-#include "Stamon.hpp"
 #include "StamonConfig.hpp"
 #include "BasicIo.hpp"
 
@@ -289,6 +289,14 @@ void sfn_throw(SFN_PARA_LIST) {
 	using namespace stamon;
 
 	log::Exception *ex = sfn.ex;
+	
+	datatype::DataType *val = arg->data;
+	if (val->getType() != datatype::StringTypeID) {
+		THROW(exception::sfn::SFNError(
+				"sfn_throw()", "invalid type"));
+		return;
+	}
+
 	String err_msg = ((datatype::StringType *) arg->data)->getVal();
 	THROW(exception::sfn::SFNError("sfn_throw()", err_msg));
 	return;
@@ -299,6 +307,14 @@ void sfn_system(SFN_PARA_LIST) {
 	using namespace stamon;
 
 	log::Exception *ex = sfn.ex;
+
+	datatype::DataType *val = arg->data;
+	if (val->getType() != datatype::StringTypeID) {
+		THROW(exception::sfn::SFNError(
+				"sfn_system()", "invalid type"));
+		return;
+	}
+
 	int status = platform_system(
 			((datatype::StringType *) arg->data)->getVal());
 	arg->data = manager->MallocObject<datatype::IntegerType>(status);
@@ -308,6 +324,15 @@ void sfn_system(SFN_PARA_LIST) {
 void sfn_exit(SFN_PARA_LIST) {
 
 	using namespace stamon;
+
+	log::Exception *ex = sfn.ex;
+
+	datatype::DataType *val = arg->data;
+	if (val->getType() != datatype::IntegerTypeID) {
+		THROW(exception::sfn::SFNError(
+				"sfn_exit()", "invalid type"));
+		return;
+	}
 
 	platform_exit(((datatype::IntegerType *) arg->data)->getVal());
 }

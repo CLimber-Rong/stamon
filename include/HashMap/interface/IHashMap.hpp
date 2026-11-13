@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "ArrayList.hpp"
 #include "StamonLib.hpp"
 
 namespace stamon::interface {

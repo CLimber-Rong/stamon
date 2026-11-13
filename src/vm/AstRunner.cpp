@@ -369,8 +369,8 @@ namespace stamon::vm {
 					CE
 				}
 
-				/*新建作用域*/
-				manager->pushScope();
+				/*新建带墙的作用域*/
+				manager->pushScope(true);
 
 				/*如果有函数名，就存入它*/
 				if(method->id!=-1) {
@@ -573,10 +573,14 @@ namespace stamon::vm {
 					auto st = RUN(node->Children()->at(2));
 
 					if(st.status==RetStatusBrk) {
+						manager->popScope();
+						OPND_POP	//弹出list_dt
 						return RetStatus(RetStatusNor, NullVariablePtr());
 					}
 
 					if(st.status==RetStatusRet) {
+						manager->popScope();
+						OPND_POP	//弹出list_dt
 						return st;
 					}
 
@@ -605,10 +609,12 @@ namespace stamon::vm {
 
 					if(st.status==RetStatusBrk) {
 						OPND_POP;	//弹出cond
+						manager->popScope();
 						return RetStatus(RetStatusNor, NullVariablePtr());
 					}
 					if(st.status==RetStatusRet) {
 						OPND_POP;	//弹出cond
+						manager->popScope();
 						return st;
 					}
 
@@ -662,23 +668,9 @@ namespace stamon::vm {
 					st = RetStatus(RetStatusNor, NullVariablePtr());
 				}
 
-				if(st.status==RetStatusBrk) {
-					THROW(exception::astrunner::BreakError(POSITION));
-					CE
-				}
-
-				if(st.status==RetStatusCon) {
-					THROW(exception::astrunner::ContinueError(POSITION));
-					CE
-				}
-
-				if(st.status==RetStatusRet) {
-					return st;
-				}
-
 				OPND_POP	//弹出cond
 
-				return RetStatus(RetStatusNor, NullVariablePtr());
+				return st;
 			}
 
 			RetStatus runReturnStatement(ast::AstNode* node) {
@@ -779,7 +771,7 @@ namespace stamon::vm {
 						::astrunner
 						::TypeError(
 							POSITION,
-							toString(left_value->data->getType())
+							getDataTypeName(left_value->data->getType())
 						)
 					);
 					CE;
@@ -847,6 +839,34 @@ namespace stamon::vm {
 				datatype::DataType* left = left_st.retval->data;
 				OPND_PUSH(left);
 
+
+				//逻辑与和逻辑或需要做短路处理，所以要在计算right之前做短路特判
+				if(
+					optype==ast::BinaryLogicANDType
+					&& typecalculator.toBool(left)==false
+				) {
+					OPND_POP;
+					return RetStatus(
+						RetStatusNor,
+						RightVariablePtr(
+							manager->MallocObject<datatype::IntegerType>(0)
+						)
+					);
+				}
+
+				if(
+					optype==ast::BinaryLogicORType
+					&& typecalculator.toBool(left)==true
+				) {
+					OPND_POP;
+					return RetStatus(
+						RetStatusNor,
+						RightVariablePtr(
+							manager->MallocObject<datatype::IntegerType>(1)
+						)
+					);
+				}
+
 				RetStatus right_st = RUN(bin_node->Children()->at(1));
 				datatype::DataType* right = right_st.retval->data;
 				OPND_PUSH(right);
@@ -868,7 +888,7 @@ namespace stamon::vm {
 						::astrunner
 						::TypeError(
 							POSITION,
-							toString(left->getType())
+							getDataTypeName(left->getType())
 						)
 					);
 					CE;
@@ -959,7 +979,7 @@ namespace stamon::vm {
 						::astrunner
 						::TypeError(
 							POSITION,
-							toString(src->getType())
+							getDataTypeName(src->getType())
 						)
 					);
 					CE;
@@ -1237,6 +1257,7 @@ namespace stamon::vm {
 	inline String AstRunner::getDataTypeName(int type) {
 		switch (type)
 		{
+		case stamon::datatype::NullTypeID:		return String("null");
 		case stamon::datatype::ClassTypeID:		return String("class");
 		case stamon::datatype::MethodTypeID:	return String("function");
 		case stamon::datatype::IntegerTypeID:	return String("int");

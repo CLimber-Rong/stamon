@@ -33,8 +33,8 @@ public:
 	AstFileWriter(log::Exception *e, BufferOutStream &outstream)
 		: ex(e)
 		, stream(outstream) {
-		WRITE(0xAB);
-		WRITE(0xDD);
+		stream.writeByte(0xAB);
+		stream.writeByte(0xDD);
 	}
 
 	void write(ast::AstNode *node, bool isstrip) {
@@ -144,12 +144,12 @@ public:
 			}
 			break;
 		}
-		}
 		CHECK_SPECIAL_AST(ast::AstAnonClass, father_flag);
 		CHECK_SPECIAL_AST(ast::AstExpression, ass_type);
 		CHECK_SPECIAL_AST(ast::AstBinary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstUnary, operator_type);
 		CHECK_SPECIAL_AST(ast::AstPostfix, postfix_type);
+		}
 	}
 };
 

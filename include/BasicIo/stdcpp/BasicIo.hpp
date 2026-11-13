@@ -38,11 +38,16 @@ String platform_input() {
 	char ch = getchar();
 
 	// 先过滤先前的空格
-	while (isspace(ch)) {
+	while (ch != EOF && isspace(ch)) {
 		ch = getchar();
 	}
 
-	while (!isspace(ch)) {
+	if(ch == EOF) {
+		// 输入已结束，返回空串
+		return rst;
+	}
+
+	while (ch != EOF && !isspace(ch)) {
 		if (pos == _PLATFORM_INPUT_BUFFER_SIZE - 2) {
 			// 缓冲区已满
 			rst += String(buffer);

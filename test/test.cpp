@@ -45,12 +45,6 @@ void DebugAST(AstNode* node, int layer) {
 		printf(" EXPRESSION: %d", rst->ass_type);
 	}
 
-	//特判left_postfix
-	if(node->getType()==AstLeftPostfixType) {
-		AstLeftPostfix* rst = (AstLeftPostfix*)node;
-		printf(" LEFT-POSTFIX: %d", rst->postfix_type);
-	}
-
 	//特判postfix
 	if(node->getType()==AstPostfixType) {
 		AstPostfix* rst = (AstPostfix*)node;

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "StamonLib.hpp"
+#include "BasicPlatform.hpp"
 
 namespace stamon::interface {
 

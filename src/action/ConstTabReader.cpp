@@ -9,6 +9,7 @@
 #pragma once
 
 #include "ArrayList.hpp"
+#include "AstIr.cpp"
 #include "BufferStream.cpp"
 #include "ConstTabReaderException.cpp"
 #include "DataType.hpp"

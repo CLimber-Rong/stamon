@@ -50,6 +50,8 @@ ArrayList<SourceSyntax> *ParseTargetProject(log::Exception *e,
 				auto warning = ex->Warning[i];
 				warning_msg->add(warning.toString());
 			}
+
+			ex->Warning.clear();	// 警告信息已转存，需清除ex中的警告
 			ex->isWarning = false;
 		}
 

@@ -33,7 +33,14 @@ namespace stamon::vm {
 			HashMap<int, Variable*> scope; //实际上存储的是DataType指针
 		public:
 
+			bool isWall = false;
+
 			ObjectScope() {}
+
+			ObjectScope(bool is_wall) {
+				isWall = is_wall;
+			}
+
 			ObjectScope(HashMap<int, Variable*> s) {
 				scope = s;
 			}
@@ -256,12 +263,23 @@ namespace stamon::vm {
 			}
 
 			Variable* getVariable(int id) {
-				//从最新的作用域到全局作用域逐个查找
-				for(int i=Scopes.size()-1; i>=0; i--) {
+
+				//自顶而下查找
+				//若当前处于函数中，则查的是函数中的作用域，否则查的是全局作用域的子域
+				for(int i=Scopes.size()-1; i>0; i--) {
 					if(Scopes.at(i).exist(id)) {
 						return Scopes.at(i).get(id);
 					}
+					if(Scopes.at(i).isWall) {
+						break;	//碰到墙，停止作用域查找
+					}
 				}
+
+				//当前函数作用域或全局作用域的子域都查不到，则查找全局作用域
+				if(Scopes.at(0).exist(id)) {
+					return Scopes.at(0).get(id);
+				}
+
 				THROW(
 					exception::objectmanager::IdentifierError("getVariable()")
 				);	//未定义标识符
@@ -272,6 +290,11 @@ namespace stamon::vm {
 
 			void pushScope() {
 				ObjectScope scope;
+				Scopes.add(scope);
+			}
+
+			void pushScope(bool isWall) {
+				ObjectScope scope(isWall);
 				Scopes.add(scope);
 			}
 
@@ -289,6 +312,7 @@ namespace stamon::vm {
 
 			void pushMemberTabScope(ObjectScope s) {
 				//将成员表作为作用域入栈
+				s.isWall = true;	//标记为墙，成员初始化也只能看到其他成员和全局变量
 				Scopes.add(s);
 			}
 

@@ -44,7 +44,6 @@ public:
 
 		if (magic_number[0] != (byte) 0xAB || magic_number[1] != (byte) 0xDB) {
 			// 检查字节码是否为AST-IR
-			printf("%d %d \n",magic_number[0],magic_number[1]);
 			THROW(exception::astirreader::FormatError("readHeader()"));
 		}
 

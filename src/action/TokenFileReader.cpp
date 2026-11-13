@@ -28,8 +28,6 @@ class TokenFileReader {
 	log::Exception *ex;
 
 public:
-	TokenFileReader() {
-	}
 	TokenFileReader(log::Exception *e, const BufferInStream &instream)
 		: ex(e)
 		, stream(instream)
@@ -99,8 +97,8 @@ public:
 				stream.read(cstr[i]);
 				CE;
 			}
-			String val(cstr, len);
-			delete cstr; // 释放内存
+			String val(cstr);
+			delete[] cstr; // 释放内存
 			return (c::Token *) (new c::StringToken(lineno, val));
 		}
 
@@ -120,8 +118,8 @@ public:
 				stream.read(cstr[i]);
 				CE;
 			}
-			String val(cstr, len);
-			delete cstr; // 释放内存
+			String val(cstr);
+			delete[] cstr; // 释放内存
 			return (c::Token *) (new c::StringToken(lineno, val));
 		}
 
@@ -162,11 +160,6 @@ public:
 
 	bool isMore() {
 		return ismore;
-	}
-
-	void close() {
-		reader.close();
-		return;
 	}
 };
 } // namespace stamon::action

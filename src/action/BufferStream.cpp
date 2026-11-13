@@ -69,7 +69,6 @@ public:
 			rst = buffer[*read_pos];
 			(*read_pos)++;
 		} else {
-			printf("pos %u\n", *read_pos);
 			rst = 0;
 			THROW(exception::bufferstream::DataSizeError("readByte()"));
 		}

@@ -123,8 +123,8 @@ public:
 			}
 			CE;
 
-			String iden(cstr, len);
-			delete cstr; // 释放内存
+			String iden(cstr);
+			delete[] cstr; // 释放内存
 			n = new ast::AstIdentifierName(iden);
 			break;
 		}
@@ -185,8 +185,8 @@ public:
 			}
 			CE;
 
-			String val(cstr, len);
-			delete cstr; // 释放内存
+			String val(cstr);
+			delete[] cstr; // 释放内存
 			n = new ast::AstString(val);
 			break;
 		}
@@ -251,7 +251,7 @@ public:
 			((ast::AstUnary *) n)->operator_type = operator_type;
 		}
 
-		case ast::AstPostfix: {
+		case ast::AstPostfixType: {
 			int postfix_type;
 			stream.read(postfix_type);
 			CE;
@@ -289,14 +289,14 @@ public:
 			stream.read(type);
 			CE;
 
-			while (type == -2 || type == -3) {
-				if (type == -2) {
+			while (type == byte(-2) || type == byte(-3)) {
+				if (type == byte(-2)) {
 					lineno = updateLineNo();
 				}
-				if (type == -3) {
+				if (type == byte(-3)) {
 					filename = updateFileName();
 				}
-				stream.read(byte);
+				stream.read(type);
 				CE;
 			}
 
@@ -326,7 +326,7 @@ public:
 			return root;
 		}
 
-		for (int i = 0, len = ir.size(); i < len; i++) {
+		for (int i = 0, len = flatAstNode.size(); i < len; i++) {
 			if (flatAstNode[i] == NULL) {
 				// 特判结束符
 
@@ -349,7 +349,7 @@ public:
 
 				if (root != NULL) {
 					// 已经出现根节点了，因此是重复的根节点
-					THROW(exception::astfilereader::RedundantRootNode(
+					THROW(exception::astfilereader::RedundantRootNodeError(
 							"read()"));
 					return root;
 				}

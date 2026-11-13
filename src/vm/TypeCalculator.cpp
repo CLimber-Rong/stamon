@@ -197,10 +197,17 @@ namespace stamon::vm {
                     if(ISNUM(a) && ISNUM(b)) {
                         return true;
                     }
+
+                    //特殊的，空值可以与任意数据类型进行判等
+                    if(a->getType()==IDNUL || b->getType()==IDNUL) {
+                        return true;
+                    }
+
                     //如果是非数字且两者非同类，必然无法判等
                     if(a->getType()!=b->getType()) {
                         return false;
                     }
+
                     //在保障两者同类的情况下，字符串、空值、类、函数都可以判等
                     /*
                      * 我想要解释一下接下来的做法
@@ -441,6 +448,10 @@ namespace stamon::vm {
             //封装判等和判不等的运算
             #define DEFINE_EQU_OPERATE(name, op) \
                 DTT* name(DTT* a, DTT* b) { \
+                    if(a->getType()==IDNUL || b->getType()==IDNUL) { \
+                        /*只有将两个空值进行判等，结果才为true*/ \
+                        return NEWDT(INT)(a->getType() op b->getType()); \
+                    } \
                     switch (a->getType()) \
                     { \
                     /*特判类和函数和空值*/ \
@@ -459,6 +470,11 @@ namespace stamon::vm {
                     \
                     case datatype::NullTypeID: \
                         return NEWDT(INT)(true); \
+                    \
+                    case IDSTR: \
+                        return NEWDT(INT)( \
+                            ((STR*)a)->getVal() op ((STR*)b)->getVal() \
+                        ); \
                     \
                     default: \
                         break; \
@@ -508,10 +524,32 @@ namespace stamon::vm {
                 }
 
                 if(a->getType()==IDSEQ) {
-                    return NEWDT(SEQ)(
-                        ((SEQ*)a)->getVal()
-                        + ((SEQ*)b)->getVal()
+                    const ArrayList<datatype::Variable*>
+                        &a_list = ((SEQ*)a)->getVal(),
+                        &b_list = ((SEQ*)b)->getVal();
+
+                    ArrayList<datatype::Variable*> merged_list(
+                        a_list.size() + b_list.size()
                     );
+
+                    for(int i=0,len=a_list.size(); i<len; i++) {
+                        merged_list[i] = new datatype::Variable(
+                            a_list[i]->data
+                        );
+                    }
+
+                    for(
+                        int i=0,a_len=a_list.size(),b_len=b_list.size();
+                        i<b_len;
+                        i++
+                    ) {
+                        merged_list[a_len+i] = new datatype::Variable(
+                            b_list[i]->data
+                        );
+                    }
+
+                    return NEWDT(SEQ)(merged_list);
+
                 }
 
                 MATH_CALCULATION(+);

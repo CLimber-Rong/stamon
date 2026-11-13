@@ -810,11 +810,18 @@ namespace stamon::c {
 				ast::AstBlock* block_if = block();
 				CE;
 
+				popscope;
+
 				if(check(TokenElse)) {
 					_pop;		//弹出else
+
+					pushscope(0);
+
 					ast::AstBlock* block_else = block();
 					CE;
+
 					popscope;
+
 					return Ast<ast::AstIfStatement>(
 					           lineNo,
 					           condition,
@@ -822,8 +829,6 @@ namespace stamon::c {
 					           block_else
 					       );
 				}
-
-				popscope;
 
 				return Ast<ast::AstIfStatement>(
 				           lineNo,
