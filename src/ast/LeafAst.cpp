@@ -13,38 +13,17 @@
 
 namespace stamon::ast {
 class AstIdentifier : public AstNode {
-	unsigned long long id;
-
-public:
-	AstIdentifier(unsigned long long iden_id)
-		: AstNode(AstIdentifierType) {
-		id = iden_id;
-	}
-	unsigned long long getID() {
-		return id;
-	}
-	virtual ~AstIdentifier() = default;
-};
-/*
- * 这里需要解释一下
- * 由于虚拟机的设计，需要定义两种标识符节点
- * AstIdentifierName存储着标识符的名字（字符串）
- * 这个节点并不参与虚拟机的运行，而是参与目标代码的编译
- * 如果你是来阅读虚拟机实现代码的，请不要理会这个节点
- * AstIdentifier存储着标识符的编号，这个节点用作运行
- */
-class AstIdentifierName : public AstIdentifier {
 	String name;
 
 public:
-	AstIdentifierName(const String &id)
-		: AstIdentifier(-1) {
+	AstIdentifier(const String &id)
+		: AstNode(AstIdentifierType) {
 		name = id;
 	}
 	String getName() {
 		return name;
 	}
-	virtual ~AstIdentifierName() = default;
+	virtual ~AstIdentifier() = default;
 };
 
 /*

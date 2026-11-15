@@ -6,4 +6,3 @@ import math;
 import stdio;
 import system;
 import string;
-import file;

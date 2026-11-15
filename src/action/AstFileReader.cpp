@@ -125,7 +125,7 @@ public:
 
 			String iden(cstr);
 			delete[] cstr; // 释放内存
-			n = new ast::AstIdentifierName(iden);
+			n = new ast::AstIdentifier(iden);
 			break;
 		}
 

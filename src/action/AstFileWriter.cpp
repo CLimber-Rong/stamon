@@ -97,7 +97,7 @@ public:
 		// 对有ast数据的节点进行特判
 		case ast::AstIdentifierType: {
 			// 标识符
-			String iden = ((ast::AstIdentifierName *) top)->getName();
+			String iden = ((ast::AstIdentifier *) top)->getName();
 			stream.write(iden.length());
 			for (int i = 0; i < iden.length(); i++) {
 				stream.write((byte) (iden[i]));

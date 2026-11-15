@@ -17,7 +17,7 @@ public:
 	AstSFN()
 		: AstNode(AstSFNType) {
 	}
-	AstSFN(AstIdentifier *port, AstIdentifier *result)
+	AstSFN(AstNode *port, AstNode *result)
 		: AstNode(AstSFNType) {
 		children->add((AstNode *) port);
 		children->add((AstNode *) result);

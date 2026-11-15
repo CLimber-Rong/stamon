@@ -64,7 +64,7 @@ void DebugAST(AstNode* node, int layer) {
 
 	//ast的叶子节点要特判
 	if(node->getType()==AstIdentifierType) {
-		AstIdentifierName* rst = (AstIdentifierName*)node;
+		AstIdentifier* rst = (AstIdentifier*)node;
 		printf(" IDEN:  %s",rst->getName().getstr());
 	}
 	if(node->getType()==AstNumberType) {

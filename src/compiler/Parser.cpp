@@ -314,7 +314,7 @@ namespace stamon::c {
 				match(TokenSFN);
 				CE;
 
-				ast::AstIdentifierName *port, *arg;
+				ast::AstIdentifier *port, *arg;
 
 				if(!check(TokenIden)) {
 					THROW(exception::compiler::SfnError(POSITION));
@@ -461,7 +461,7 @@ namespace stamon::c {
 				//用于生成一个def_var，将iden赋为空值
 				return Ast<ast::AstDefVar>(
 				           iden->lineNo,
-				           Ast<ast::AstIdentifierName>(
+				           Ast<ast::AstIdentifier>(
 				               iden->lineNo,
 				               ((IdenToken*)iden)->iden
 				           ),
@@ -505,7 +505,7 @@ namespace stamon::c {
 
 					ast::AstDefVar* rst = Ast<ast::AstDefVar>(
 					                          iden->lineNo,
-					                          Ast<ast::AstIdentifierName>(
+					                          Ast<ast::AstIdentifier>(
 					                              iden->lineNo,
 					                              ((IdenToken*)iden)->iden
 					                          ),
@@ -550,7 +550,7 @@ namespace stamon::c {
 
 				CE;
 
-				ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
+				ast::AstIdentifier* iden = Ast<ast::AstIdentifier>(
 				                                   iden_tok->lineNo,
 				                                   ((IdenToken*)iden_tok)->iden
 				                               );
@@ -571,7 +571,7 @@ namespace stamon::c {
 					if(check(TokenIden)) {
 						IdenToken* iden = (IdenToken*)_pop;
 						args->add(
-						    Ast<ast::AstIdentifierName>(
+						    Ast<ast::AstIdentifier>(
 						        iden->lineNo,
 						        iden->iden
 						    )
@@ -586,7 +586,7 @@ namespace stamon::c {
 						_pop;	//弹出逗号
 						IdenToken* iden = (IdenToken*)_pop;
 						args->add(
-						    Ast<ast::AstIdentifierName>(
+						    Ast<ast::AstIdentifier>(
 						        iden->lineNo,
 						        iden->iden
 						    )
@@ -638,7 +638,7 @@ namespace stamon::c {
 					if(check(TokenIden)) {
 						IdenToken* iden = (IdenToken*)_pop;
 						args->add(
-						    Ast<ast::AstIdentifierName>(
+						    Ast<ast::AstIdentifier>(
 						        iden->lineNo,
 						        iden->iden
 						    )
@@ -653,7 +653,7 @@ namespace stamon::c {
 						_pop;	//弹出逗号
 						IdenToken* iden = (IdenToken*)_pop;
 						args->add(
-						    Ast<ast::AstIdentifierName>(
+						    Ast<ast::AstIdentifier>(
 						        iden->lineNo,
 						        iden->iden
 						    )
@@ -685,8 +685,8 @@ namespace stamon::c {
 
 			ast::AstDefClass* def_class() {
 
-				ast::AstIdentifierName* iden;	//类的标识符
-				ast::AstIdentifierName* father = NULL;
+				ast::AstIdentifier* iden;	//类的标识符
+				ast::AstIdentifier* father = NULL;
 				//父类标识符，默认没有父类
 
 				if(matcher.Peek(0)->type==TokenIden) {
@@ -699,7 +699,7 @@ namespace stamon::c {
 
 				Token* iden_tok = match(TokenIden);
 				CE;
-				iden = Ast<ast::AstIdentifierName>(
+				iden = Ast<ast::AstIdentifier>(
 				           iden_tok->lineNo,
 				           ((IdenToken*)iden_tok)->iden
 				       );
@@ -749,7 +749,7 @@ namespace stamon::c {
 
 			ast::AstAnonClass* anon_class() {
 
-				ast::AstIdentifierName* father = NULL;
+				ast::AstIdentifier* father = NULL;
 				//父类标识符，默认没有父类
 
 				if(matcher.Peek(0)->type==TokenIden) {
@@ -867,7 +867,7 @@ namespace stamon::c {
 
 				Token* iden_tok = match(TokenIden);
 				CE;
-				ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
+				ast::AstIdentifier* iden = Ast<ast::AstIdentifier>(
 				                                   iden_tok->lineNo,
 				                                   ((IdenToken*)iden_tok)->iden
 				                               );
@@ -1084,7 +1084,7 @@ namespace stamon::c {
 
 				return Ast<ast::AstLeftValue>(
 				           quark->lineNo,
-				           (ast::AstIdentifierName*)quark,
+				           (ast::AstIdentifier*)quark,
 				           postfixs
 				       );
 
@@ -1218,7 +1218,7 @@ namespace stamon::c {
 					IdenToken* iden_tok = (IdenToken*)match(TokenIden);
 					CTH(exception::compiler::MemberError(POSITION));
 					CE;
-					ast::AstIdentifierName* iden = Ast<ast::AstIdentifierName>(
+					ast::AstIdentifier* iden = Ast<ast::AstIdentifier>(
 					                                   iden_tok->lineNo,
 					                                   iden_tok->iden
 					                               );
@@ -1295,8 +1295,8 @@ namespace stamon::c {
 			}
 
 			//注意：这里的IDEN()只有在匹配变量名的时候能使用
-			//如果是匹配类成员名等，请自行建立ast::AstIdentifierName节点
-			ast::AstIdentifierName* IDEN() {
+			//如果是匹配类成员名等，请自行建立ast::AstIdentifier节点
+			ast::AstIdentifier* IDEN() {
 				//分析一个标识符
 				IdenToken* tok = (IdenToken*)match(TokenIden);
 
@@ -1328,7 +1328,7 @@ namespace stamon::c {
 					return NULL;
 				}
 
-				return Ast<ast::AstIdentifierName>(tok->lineNo, tok->iden);
+				return Ast<ast::AstIdentifier>(tok->lineNo, tok->iden);
 			}
 
 			ast::AstNumber* NUM() {

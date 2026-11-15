@@ -243,12 +243,12 @@ namespace stamon::vm {
 					//有父类，先初始化父类
 					auto father_class = manager->getVariable(
 					                        (
-					                            (ast::AstIdentifier*)
+					                            (ast::AstLeaf*)
 					                            node
 					                            ->Children()
 					                            ->at(0)
 					                        )
-					                        ->getID()
+					                        ->getVal()
 					                    );
 					CATCH {
 						return NULL;
@@ -381,9 +381,9 @@ namespace stamon::vm {
 				for(int i=0,len=FormArg.size(); i<len; i++) {
 					manager->NewVariable(
 					    (
-					        (ast::AstIdentifier*)FormArg.at(i)
+					        (ast::AstLeaf*)FormArg.at(i)
 					    )
-					    ->getID(),
+					    ->getVal(),
 					    args_val[i]
 					);
 				}
@@ -449,9 +449,9 @@ namespace stamon::vm {
 				auto val = RUN(node->Children()->at(1));
 				manager->NewVariable(
 				    (
-				        (ast::AstIdentifier*)node->Children()->at(0)
+				        (ast::AstLeaf*)node->Children()->at(0)
 				    )
-				    ->getID(),
+				    ->getVal(),
 				    val.retval->data
 				);
 				return RetStatus(RetStatusNor, NullVariablePtr());
@@ -461,9 +461,9 @@ namespace stamon::vm {
 			    datatype::ObjectType* container, ast::AstNode* node) {
 
 				auto iden = (
-				                (ast::AstIdentifier*)node->Children()->at(0)
+				                (ast::AstLeaf*)node->Children()->at(0)
 				            )
-				            ->getID();
+				            ->getVal();
 
 				RetStatus st = runAst(node->Children()->at(1));
 
@@ -483,9 +483,9 @@ namespace stamon::vm {
 
 			RetStatus runDefFunc(ast::AstNode* node) {
 				auto iden = (
-				                (ast::AstIdentifier*)node->Children()->at(0)
+				                (ast::AstLeaf*)node->Children()->at(0)
 				            )
-				            ->getID();
+				            ->getVal();
 
 				auto st = RUN(node->Children()->at(1));
 
@@ -500,9 +500,9 @@ namespace stamon::vm {
 
 			RetStatus runDefClass(ast::AstNode* node) {
 				auto iden = (
-				                (ast::AstIdentifier*)node->Children()->at(0)
+				                (ast::AstLeaf*)node->Children()->at(0)
 				            )
-				            ->getID();
+				            ->getVal();
 				auto st = RUN(node->Children()->at(1));
 
 				auto cls = (datatype::ClassType*)st.retval->data;
@@ -544,10 +544,10 @@ namespace stamon::vm {
 				auto stm_node = (ast::AstForStatement*)node;
 
 				int iden = (
-				               (ast::AstIdentifier*)
+				               (ast::AstLeaf*)
 				               node->Children()->at(0)
 				           )
-				           ->getID();	//遍历的标识符
+				           ->getVal();	//遍历的标识符
 
 				RetStatus list_st = RUN(node->Children()->at(1));
 
@@ -679,10 +679,10 @@ namespace stamon::vm {
 			}
 
 			RetStatus runSFN(ast::AstNode* node) {
-				int port = ((ast::AstIdentifier*)node->Children()->at(0))
-				           ->getID();
-				int arg = ((ast::AstIdentifier*)node->Children()->at(1))
-				          ->getID();
+				int port = ((ast::AstLeaf*)node->Children()->at(0))
+				           ->getVal();
+				int arg = ((ast::AstLeaf*)node->Children()->at(1))
+				          ->getVal();
 
 				Variable* port_var = manager->getVariable(port);
 				CE
@@ -798,10 +798,10 @@ namespace stamon::vm {
 				VariablePtr lvalue = LeftVariablePtr(
 											manager->getVariable(
 											(
-											(ast::AstIdentifier*)
+											(ast::AstLeaf*)
 											node->Children()->at(0)
 											)
-											->getID()
+											->getVal()
 				                   		)
 									);
 				CE;
@@ -1001,12 +1001,12 @@ namespace stamon::vm {
 				if(postfix_type==ast::PostfixMemberType) {
 					//访问成员
 					CDT(src, datatype::ObjectType)
-					ast::AstIdentifier* member = (ast::AstIdentifier*)
+					ast::AstLeaf* member = (ast::AstLeaf*)
 					                             postfix_node
 					                             ->Children()
 					                             ->at(0);
 
-					int member_id = member->getID();
+					int member_id = member->getVal();
 
 					if(
 					    ((datatype::ObjectType*)src)

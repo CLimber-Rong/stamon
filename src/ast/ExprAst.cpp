@@ -77,7 +77,7 @@ public:
 		: AstNode(AstLeftValueType) {
 	}
 
-	AstLeftValue(AstIdentifier *iden, ArrayList<AstNode *> *postfix)
+	AstLeftValue(AstNode *iden, ArrayList<AstNode *> *postfix)
 		: AstNode(AstLeftValueType) {
 		children = postfix;
 		children->insert(0, (AstNode *) iden);

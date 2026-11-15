@@ -229,7 +229,7 @@ public:
 			}
 
 			if (top->getType() == ast::AstIdentifierType) {
-				String iden = ((ast::AstIdentifierName *) top)->getName();
+				String iden = ((ast::AstIdentifier *) top)->getName();
 				IdenConstType *dtIden = new IdenConstType(iden);
 
 				int index; // 常量表下标

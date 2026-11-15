@@ -28,7 +28,7 @@ public:
 		: AstNode(AstDefClassType) {
 	}
 
-	AstDefClass(AstIdentifier *iden, AstAnonClass *object_class)
+	AstDefClass(AstNode *iden, AstAnonClass *object_class)
 		: AstNode(AstDefClassType) {
 		children->add((AstNode *) iden);
 		children->add((AstNode *) object_class);
@@ -40,7 +40,7 @@ public:
 		: AstNode(AstDefFuncType) {
 	}
 
-	AstDefFunc(AstIdentifier *iden, AstAnonFunc *func)
+	AstDefFunc(AstNode *iden, AstAnonFunc *func)
 		: AstNode(AstDefFuncType) {
 		children->add((AstNode *) iden);
 		children->add((AstNode *) func);
@@ -52,7 +52,7 @@ public:
 		: AstNode(AstDefVarType) {
 	}
 
-	AstDefVar(AstIdentifier *iden, AstExpression *expr)
+	AstDefVar(AstNode *iden, AstExpression *expr)
 		: AstNode(AstDefVarType) {
 		children->add((AstNode *) iden);
 		children->add((AstNode *) expr);
@@ -66,7 +66,7 @@ public:
 		: AstNode(AstAnonClassType) {
 	}
 
-	AstAnonClass(AstIdentifier *father, ArrayList<AstNode *> *expr)
+	AstAnonClass(AstNode *father, ArrayList<AstNode *> *expr)
 		: AstNode(AstAnonClassType) {
 		children = expr;
 		if (father != NULL) {
@@ -138,7 +138,7 @@ public:
 	}
 
 	AstForStatement(
-			AstIdentifier *iden, AstExpression *expr, AstBlock *block_for)
+			AstNode *iden, AstExpression *expr, AstBlock *block_for)
 		: AstNode(AstForStatementType) {
 		children->add((AstNode *) iden);
 		children->add((AstNode *) expr);
