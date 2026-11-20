@@ -56,7 +56,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include/String/stdcpp)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/ast)
-include_directories(${PROJECT_SOURCE_DIR}/src/data_type)
+include_directories(${PROJECT_SOURCE_DIR}/src/datatype)
 include_directories(${PROJECT_SOURCE_DIR}/src/vm)
 include_directories(${PROJECT_SOURCE_DIR}/src/ir)
 include_directories(${PROJECT_SOURCE_DIR}/src/compiler)

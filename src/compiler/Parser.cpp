@@ -17,13 +17,14 @@
 
 #define check(type) (matcher.Check(type))
 #define _pop			(matcher.Pop())
-#define POSITION ParsingFileName + String(":") + toString(ParsingLineNo)
+#define _match(type)	(matcher.match(type))
+#define POSITION matcher.ParsingFileName + String(":") + toString(matcher.ParsingLineNo)
 #define CE			CATCH { return NULL; }	//如果执行代码中出现异常，直接返回
 #define CTH(message)	CATCH { THROW(message) } //如果执行代码中出现异常，抛出异常
 #define GETLN(type) \
 	int lineNo;\
 	if(true) {\
-		Token* tok = match(type);\
+		Token* tok = _match(type);\
 		CE;\
 		lineNo = tok->lineNo;\
 	}
@@ -69,11 +70,14 @@ namespace stamon::c {
 		public:
 
 			log::Exception* ex;
+			int ParsingLineNo = 1;	//当前正在分析的行号
+			String ParsingFileName;	//当前正在分析的文件名
 
 			Matcher() {}
 
 			Matcher(Lexer lex, log::Exception* e) {
 				lexer = lex;
+				ParsingFileName = lex.filename;
 				ex = e;
 			}
 
@@ -88,15 +92,17 @@ namespace stamon::c {
 			Token* match(int type) {
 				//匹配一个类型为type的token，如果不匹配，就直接报错
 				if(Check(type)) {
-					return lexer.getTok();
+					Token* tok = lexer.getTok();
+					ParsingLineNo = tok->lineNo;
+					return tok;
 				} else {
 					THROW(
 						exception
 						::compiler
 						::SyntaxError(
-							lexer.filename
+							ParsingFileName
 							+ String(":")
-							+ toString(Peek(0)->lineNo)
+							+ toString(ParsingLineNo)
 						)
 					);
 					return NULL;
@@ -110,7 +116,9 @@ namespace stamon::c {
 
 			Token* Pop() {
 				//直接弹出一个token
-				return lexer.getTok();
+				Token* tok = lexer.getTok();
+				ParsingLineNo = tok->lineNo;
+				return tok;
 			}
 	};
 
@@ -227,10 +235,8 @@ namespace stamon::c {
 
 		public:
 
-			int ParsingLineNo = 1;	//当前正在分析的行号
 			bool ImportFlag = config::isSupportImport;	//表示是否支持引用代码
 			log::Exception* ex = NULL;
-			String ParsingFileName;
 
 			HashMap<String, bool> filemap;
 			ArrayList<SourceSyntax>* src_project;
@@ -258,7 +264,7 @@ namespace stamon::c {
 				//压入全局作用域
 				scopes.add(global_scope);
 				ImportFlag = is_support_import;
-				ParsingFileName = filename;
+				matcher.ParsingFileName = filename;
 				filemap = map;
 				src_project = src;
 				ErrorMsg = error_msg;
@@ -271,25 +277,10 @@ namespace stamon::c {
 				//这个代码比较难懂，涉及到形参模板和右值引用
 				T* rst = new T(args...);
 				rst->lineNo = line;
-				rst->filename = ParsingFileName;
-				ParsingLineNo = line;
+				rst->filename = matcher.ParsingFileName;
+				matcher.ParsingLineNo = line;
 				return rst;
 			}
-
-			Token* match(int TokType) {
-				Token* rst = matcher.match(TokType);
-
-				CATCH {
-					if(matcher.Peek(0)->type!=TokenEOF) {
-						ParsingLineNo = matcher.Peek(0)->lineNo;
-					}
-					return NULL;
-				}
-
-				ParsingLineNo = rst->lineNo;
-				return rst;
-			}
-
 
 			ast::AstNode* Parse() {
 				return program();
@@ -311,7 +302,7 @@ namespace stamon::c {
 			}
 
 			ast::AstSFN* sfn() {
-				match(TokenSFN);
+				_match(TokenSFN);
 				CE;
 
 				ast::AstIdentifier *port, *arg;
@@ -323,7 +314,7 @@ namespace stamon::c {
 				port = IDEN();
 				CE;
 
-				match(TokenCmm);
+				_match(TokenCmm);
 
 				if(!check(TokenIden)) {
 					THROW(exception::compiler::SfnError(POSITION));
@@ -333,7 +324,7 @@ namespace stamon::c {
 				arg = IDEN();
 				CE;
 
-				match(TokenSemi);
+				_match(TokenSemi);
 				CE;
 
 				return Ast<ast::AstSFN>(port->lineNo ,port, arg);
@@ -415,7 +406,7 @@ namespace stamon::c {
 					        _pop->lineNo
 					    )
 					);
-					match(TokenSemi);
+					_match(TokenSemi);
 
 				} else if(check(TokenBreak)) {
 
@@ -428,7 +419,7 @@ namespace stamon::c {
 					        _pop->lineNo
 					    )
 					);
-					match(TokenSemi);
+					_match(TokenSemi);
 
 				} else if(check(TokenSemi)) {	//空语句
 					_pop;	//弹出分号
@@ -449,7 +440,7 @@ namespace stamon::c {
 					//如果以上情况都不是，那就只有可能是表达式了
 					stm->add(expression());
 					CE;
-					match(TokenSemi);
+					_match(TokenSemi);
 
 				}
 				CE;
@@ -522,7 +513,7 @@ namespace stamon::c {
 			}
 
 			void* def_var(ArrayList<ast::AstNode*>* stm) {
-				match(TokenDef);	//弹出def
+				_match(TokenDef);	//弹出def
 				CE;
 
 				stm->add(assign_new_var());
@@ -535,7 +526,7 @@ namespace stamon::c {
 					CE;
 				}
 
-				match(TokenSemi);	//匹配分号
+				_match(TokenSemi);	//匹配分号
 				CE;
 
 				return NULL;
@@ -546,7 +537,7 @@ namespace stamon::c {
 
 				GETLN(TokenFunc);
 
-				Token* iden_tok = match(TokenIden);
+				Token* iden_tok = _match(TokenIden);
 
 				CE;
 
@@ -596,7 +587,7 @@ namespace stamon::c {
 						CE;
 					}
 
-					if(match(TokenRRB)==NULL) {
+					if(_match(TokenRRB)==NULL) {
 						THROW(exception::compiler::RoundBracketError(POSITION));
 					}
 				}
@@ -663,7 +654,7 @@ namespace stamon::c {
 						CE;
 					}
 
-					if(match(TokenRRB)==NULL) {
+					if(_match(TokenRRB)==NULL) {
 						THROW(exception::compiler::RoundBracketError(POSITION));
 					}
 				}
@@ -697,7 +688,7 @@ namespace stamon::c {
 
 				GETLN(TokenClass);	//匹配class
 
-				Token* iden_tok = match(TokenIden);
+				Token* iden_tok = _match(TokenIden);
 				CE;
 				iden = Ast<ast::AstIdentifier>(
 				           iden_tok->lineNo,
@@ -706,7 +697,7 @@ namespace stamon::c {
 
 				scopes[scopes.size()-1].force_mark(iden_tok);	//弱定义
 
-				match(TokenLBC);	//匹配左花括号
+				_match(TokenLBC);	//匹配左花括号
 				CE;
 
 				//新建作用域
@@ -762,7 +753,7 @@ namespace stamon::c {
 
 				CE;
 
-				match(TokenLBC);	//匹配左花括号
+				_match(TokenLBC);	//匹配左花括号
 				CE;
 
 				//新建作用域
@@ -865,7 +856,7 @@ namespace stamon::c {
 			ast::AstForStatement* statement_for() {
 				GETLN(TokenFor);	//匹配for
 
-				Token* iden_tok = match(TokenIden);
+				Token* iden_tok = _match(TokenIden);
 				CE;
 				ast::AstIdentifier* iden = Ast<ast::AstIdentifier>(
 				                                   iden_tok->lineNo,
@@ -873,7 +864,7 @@ namespace stamon::c {
 				                               );
 				//获取循环用的变量
 
-				match(TokenIn);	//匹配in
+				_match(TokenIn);	//匹配in
 				CE;
 
 				ast::AstExpression* expr = expression();		//循环所需的表达式
@@ -905,7 +896,7 @@ namespace stamon::c {
 				ast::AstExpression* expr = expression();
 				CE;
 
-				match(TokenSemi);
+				_match(TokenSemi);
 				CE;
 
 				return Ast<ast::AstReturnStatement>(
@@ -916,7 +907,7 @@ namespace stamon::c {
 
 			void* statement_import() {
 				GETLN(TokenImport);
-				ParsingLineNo = lineNo;
+				matcher.ParsingLineNo = lineNo;
 
 				if(ImportFlag==false) {
 					THROW(exception::compiler::ImportError(POSITION));
@@ -925,22 +916,22 @@ namespace stamon::c {
 
 				String import_path;	//导入路径
 
-				Token* iden = match(TokenIden);
+				Token* iden = _match(TokenIden);
 				CE;
 
 				import_path += ((IdenToken*)iden)->iden;
 
 				while(check(TokenMember)) {
-					match(TokenMember);
+					_match(TokenMember);
 					import_path += String("/");	//还有一层路径
-					iden = match(TokenIden);
+					iden = _match(TokenIden);
 					CE;
 					import_path += ((IdenToken*)iden)->iden;
 				}
 
 				import_path += String(".st");
 
-				match(TokenSemi);	//匹配分号
+				_match(TokenSemi);	//匹配分号
 				CE;
 
 				//开始分析
@@ -962,25 +953,25 @@ namespace stamon::c {
 
 				GETLN(TokenExtern);
 
-				ParsingLineNo = lineNo;
+				matcher.ParsingLineNo = lineNo;
 
-				Token* iden = match(TokenIden);
+				Token* iden = _match(TokenIden);
 				CE;
 
 				scopes[0].mark((IdenToken*)iden, POSITION);
 				CE;
 
 				while(check(TokenCmm)) {
-					match(TokenCmm);
+					_match(TokenCmm);
 
-					Token* iden = match(TokenIden);
+					Token* iden = _match(TokenIden);
 					CE;
 
 					scopes[0].mark((IdenToken*)iden, POSITION);
 					CE;
 				}
 
-				match(TokenSemi);
+				_match(TokenSemi);
 				CE;
 
 				return NULL;
@@ -1173,10 +1164,10 @@ namespace stamon::c {
 				if(check(TokenLSB)) {
 					//下标后缀
 					int line = _pop->lineNo;
-					ParsingLineNo = line;
+					matcher.ParsingLineNo = line;
 					ast::AstExpression* expr = expression();
 					CE;
-					match(TokenRSB);
+					_match(TokenRSB);
 					return Ast<ast::AstPostfix>(
 					           line,
 					           ast::PostfixElementType,
@@ -1187,11 +1178,11 @@ namespace stamon::c {
 
 					int line = _pop->lineNo;
 
-					ParsingLineNo = line;
+					matcher.ParsingLineNo = line;
 
 					//还要特判是不是.new
 					if(check(TokenNew)) {
-						match(TokenNew);
+						_match(TokenNew);
 						//特性支持：如果新建对象的构造函数无参数，可以省略括号
 						if(check(TokenLRB)==false) {
 							return Ast<ast::AstPostfix> (
@@ -1215,7 +1206,7 @@ namespace stamon::c {
 					}
 
 					//正常的访问成员
-					IdenToken* iden_tok = (IdenToken*)match(TokenIden);
+					IdenToken* iden_tok = (IdenToken*)_match(TokenIden);
 					CTH(exception::compiler::MemberError(POSITION));
 					CE;
 					ast::AstIdentifier* iden = Ast<ast::AstIdentifier>(
@@ -1233,7 +1224,7 @@ namespace stamon::c {
 			ast::AstArguments* arguments() {
 				ArrayList<ast::AstNode*>* exprs
 				    = new ArrayList<ast::AstNode*>();
-				int line = match(TokenLRB)->lineNo;
+				int line = _match(TokenLRB)->lineNo;
 				CE;
 				if(check(TokenRRB)==false) {
 					//左括号后没有紧跟着右括号，代表有传参数
@@ -1242,7 +1233,7 @@ namespace stamon::c {
 				}
 				while(check(TokenRRB)==false) {
 					//只要没有匹配到右括号
-					match(TokenCmm);
+					_match(TokenCmm);
 					CE;
 					exprs->add(expression());
 					CE;
@@ -1278,7 +1269,7 @@ namespace stamon::c {
 					_pop;
 					ast::AstExpression* expr = expression();
 					CE;
-					match(TokenRRB);
+					_match(TokenRRB);
 					CTH(exception::compiler::RoundBracketError(POSITION));
 					return expr;
 				}
@@ -1298,7 +1289,7 @@ namespace stamon::c {
 			//如果是匹配类成员名等，请自行建立ast::AstIdentifier节点
 			ast::AstIdentifier* IDEN() {
 				//分析一个标识符
-				IdenToken* tok = (IdenToken*)match(TokenIden);
+				IdenToken* tok = (IdenToken*)_match(TokenIden);
 
 				//分析作用域
 				bool isIdenExist = false;	//标识符是否被定义过
@@ -1334,17 +1325,17 @@ namespace stamon::c {
 			ast::AstNumber* NUM() {
 				if(check(TokenInt)) {
 					IntToken* tok = (IntToken*)_pop;
-					ParsingLineNo = tok->lineNo;
+					matcher.ParsingLineNo = tok->lineNo;
 					return Ast<ast::AstIntNumber>(tok->lineNo, tok->val);
 				} else if(check(TokenDouble)) {
 					DoubleToken* tok = (DoubleToken*)_pop;
-					ParsingLineNo = tok->lineNo;
+					matcher.ParsingLineNo = tok->lineNo;
 					return Ast<ast::AstDoubleNumber>(tok->lineNo, tok->val);
 				} else if(check(TokenTrue)) { //布尔值在语法分析时会被转换成1和0
-					ParsingLineNo = matcher.Peek(0)->lineNo;
+					matcher.ParsingLineNo = matcher.Peek(0)->lineNo;
 					return Ast<ast::AstIntNumber>(_pop->lineNo, 1);
 				} else if(check(TokenFalse)) {
-					ParsingLineNo = matcher.Peek(0)->lineNo;
+					matcher.ParsingLineNo = matcher.Peek(0)->lineNo;
 					return Ast<ast::AstIntNumber>(_pop->lineNo, 0);
 				} else {
 					THROW(exception::compiler::SyntaxError(POSITION));
@@ -1353,12 +1344,12 @@ namespace stamon::c {
 			}
 
 			ast::AstString* STR() {
-				StringToken* tok = (StringToken*)match(TokenString);
+				StringToken* tok = (StringToken*)_match(TokenString);
 				return Ast<ast::AstString>(tok->lineNo, tok->val);
 			}
 
 			ast::AstNull* _NULL() {
-				Token* t = match(TokenNull);
+				Token* t = _match(TokenNull);
 				CE;
 				return Ast<ast::AstNull>(
 				           t->lineNo
@@ -1366,18 +1357,18 @@ namespace stamon::c {
 			}
 
 			ast::AstArrayLiteral* array_literal() {
-				Token* t = match(TokenLSB);
+				Token* t = _match(TokenLSB);
 				ast::AstArrayLiteral* rst = Ast<ast::AstArrayLiteral>(
 				                                t->lineNo,
 				                                expression()
 				                            );
-				match(TokenRSB);
+				_match(TokenRSB);
 				CTH(exception::compiler::SquareBracketError(POSITION));
 				return rst;
 			}
 
 			ast::AstListLiteral* list_literal() {
-				Token* t = match(TokenLBC);
+				Token* t = _match(TokenLBC);
 				ArrayList<ast::AstNode*>* exprs
 				    = new ArrayList<ast::AstNode*>();
 
@@ -1398,7 +1389,7 @@ namespace stamon::c {
 				ast::AstListLiteral* rst
 				    = Ast<ast::AstListLiteral>(t->lineNo, exprs);
 
-				match(TokenRBC);
+				_match(TokenRBC);
 				CTH(exception::compiler::BraceError(POSITION));
 				return rst;
 			}
@@ -1406,7 +1397,8 @@ namespace stamon::c {
 }
 
 #undef check
-#undef pop
+#undef _pop
+#undef _match
 #undef POSITION
 #undef CE
 #undef CTH

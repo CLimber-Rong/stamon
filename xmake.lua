@@ -12,7 +12,7 @@ target("stamon")
 
     add_includedirs("src")
     add_includedirs("src/ast")
-    add_includedirs("src/data_type")
+    add_includedirs("src/datatype")
     add_includedirs("src/vm")
     add_includedirs("src/ir")
     add_includedirs("src/compiler")

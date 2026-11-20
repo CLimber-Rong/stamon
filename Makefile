@@ -17,7 +17,7 @@ BASIC_LINK =	-I include/pure \
 				-I include/Stack/interface \
 				-I include/String/interface \
 				-I src/ast \
-				-I src/data_type \
+				-I src/datatype \
 				-I src/vm \
 				-I src/ir \
 				-I src/compiler \

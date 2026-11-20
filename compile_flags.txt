@@ -21,7 +21,7 @@
 -Iinclude/Stack/stdcpp
 -Iinclude/String/stdcpp
 -Isrc/ast
--Isrc/data_type
+-Isrc/datatype
 -Isrc/vm
 -Isrc/ir
 -Isrc/compiler

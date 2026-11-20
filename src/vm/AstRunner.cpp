@@ -1014,9 +1014,17 @@ namespace stamon::vm {
 					    .exist(member_id)==false
 					) {
 						//未知成员
+						CDT(tabconst[member_id], ir::IdenConstType)
+
+						String member_name = (
+												(ir::IdenConstType*)
+												(tabconst[member_id])
+											)->getVal();
+
 						THROW(exception::astrunner::UnknownMemberError(
-							POSITION, toString(member_id))
+							POSITION, member_name)
 						);
+						
 						CE
 					}
 
